@@ -136,22 +136,12 @@ p{margin:0}
 .direct a{display:inline-flex;align-items:center;gap:12px;min-height:44px;color:var(--ink);text-decoration:none}
 .direct a:hover{color:var(--accent)}
 .direct svg{color:var(--accent);flex:none}
-.help{margin-top:24px;background:var(--surface);border-radius:14px;padding:24px}
+.help{margin-top:0;background:var(--surface);border-radius:14px;padding:24px}
 .help h3{font-size:18px;font-weight:600;margin-bottom:6px}
 .help p{font-size:16px;color:var(--muted);margin-bottom:10px}
 .help a{font-weight:600;display:inline-flex;min-height:44px;align-items:center}
 .social{display:flex;gap:24px;margin-top:12px;font-weight:500}
 .social a{min-height:44px;display:inline-flex;align-items:center}
-form{background:var(--surface);border-radius:18px;padding:clamp(22px,3vw,44px);display:grid;gap:18px}
-.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-label{display:grid;gap:8px;font-size:15px;font-weight:600}
-input,textarea{width:100%;font:inherit;font-weight:400;color:var(--ink);background:var(--surface);border:1px solid var(--field);border-radius:10px;padding:12px 14px}
-input{height:50px}
-textarea{resize:vertical;min-height:130px}
-input:focus,textarea:focus{outline:3px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
-.form-note{font-size:13px;color:var(--soft)}
-.form-status{font-size:15px;font-weight:500;min-height:1.4em}
-.form-status.err{color:var(--warn)}
 
 .site-footer{background:var(--navy);color:var(--navy-text);font-size:14px}
 .site-footer .wrap{min-height:96px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:24px;flex-wrap:wrap}
@@ -178,7 +168,7 @@ input:focus,textarea:focus{outline:3px solid var(--accent);outline-offset:1px;bo
   .nav .btn{margin-top:16px;min-height:52px}
 }
 @media (max-width:600px){
-  .comp-grid,.row{grid-template-columns:minmax(0,1fr)}
+  .comp-grid{grid-template-columns:minmax(0,1fr)}
   .actions .btn{width:100%}
   .brands{grid-template-columns:repeat(2,minmax(0,1fr))}
   .site-header .wrap{height:68px}
@@ -351,11 +341,13 @@ input:focus,textarea:focus{outline:3px solid var(--accent);outline-offset:1px;bo
     <div>
       <p class="label">Contacto</p>
       <h2 class="h2">Hablemos de su negocio.</h2>
-      <p class="lead">Cuéntenos qué le preocupa de su tecnología. Le contestamos el mismo día laborable.</p>
+      <p class="lead">Cuéntenos qué le preocupa de su tecnología. Llámenos o escríbanos y le orientamos sin compromiso.</p>
       <div class="direct">
         <a href="tel:+17873379818"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg>787-337-9818</a>
         <a href="mailto:eocasio@netbluepr.com"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>eocasio@netbluepr.com</a>
       </div>
+    </div>
+    <div>
       <div class="help">
         <h3>¿Ya es cliente y necesita ayuda ahora?</h3>
         <p>Abra la herramienta de asistencia remota y llámenos.</p>
@@ -367,22 +359,6 @@ input:focus,textarea:focus{outline:3px solid var(--accent);outline-offset:1px;bo
       </div>
     </div>
 
-    <form id="contact-form" name="contacto" method="POST" action="/?enviado=1#contacto" data-netlify="true" netlify-honeypot="bot-field" novalidate>
-      <input type="hidden" name="form-name" value="contacto">
-      <p hidden><label>No llene este campo<input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
-      <div class="row">
-        <label>Nombre<input name="nombre" type="text" autocomplete="name" required></label>
-        <label>Negocio<input name="negocio" type="text" autocomplete="organization"></label>
-      </div>
-      <div class="row">
-        <label>Teléfono<input name="telefono" type="tel" autocomplete="tel"></label>
-        <label>Correo electrónico<input name="correo" type="email" autocomplete="email" required></label>
-      </div>
-      <label>¿En qué le podemos ayudar?<textarea name="mensaje" rows="5" required></textarea></label>
-      <button class="btn btn-primary" type="submit">Enviar mensaje</button>
-      <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
-      <p class="form-note">Usamos su información solo para responderle.</p>
-    </form>
   </div>
 </section>
 </main>
@@ -405,29 +381,6 @@ input:focus,textarea:focus{outline:3px solid var(--accent);outline-offset:1px;bo
   });
   nav.addEventListener('click',function(e){ if(e.target.closest('a')) close(); });
 
-  var form=document.getElementById('contact-form'), status=document.getElementById('form-status');
-  form.addEventListener('submit',function(e){
-    e.preventDefault();
-    var d=new FormData(form), missing=[];
-    if(!String(d.get('nombre')||'').trim()) missing.push('nombre');
-    var mail=String(d.get('correo')||'').trim();
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) missing.push('un correo electrónico válido');
-    if(!String(d.get('mensaje')||'').trim()) missing.push('su mensaje');
-    if(missing.length){ status.className='form-status err'; status.textContent='Falta completar: '+missing.join(', ')+'.'; return; }
-    var submitBtn=form.querySelector('button[type="submit"]');
-    submitBtn.disabled=true; status.className='form-status'; status.textContent='Enviando…';
-    fetch('/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(d).toString()})
-      .then(function(r){
-        if(!r.ok) throw new Error(r.status);
-        form.reset(); status.className='form-status';
-        status.textContent='Mensaje enviado. Le contestaremos pronto.';
-      })
-      .catch(function(){
-        status.className='form-status err';
-        status.textContent='No se pudo enviar el mensaje. Llámenos al 787-337-9818 o escriba a eocasio@netbluepr.com.';
-      })
-      .then(function(){ submitBtn.disabled=false; });
-  });
 })();
 </script>
 </body>
