@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Netblue IT Consulting | Redes, nube y ciberseguridad en Puerto Rico</title>
+<meta name="description" content="Soporte de tecnología para pequeñas y medianas empresas en Puerto Rico: redes, Wifi, VoIP, nube, Microsoft 365 y ciberseguridad. Profesionales certificados con más de 15 años de experiencia.">
+<meta property="og:title" content="Netblue IT Consulting | Tecnología para negocios en Puerto Rico">
+<meta property="og:description" content="Redes, nube y ciberseguridad para pequeñas y medianas empresas en Puerto Rico.">
+<meta property="og:locale" content="es_PR">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://netbluepr.com/">
+<meta name="theme-color" content="#0E2233">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Sora:wght@600;700&display=swap">
+<style>
+:root{
+  --ground:#F4F2ED;--surface:#FFFFFF;--band:#E9E5DC;--ink:#0E2233;--muted:#3B4552;--soft:#4A5563;
+  --line:#DDD8CE;--line-2:#ECE8E0;--accent:#1557C0;--accent-hover:#0E3F8F;--on-accent:#FFFFFF;
+  --tint:#EEF3FB;--warn:#A34A06;--field:#B9B2A5;
+  --navy:#0E2233;--navy-line:#2C4560;--navy-text:#B7C5D4;--navy-accent:#8DB8FF;
+  --display:"Sora","Segoe UI",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --pad:clamp(20px,6vw,96px);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0B1826;--surface:#122538;--band:#0F2133;--ink:#E8EEF5;--muted:#B7C5D4;--soft:#A3B3C4;
+    --line:#24405C;--line-2:#1D3650;--accent:#7AAEFF;--accent-hover:#A6C8FF;--on-accent:#0B1826;
+    --tint:#1A3350;--warn:#F2A661;--field:#3A5673;
+    --navy:#06121D;--navy-line:#1F3A55;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0B1826;--surface:#122538;--band:#0F2133;--ink:#E8EEF5;--muted:#B7C5D4;--soft:#A3B3C4;
+  --line:#24405C;--line-2:#1D3650;--accent:#7AAEFF;--accent-hover:#A6C8FF;--on-accent:#0B1826;
+  --tint:#1A3350;--warn:#F2A661;--field:#3A5673;
+  --navy:#06121D;--navy-line:#1F3A55;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 84px)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+img,svg{max-width:100%}
+a{color:var(--accent)}a:hover{color:var(--accent-hover)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:6px}
+h1,h2,h3{font-family:var(--display);margin:0;color:var(--ink)}
+p{margin:0}
+.wrap{max-width:1440px;margin:0 auto;padding-inline:var(--pad)}
+.label{font-size:15px;font-weight:600;color:var(--accent);margin-bottom:14px}
+.h2{font-size:clamp(30px,3.6vw,44px);line-height:1.15;letter-spacing:-.02em;font-weight:700}
+.lead{font-size:clamp(17px,1.4vw,20px);line-height:1.6;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 26px;border-radius:10px;font-weight:600;font-size:17px;text-decoration:none;border:1.5px solid transparent;cursor:pointer;font-family:inherit}
+.btn-primary{background:var(--accent);color:var(--on-accent)}
+.btn-primary:hover{background:var(--accent-hover);color:var(--on-accent)}
+.btn-outline{border-color:var(--ink);color:var(--ink);background:transparent}
+.btn-outline:hover{background:var(--ink);color:var(--ground)}
+
+/* Header */
+.site-header{position:sticky;top:0;z-index:20;background:var(--ground);border-bottom:1px solid var(--line)}
+.site-header .wrap{height:80px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+.brand:hover{color:var(--ink)}
+.brand b{font-family:var(--display);font-size:24px;letter-spacing:-.02em}
+.brand small{font-size:13px;color:var(--soft)}
+.nav{display:flex;align-items:center;gap:32px;font-weight:500}
+.nav a:not(.btn){color:var(--ink);text-decoration:none}
+.nav a:not(.btn):hover{color:var(--accent)}
+.nav .btn{min-height:46px;padding:0 20px;font-size:16px}
+.menu-btn{display:none;width:46px;height:46px;border-radius:10px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);align-items:center;justify-content:center;padding:0;cursor:pointer}
+
+/* Hero */
+.hero{padding-block:clamp(56px,8vw,104px)}
+.hero .wrap{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:72px;align-items:center}
+.hero h1{font-size:clamp(38px,5vw,62px);line-height:1.07;letter-spacing:-.025em;font-weight:700;margin:4px 0 24px}
+.hero .lead{max-width:34em}
+.actions{display:flex;flex-wrap:wrap;gap:14px;margin-top:32px}
+.report{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(22px,3vw,36px);box-shadow:0 24px 48px -30px rgba(14,34,51,.45)}
+.report-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:12px}
+.report-head strong{font-family:var(--display);font-size:20px;font-weight:600}
+.report-head span{font-size:13px;color:var(--soft)}
+.report ul{list-style:none;margin:0;padding:0}
+.report li{display:flex;justify-content:space-between;gap:16px;padding:15px 0;border-top:1px solid var(--line-2);font-size:16px}
+.ok{font-weight:600;color:var(--accent);white-space:nowrap}
+.todo{font-weight:600;color:var(--warn);white-space:nowrap}
+.report p{margin-top:12px;font-size:15px;color:var(--muted);background:var(--ground);border-radius:10px;padding:16px 18px}
+
+/* Certs */
+.certs{background:var(--surface);border-block:1px solid var(--line);padding-block:36px}
+.certs .wrap{display:flex;align-items:center;gap:40px}
+.certs h2{font-size:18px;font-weight:600;flex:0 0 220px}
+.chips{display:flex;flex-wrap:wrap;gap:10px;list-style:none;margin:0;padding:0}
+.chips li{padding:8px 14px;border-radius:999px;background:var(--tint);font-size:14px;font-weight:500}
+
+/* Sections */
+.section{padding-block:clamp(72px,9vw,112px)}
+.sec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:48px;margin-bottom:56px}
+.sec-head > div{max-width:720px}
+.sec-head .lead{max-width:420px;font-size:18px}
+.services{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.service{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(24px,3vw,40px)}
+.service svg{color:var(--accent);margin-bottom:16px}
+.service h3{font-size:clamp(21px,2vw,26px);font-weight:600;line-height:1.25}
+.service > p{color:var(--muted);margin:10px 0 18px}
+.service ul{margin:0;padding-left:20px;display:grid;gap:8px;font-size:16px;line-height:1.5}
+
+.compliance{background:var(--navy);color:#E8EEF5}
+.compliance h2{color:#FFFFFF}
+.compliance .label{color:var(--navy-accent)}
+.comp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;margin-top:56px}
+.comp{border:1px solid var(--navy-line);border-radius:16px;padding:28px}
+.comp h3{font-size:22px;font-weight:600;color:#FFFFFF}
+.comp .who{font-size:15px;font-weight:600;color:var(--navy-accent);margin:8px 0 10px}
+.comp p:last-child{font-size:16px;color:var(--navy-text)}
+
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:48px;margin:56px 0 0;padding:0;list-style:none;counter-reset:s}
+.steps li{border-top:3px solid var(--accent);padding-top:24px;counter-increment:s}
+.steps li::before{content:"0" counter(s);display:block;font-family:var(--display);font-weight:700;font-size:18px;color:var(--accent);margin-bottom:10px}
+.steps h3{font-size:24px;font-weight:600;margin-bottom:10px}
+.steps p{color:var(--muted)}
+
+.proof{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;padding-bottom:clamp(72px,9vw,112px)}
+.proof > *{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(24px,3vw,44px);margin:0}
+.proof h2{font-size:20px;font-weight:600;margin-bottom:20px}
+.brands{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:14px;list-style:none;margin:0;padding:0;font-family:var(--display);font-weight:600;font-size:18px;color:var(--muted)}
+
+/* Contact */
+.contact{background:var(--band)}
+.contact .wrap{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:72px;align-items:start}
+.contact .lead{margin:20px 0 24px;font-size:18px}
+.direct{display:grid;gap:6px;font-size:18px;font-weight:500}
+.direct a{display:inline-flex;align-items:center;gap:12px;min-height:44px;color:var(--ink);text-decoration:none}
+.direct a:hover{color:var(--accent)}
+.direct svg{color:var(--accent);flex:none}
+.help{margin-top:24px;background:var(--surface);border-radius:14px;padding:24px}
+.help h3{font-size:18px;font-weight:600;margin-bottom:6px}
+.help p{font-size:16px;color:var(--muted);margin-bottom:10px}
+.help a{font-weight:600;display:inline-flex;min-height:44px;align-items:center}
+.social{display:flex;gap:24px;margin-top:12px;font-weight:500}
+.social a{min-height:44px;display:inline-flex;align-items:center}
+form{background:var(--surface);border-radius:18px;padding:clamp(22px,3vw,44px);display:grid;gap:18px}
+.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+label{display:grid;gap:8px;font-size:15px;font-weight:600}
+input,textarea{width:100%;font:inherit;font-weight:400;color:var(--ink);background:var(--surface);border:1px solid var(--field);border-radius:10px;padding:12px 14px}
+input{height:50px}
+textarea{resize:vertical;min-height:130px}
+input:focus,textarea:focus{outline:3px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.form-note{font-size:13px;color:var(--soft)}
+.form-status{font-size:15px;font-weight:500;min-height:1.4em}
+.form-status.err{color:var(--warn)}
+
+.site-footer{background:var(--navy);color:var(--navy-text);font-size:14px}
+.site-footer .wrap{min-height:96px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:24px;flex-wrap:wrap}
+.site-footer b{font-family:var(--display);font-size:18px;color:#FFFFFF}
+
+/* Responsive */
+@media (max-width:1100px){
+  .comp-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .brands{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .nav{gap:22px}
+}
+@media (max-width:900px){
+  .hero .wrap,.contact .wrap,.services{grid-template-columns:minmax(0,1fr)}
+  .hero .wrap,.contact .wrap{gap:48px}
+  .sec-head{flex-direction:column;align-items:flex-start;gap:16px;margin-bottom:40px}
+  .steps{grid-template-columns:minmax(0,1fr);gap:28px;margin-top:40px}
+  .certs .wrap{flex-direction:column;align-items:flex-start;gap:16px}
+  .certs h2{flex:none}
+  .menu-btn{display:inline-flex}
+  .brand small{display:none}
+  .nav{position:absolute;top:100%;left:0;right:0;background:var(--ground);border-bottom:1px solid var(--line);flex-direction:column;align-items:stretch;gap:0;padding:8px var(--pad) 20px;display:none}
+  .nav.open{display:flex}
+  .nav a:not(.btn){min-height:52px;display:flex;align-items:center;border-bottom:1px solid var(--line-2)}
+  .nav .btn{margin-top:16px;min-height:52px}
+}
+@media (max-width:600px){
+  .comp-grid,.row{grid-template-columns:minmax(0,1fr)}
+  .actions .btn{width:100%}
+  .brands{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .site-header .wrap{height:68px}
+  .brand b{font-size:21px}
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="#inicio" aria-label="Netblue IT Consulting, inicio">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M2 8.5a15 15 0 0 1 20 0"/><path d="M5 12a10 10 0 0 1 14 0"/><path d="M8.5 15.5a5 5 0 0 1 7 0"/><path d="M12 19h.01"/></svg>
+      <b>netblue</b><small>IT Consulting</small>
+    </a>
+    <button class="menu-btn" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg>
+    </button>
+    <nav class="nav" id="nav" aria-label="Principal">
+      <a href="#servicios">Servicios</a>
+      <a href="#cumplimiento">Cumplimiento</a>
+      <a href="#proceso">Cómo trabajamos</a>
+      <a href="#contacto">Contacto</a>
+      <a class="btn btn-primary" href="tel:+17873379818">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg>
+        787-337-9818
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section class="hero" id="inicio">
+  <div class="wrap">
+    <div>
+      <p class="label">Redes, nube y ciberseguridad en Puerto Rico</p>
+      <h1>Su negocio conectado, protegido y funcionando.</h1>
+      <p class="lead">Somos el departamento de tecnología de pequeñas y medianas empresas en Puerto Rico. Profesionales certificados, con más de 15 años de experiencia, que le responden cuando usted llama.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="#contacto">Solicite una evaluación de su red</a>
+        <a class="btn btn-outline" href="#servicios">Ver servicios</a>
+      </div>
+    </div>
+    <aside class="report" aria-label="Ejemplo de informe de evaluación">
+      <div class="report-head"><strong>Evaluación de red</strong><span>Ejemplo del informe</span></div>
+      <ul>
+        <li><span>Firewall configurado y actualizado</span><span class="ok">Al día</span></li>
+        <li><span>Wifi de clientes separada de la oficina</span><span class="ok">Al día</span></li>
+        <li><span>Respaldos fuera del local</span><span class="todo">Pendiente</span></li>
+        <li><span>Verificación en dos pasos (MFA) en el correo</span><span class="todo">Pendiente</span></li>
+        <li><span>Plan de continuidad ante apagones</span><span class="todo">Pendiente</span></li>
+      </ul>
+      <p>Cada punto pendiente viene con una recomendación clara y un costo estimado, en español y sin tecnicismos.</p>
+    </aside>
+  </div>
+</section>
+
+<section class="certs" aria-labelledby="certs-title">
+  <div class="wrap">
+    <h2 id="certs-title">Certificaciones de nuestro equipo</h2>
+    <ul class="chips">
+      <li>CompTIA Security+</li><li>CompTIA CySA+</li><li>CompTIA PenTest+</li><li>CompTIA Network+</li>
+      <li>CompTIA A+</li><li>CompTIA Project+</li><li>ITIL 4</li>
+      <li>MikroTik MTCNA, MTCRE, MTCWE, MTCTCE y MTCUME</li>
+    </ul>
+  </div>
+</section>
+
+<section class="section" id="servicios">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <p class="label">Servicios</p>
+        <h2 class="h2">Todo lo que su oficina necesita para trabajar sin interrupciones.</h2>
+      </div>
+      <p class="lead">Un solo equipo para la red, los servidores, el correo y la seguridad. Sin pasarle la bola a otro suplidor.</p>
+    </div>
+    <div class="services">
+      <article class="service">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="6" rx="1"/><rect x="14" y="15" width="7" height="6" rx="1"/><rect x="3" y="15" width="7" height="6" rx="1"/><path d="M6.5 9v6"/><path d="M6.5 12h11v3"/></svg>
+        <h3>Redes y equipos de oficina</h3>
+        <p>Que la red, el Wifi y los teléfonos simplemente funcionen.</p>
+        <ul>
+          <li>Instalación de computadoras, servidores, impresoras, routers y switches</li>
+          <li>Wifi para su oficina y red separada para clientes</li>
+          <li>Cableado estructurado Cat 5 y Cat 6</li>
+          <li>Telefonía VoIP con llamadas ilimitadas a PR y EE. UU.</li>
+          <li>Soporte remoto a sus empleados</li>
+        </ul>
+      </article>
+      <article class="service">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6Z"/><path d="m9 12 2 2 4-4"/></svg>
+        <h3>Ciberseguridad</h3>
+        <p>Protegemos su información antes de que un ataque le cueste el negocio.</p>
+        <ul>
+          <li>Análisis de vulnerabilidades con plan de mitigación</li>
+          <li>Firewall, IPS/IDS, antivirus y gestión de dispositivos móviles (MDM)</li>
+          <li>Seguridad del correo electrónico y de la red Wifi</li>
+          <li>Segmentación de redes y cifrado de datos</li>
+          <li>Respaldos y recuperación de desastres</li>
+        </ul>
+      </article>
+      <article class="service">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.5 19H7a5 5 0 1 1 1.1-9.9A6 6 0 0 1 19.5 11 4 4 0 0 1 17.5 19Z"/></svg>
+        <h3>Nube, servidores y Microsoft 365</h3>
+        <p>Sus sistemas accesibles desde cualquier lugar, sin depender de un solo equipo.</p>
+        <ul>
+          <li>Servidores virtuales en su local o en la nube: Hyper-V, VMware, Azure y AWS</li>
+          <li>Migración de servidores físicos a virtuales</li>
+          <li>Correo corporativo y Microsoft 365</li>
+          <li>Acceso remoto seguro (VPN) e intranet</li>
+          <li>Dominios, DNS y páginas web</li>
+        </ul>
+      </article>
+      <article class="service">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20v-9"/><path d="M8 21h8"/><path d="M7.8 7.8a6 6 0 0 1 8.4 0"/><path d="M4.9 4.9a10 10 0 0 1 14.2 0"/><circle cx="12" cy="11" r="1.2"/></svg>
+        <h3>Redes inalámbricas para proveedores (WISP)</h3>
+        <p>Ingeniería para quienes llevan Internet a las comunidades.</p>
+        <ul>
+          <li>Consultoría, ingeniería y diseño de la red</li>
+          <li>Configuración y administración remota</li>
+          <li>Acceso a Internet de alta velocidad</li>
+          <li>Equipos Cisco, MikroTik, Cambium, Mimosa, Ubiquiti y Aruba</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section compliance" id="cumplimiento">
+  <div class="wrap">
+    <div style="max-width:760px">
+      <p class="label">Cumplimiento y continuidad</p>
+      <h2 class="h2">¿Su negocio maneja información sensible? Le ayudamos a cumplir.</h2>
+    </div>
+    <div class="comp-grid">
+      <div class="comp"><h3>HIPAA</h3><p class="who">Clínicas y oficinas médicas</p><p>Controles de acceso, cifrado y respaldos para proteger los expedientes de sus pacientes.</p></div>
+      <div class="comp"><h3>PCI DSS</h3><p class="who">Comercios que aceptan tarjetas</p><p>Red de pagos separada, firewall y los controles que exige su procesador de tarjetas.</p></div>
+      <div class="comp"><h3>FTC Safeguards</h3><p class="who">Concesionarios y financieras</p><p>Evaluación de riesgos, verificación en dos pasos y plan de respuesta a incidentes.</p></div>
+      <div class="comp"><h3>Continuidad</h3><p class="who">Todo negocio en Puerto Rico</p><p>Respaldos fuera del local y un plan probado para seguir operando tras un huracán o apagón.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="proceso">
+  <div class="wrap">
+    <div style="max-width:700px">
+      <p class="label">Cómo trabajamos</p>
+      <h2 class="h2">Tres pasos, sin sorpresas.</h2>
+    </div>
+    <ol class="steps">
+      <li><h3>Evaluamos</h3><p>Revisamos su red, equipos y seguridad en su local o de forma remota, y le entregamos un informe fácil de entender.</p></li>
+      <li><h3>Planificamos</h3><p>Le presentamos las prioridades y el costo por escrito. Usted decide qué hacer y cuándo.</p></li>
+      <li><h3>Le damos soporte</h3><p>Administración continua y asistencia remota. Planes mensuales desde [SU PRECIO].</p></li>
+    </ol>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="proof">
+    <div>
+      <h2>Trabajamos con equipos de</h2>
+      <ul class="brands"><li>Cisco</li><li>MikroTik</li><li>Microsoft</li><li>Cambium</li><li>Ubiquiti</li><li>Mimosa</li><li>Aruba</li><li>VMware</li></ul>
+    </div>
+  </div>
+</div>
+
+<section class="section contact" id="contacto">
+  <div class="wrap">
+    <div>
+      <p class="label">Contacto</p>
+      <h2 class="h2">Hablemos de su negocio.</h2>
+      <p class="lead">Cuéntenos qué le preocupa de su tecnología. Le contestamos el mismo día laborable.</p>
+      <div class="direct">
+        <a href="tel:+17873379818"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg>787-337-9818</a>
+        <a href="mailto:eocasio@netbluepr.com"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>eocasio@netbluepr.com</a>
+      </div>
+      <div class="help">
+        <h3>¿Ya es cliente y necesita ayuda ahora?</h3>
+        <p>Abra la herramienta de asistencia remota y llámenos.</p>
+        <a href="https://assist.zoho.com/portal/netbluepr/app/deploy/unattended?encapiKey=wSsVRa0j%2BhfzWK4ryTWpIuwwmgkBVlKgFUx52lqkuHX1GP%2BW9cdvxE3IA1ejHKdNRTRgEWYSpL5%2FmRYF1WZd24spnlsFDiiF9mqRe1U4J3x1orPslDDDXm1dkxOILYwMxwxq&amp;x-com-zoho-assist-orgid=652171073" target="_blank" rel="noopener">Iniciar asistencia remota (Zoho Assist)</a>
+      </div>
+      <div class="social">
+        <a href="https://www.facebook.com/netbluepr" target="_blank" rel="noopener">Facebook</a>
+        <a href="https://www.instagram.com/netbluepr/" target="_blank" rel="noopener">Instagram</a>
+      </div>
+    </div>
+
+    <form id="contact-form" name="contacto" method="POST" action="/?enviado=1#contacto" data-netlify="true" netlify-honeypot="bot-field" novalidate>
+      <input type="hidden" name="form-name" value="contacto">
+      <p hidden><label>No llene este campo<input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+      <div class="row">
+        <label>Nombre<input name="nombre" type="text" autocomplete="name" required></label>
+        <label>Negocio<input name="negocio" type="text" autocomplete="organization"></label>
+      </div>
+      <div class="row">
+        <label>Teléfono<input name="telefono" type="tel" autocomplete="tel"></label>
+        <label>Correo electrónico<input name="correo" type="email" autocomplete="email" required></label>
+      </div>
+      <label>¿En qué le podemos ayudar?<textarea name="mensaje" rows="5" required></textarea></label>
+      <button class="btn btn-primary" type="submit">Enviar mensaje</button>
+      <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+      <p class="form-note">Usamos su información solo para responderle.</p>
+    </form>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <b>netblue</b>
+    <span>© 2026 Netblue IT Consulting, Puerto Rico. Todos los derechos reservados.</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var btn=document.querySelector('.menu-btn'), nav=document.getElementById('nav');
+  function close(){nav.classList.remove('open');btn.setAttribute('aria-expanded','false');btn.setAttribute('aria-label','Abrir menú');}
+  btn.addEventListener('click',function(){
+    var open=nav.classList.toggle('open');
+    btn.setAttribute('aria-expanded',open?'true':'false');
+    btn.setAttribute('aria-label',open?'Cerrar menú':'Abrir menú');
+  });
+  nav.addEventListener('click',function(e){ if(e.target.closest('a')) close(); });
+
+  var form=document.getElementById('contact-form'), status=document.getElementById('form-status');
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var d=new FormData(form), missing=[];
+    if(!String(d.get('nombre')||'').trim()) missing.push('nombre');
+    var mail=String(d.get('correo')||'').trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) missing.push('un correo electrónico válido');
+    if(!String(d.get('mensaje')||'').trim()) missing.push('su mensaje');
+    if(missing.length){ status.className='form-status err'; status.textContent='Falta completar: '+missing.join(', ')+'.'; return; }
+    var submitBtn=form.querySelector('button[type="submit"]');
+    submitBtn.disabled=true; status.className='form-status'; status.textContent='Enviando…';
+    fetch('/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(d).toString()})
+      .then(function(r){
+        if(!r.ok) throw new Error(r.status);
+        form.reset(); status.className='form-status';
+        status.textContent='Mensaje enviado. Le contestaremos pronto.';
+      })
+      .catch(function(){
+        status.className='form-status err';
+        status.textContent='No se pudo enviar el mensaje. Llámenos al 787-337-9818 o escriba a eocasio@netbluepr.com.';
+      })
+      .then(function(){ submitBtn.disabled=false; });
+  });
+})();
+</script>
+</body>
+</html>
