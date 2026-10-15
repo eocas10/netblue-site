@@ -183,6 +183,18 @@ p{margin:0}
   .site-header .wrap{height:68px}
   .brand img{height:44px}
 }
+
+.lead-form{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(22px,3vw,36px);display:grid;gap:16px;margin-bottom:24px}
+.lead-form h3{font-size:22px;font-weight:600}
+.lead-form .form-intro{color:var(--muted);font-size:16px;margin-top:-8px}
+.lead-form label{display:grid;gap:6px;font-size:15px;font-weight:500;color:var(--ink)}
+.lead-form input,.lead-form select,.lead-form textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--ground);border:1.5px solid var(--field);border-radius:10px;padding:12px 14px;min-height:48px;width:100%}
+.lead-form textarea{resize:vertical;min-height:110px}
+.lead-form input:focus,.lead-form select:focus,.lead-form textarea:focus{outline:3px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.lead-form .row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.lead-form .btn{justify-self:start}
+.lead-form .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+@media (max-width:600px){.lead-form .row2{grid-template-columns:minmax(0,1fr)}.lead-form .btn{width:100%}}
 </style>
 </head>
 <body>
@@ -373,6 +385,33 @@ p{margin:0}
       </div>
     </div>
     <div>
+      <form class="lead-form" name="contacto" method="POST" action="/gracias/" data-netlify="true" netlify-honeypot="bot-field">
+        <h3>Solicite una evaluación</h3>
+        <p class="form-intro">Complete el formulario y le contactaremos lo antes posible.</p>
+        <input type="hidden" name="subject" value="Nuevo contacto desde netbluepr.com">
+        <p class="hp"><label>No llene este campo: <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+        <div class="row2">
+          <label>Nombre<input type="text" name="nombre" autocomplete="name" required></label>
+          <label>Negocio<input type="text" name="negocio" autocomplete="organization"></label>
+        </div>
+        <div class="row2">
+          <label>Correo electrónico<input type="email" name="email" autocomplete="email" required></label>
+          <label>Teléfono<input type="tel" name="telefono" autocomplete="tel"></label>
+        </div>
+        <label>Tipo de negocio
+          <select name="sector">
+            <option value="">Seleccione…</option>
+            <option>Oficina médica o dental</option>
+            <option>Contable, CPA o preparador de planillas</option>
+            <option>Bufete u oficina legal</option>
+            <option>Comercio o tienda</option>
+            <option>Proveedor de Internet (WISP)</option>
+            <option>Otro</option>
+          </select>
+        </label>
+        <label>¿En qué le podemos ayudar?<textarea name="mensaje" rows="4" required></textarea></label>
+        <button class="btn btn-primary" type="submit">Enviar</button>
+      </form>
       <div class="help">
         <h3>¿Ya es cliente y necesita ayuda ahora?</h3>
         <p>Abra la herramienta de asistencia remota y llámenos.</p>
