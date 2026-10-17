@@ -212,6 +212,12 @@ p{margin:0}
 .lead-form .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 @media (max-width:600px){.lead-form .row2{grid-template-columns:minmax(0,1fr)}.lead-form .btn{width:100%}}
 .brand{flex:none}.nav .btn svg{flex:none}
+.stars{color:#E0A100;letter-spacing:2px;font-size:20px;line-height:1}
+.rv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:20px}
+.rv{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(22px,3vw,32px);display:flex;flex-direction:column;gap:14px;margin:0}
+.rv blockquote{margin:0;color:var(--muted);font-size:16px;line-height:1.6;white-space:pre-line}
+.rv figcaption{margin-top:auto;font-size:15px}.rv figcaption b{display:block;color:var(--ink)}.rv figcaption span{color:var(--soft)}
+[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -395,6 +401,31 @@ p{margin:0}
   </div>
 </div>
 
+<section class="section" id="resenas" hidden style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><p class="label">Reseñas</p><h2 class="h2">Lo que dicen nuestros clientes</h2></div>
+      <p class="lead" id="rv-avg"></p>
+    </div>
+    <div class="rv-grid" id="rv-list"></div>
+    <div class="actions"><a class="btn btn-outline" href="/resenas/">Ver todas las reseñas</a></div>
+  </div>
+</section>
+<script>
+(function(){
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function stars(n){n=Math.round(n);return '★★★★★'.slice(0,n)+'<span style="color:var(--line)">'+'★★★★★'.slice(0,5-n)+'</span>';}
+  fetch('/api/reviews').then(function(r){return r.json();}).then(function(d){
+    if(!d.reviews||!d.reviews.length)return;
+    document.getElementById('rv-avg').innerHTML='<span class="stars">'+stars(d.average)+'</span> '+d.average.toFixed(1)+' de 5 · '+d.count+(d.count===1?' reseña':' reseñas');
+    document.getElementById('rv-list').innerHTML=d.reviews.slice(0,3).map(function(r){
+      return '<figure class="rv"><span class="stars" aria-label="'+r.rating+' de 5 estrellas">'+stars(r.rating)+'</span><blockquote>'+esc(r.text)+'</blockquote><figcaption><b>'+esc(r.name)+'</b>'+(r.company?'<span>'+esc(r.company)+'</span>':'')+'</figcaption></figure>';
+    }).join('');
+    document.getElementById('resenas').hidden=false;
+  }).catch(function(){});
+})();
+</script>
+
 <section class="section contact" id="contacto">
   <div class="wrap">
     <div>
@@ -452,7 +483,7 @@ p{margin:0}
 <footer class="site-footer">
   <div class="wrap">
     <b>netblue</b>
-    <span class="footer-links"><a href="tel:+17873379818">787-337-9818</a> · <a href="mailto:eocasio@netbluepr.com">eocasio@netbluepr.com</a> · <a href="https://support.netbluepr.com/">Soporte</a></span>
+    <span class="footer-links"><a href="tel:+17873379818">787-337-9818</a> · <a href="mailto:eocasio@netbluepr.com">eocasio@netbluepr.com</a> · <a href="https://support.netbluepr.com/">Soporte</a> · <a href="/resenas/">Reseñas</a></span>
     <span>Servicio en toda la isla de Puerto Rico · © 2026 Netblue IT Consulting. Todos los derechos reservados.</span>
   </div>
 </footer>
