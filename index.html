@@ -218,6 +218,31 @@ p{margin:0}
 .rv blockquote{margin:0;color:var(--muted);font-size:16px;line-height:1.6;white-space:pre-line}
 .rv figcaption{margin-top:auto;font-size:15px}.rv figcaption b{display:block;color:var(--ink)}.rv figcaption span{color:var(--soft)}
 [hidden]{display:none!important}
+
+/* Amenazas de hoy (widget) */
+.tz{padding-block:clamp(56px,7vw,88px) 0}
+.tz-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(22px,3vw,40px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:clamp(24px,4vw,56px);align-items:start}
+.tz-card h2{font-size:clamp(26px,2.8vw,36px);line-height:1.15;letter-spacing:-.02em;font-weight:700}
+.tz-card .lead{margin:14px 0 22px;font-size:17px}
+.tz-live{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#12805C;margin-bottom:12px}
+.tz-live i{width:9px;height:9px;border-radius:50%;background:currentColor;box-shadow:0 0 0 0 currentColor;animation:tzp 2s infinite}
+@keyframes tzp{0%{box-shadow:0 0 0 0 rgba(18,128,92,.5)}70%{box-shadow:0 0 0 9px rgba(18,128,92,0)}100%{box-shadow:0 0 0 0 rgba(18,128,92,0)}}
+@media (prefers-reduced-motion:reduce){.tz-live i{animation:none}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tz-live{color:#4FD1A1}}
+:root[data-theme="dark"] .tz-live{color:#4FD1A1}
+.tz-list{list-style:none;margin:0;padding:0;counter-reset:tz}
+.tz-list li{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 0;border-top:1px solid var(--line-2);counter-increment:tz;font-size:16px}
+.tz-list li:first-child{border-top:0}
+.tz-list li::before{content:"0" counter(tz);font-family:var(--display);font-weight:700;color:var(--soft)}
+.tz-list b{display:block;font-weight:600;line-height:1.3}
+.tz-list small{display:block;color:var(--muted);font-size:14px}
+.tz-lvl{font-size:13px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap;background:var(--tint);color:var(--accent)}
+.tz-lvl.critica{background:#FDECEA;color:#B42318}.tz-lvl.alta{background:#FDF1E6;color:#A34A06}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tz-lvl.critica{background:#3A1A1C;color:#FF8A80}:root:not([data-theme="light"]) .tz-lvl.alta{background:#3A2614;color:#F2A661}}
+:root[data-theme="dark"] .tz-lvl.critica{background:#3A1A1C;color:#FF8A80}:root[data-theme="dark"] .tz-lvl.alta{background:#3A2614;color:#F2A661}
+.tz-list .ph{color:var(--soft)}
+.tz-meta{margin-top:10px;font-size:13px;color:var(--soft)}
+@media (max-width:900px){.tz-card{grid-template-columns:minmax(0,1fr)}}
 </style>
 </head>
 <body>
@@ -279,6 +304,43 @@ p{margin:0}
     </ul>
   </div>
 </section>
+
+<section class="tz" aria-labelledby="tz-title">
+  <div class="wrap">
+    <div class="tz-card">
+      <div>
+        <p class="tz-live"><i aria-hidden="true"></i>En vivo</p>
+        <h2 id="tz-title">Las 5 amenazas de ciberseguridad más urgentes hoy.</h2>
+        <p class="lead">Vulnerabilidades que ya se están explotando, ordenadas por urgencia para pequeñas y medianas empresas. Datos de CISA y FIRST.</p>
+        <a class="btn btn-outline" href="/amenazas/">Ver el panel completo</a>
+      </div>
+      <div>
+        <ol class="tz-list" id="tz-list" aria-live="polite">
+          <li><span class="ph">Cargando amenazas de hoy…</span></li>
+        </ol>
+        <p class="tz-meta" id="tz-meta"></p>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+(function(){
+  var list=document.getElementById('tz-list'), meta=document.getElementById('tz-meta');
+  function el(t,c,x){var n=document.createElement(t);if(c)n.className=c;if(x!=null)n.textContent=x;return n;}
+  function load(){
+    fetch('/api/threats').then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(d){
+      list.replaceChildren.apply(list,d.threats.map(function(t){
+        var li=el('li'), txt=el('div');
+        txt.appendChild(el('b',null,t.vendor+' '+t.product));
+        txt.appendChild(el('small',null,t.type+(t.ransomware?' · ransomware':'')+' · '+(t.daysAgo===0?'hoy':t.daysAgo===1?'ayer':'hace '+t.daysAgo+' días')));
+        li.appendChild(txt); li.appendChild(el('span','tz-lvl '+t.level.key,t.level.label)); return li;
+      }));
+      meta.textContent='Actualizado '+new Date(d.generatedAt).toLocaleString('es-PR',{timeZone:'America/Puerto_Rico',hour:'numeric',minute:'2-digit',day:'numeric',month:'short'})+' · se renueva cada 15 minutos';
+    }).catch(function(){ if(!list.querySelector('b')) list.replaceChildren(el('li','ph','No pudimos cargar las amenazas ahora. Vea el panel completo.')); });
+  }
+  load(); setInterval(load,15*60*1000);
+})();
+</script>
 
 <section class="section" id="servicios">
   <div class="wrap">
@@ -483,7 +545,7 @@ p{margin:0}
 <footer class="site-footer">
   <div class="wrap">
     <b>netblue</b>
-    <span class="footer-links"><a href="tel:+17873379818">787-337-9818</a> · <a href="mailto:eocasio@netbluepr.com">eocasio@netbluepr.com</a> · <a href="https://support.netbluepr.com/">Soporte</a> · <a href="/resenas/">Reseñas</a></span>
+    <span class="footer-links"><a href="tel:+17873379818">787-337-9818</a> · <a href="mailto:eocasio@netbluepr.com">eocasio@netbluepr.com</a> · <a href="https://support.netbluepr.com/">Soporte</a> · <a href="/resenas/">Reseñas</a> · <a href="/amenazas/">Amenazas de hoy</a></span>
     <span>Servicio en toda la isla de Puerto Rico · © 2026 Netblue IT Consulting. Todos los derechos reservados.</span>
   </div>
 </footer>
