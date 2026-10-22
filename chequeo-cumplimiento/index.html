@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chequeo de cumplimiento HIPAA, FTC y PCI para negocios en Puerto Rico | Netblue</title>
+<meta name="description" content="Chequeo gratuito de cumplimiento de seguridad para oficinas médicas (HIPAA), contables y concesionarios (FTC Safeguards), comercios (PCI DSS) y bufetes en Puerto Rico, incluida la Ley 111.">
+<link rel="canonical" href="https://netbluepr.com/chequeo-cumplimiento/">
+<meta property="og:title" content="¿Su negocio cumple con HIPAA, FTC Safeguards o PCI DSS? Chequeo gratuito | Netblue">
+<meta property="og:description" content="Escoja su tipo de negocio y vea qué requisitos de seguridad le faltan, con la referencia de cada uno. Incluye la Ley 111 de Puerto Rico.">
+<meta property="og:locale" content="es_PR">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://netbluepr.com/chequeo-cumplimiento/">
+<meta property="og:image" content="https://netbluepr.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Netblue IT Consulting: soporte de tecnología y ciberseguridad para negocios en Puerto Rico">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://netbluepr.com/og-image.png">
+<meta name="theme-color" content="#0E2233">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Sora:wght@600;700&display=swap">
+<style>
+:root{
+  --ground:#F4F2ED;--surface:#FFFFFF;--band:#E9E5DC;--ink:#0E2233;--muted:#3B4552;--soft:#4A5563;
+  --line:#DDD8CE;--line-2:#ECE8E0;--accent:#1557C0;--accent-hover:#0E3F8F;--on-accent:#FFFFFF;
+  --tint:#EEF3FB;--warn:#A34A06;--field:#B9B2A5;
+  --navy:#0E2233;--navy-line:#2C4560;--navy-text:#B7C5D4;--navy-accent:#8DB8FF;
+  --display:"Sora","Segoe UI",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --pad:clamp(20px,6vw,96px);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0B1826;--surface:#122538;--band:#0F2133;--ink:#E8EEF5;--muted:#B7C5D4;--soft:#A3B3C4;
+    --line:#24405C;--line-2:#1D3650;--accent:#7AAEFF;--accent-hover:#A6C8FF;--on-accent:#0B1826;
+    --tint:#1A3350;--warn:#F2A661;--field:#3A5673;
+    --navy:#06121D;--navy-line:#1F3A55;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0B1826;--surface:#122538;--band:#0F2133;--ink:#E8EEF5;--muted:#B7C5D4;--soft:#A3B3C4;
+  --line:#24405C;--line-2:#1D3650;--accent:#7AAEFF;--accent-hover:#A6C8FF;--on-accent:#0B1826;
+  --tint:#1A3350;--warn:#F2A661;--field:#3A5673;
+  --navy:#06121D;--navy-line:#1F3A55;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 84px)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+img,svg{max-width:100%}
+a{color:var(--accent)}a:hover{color:var(--accent-hover)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:6px}
+h1,h2,h3{font-family:var(--display);margin:0;color:var(--ink)}
+p{margin:0}
+.wrap{max-width:1440px;margin:0 auto;padding-inline:var(--pad)}
+.label{font-size:15px;font-weight:600;color:var(--accent);margin-bottom:14px}
+.h2{font-size:clamp(30px,3.6vw,44px);line-height:1.15;letter-spacing:-.02em;font-weight:700}
+.lead{font-size:clamp(17px,1.4vw,20px);line-height:1.6;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 26px;border-radius:10px;font-weight:600;font-size:17px;text-decoration:none;border:1.5px solid transparent;cursor:pointer;font-family:inherit}
+.btn-primary{background:var(--accent);color:var(--on-accent)}
+.btn-primary:hover{background:var(--accent-hover);color:var(--on-accent)}
+.btn-outline{border-color:var(--ink);color:var(--ink);background:transparent}
+.btn-outline:hover{background:var(--ink);color:var(--ground)}
+
+/* Header */
+.site-header{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.site-header .wrap{height:80px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand{display:flex;align-items:center;border-radius:10px}
+.brand img{display:block;height:56px;width:auto}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .brand{background:#FFFFFF;padding:4px 10px}}
+:root[data-theme="dark"] .brand{background:#FFFFFF;padding:4px 10px}
+.nav{display:flex;align-items:center;gap:32px;font-weight:500}
+.nav a:not(.btn){color:var(--ink);text-decoration:none}
+.nav a:not(.btn):hover{color:var(--accent)}
+.nav .btn{min-height:46px;padding:0 20px;font-size:16px}
+.menu-btn{display:none;width:46px;height:46px;border-radius:10px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);align-items:center;justify-content:center;padding:0;cursor:pointer}
+
+/* Hero */
+.hero{padding-block:clamp(56px,8vw,104px)}
+.hero .wrap{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:72px;align-items:center}
+.hero h1{font-size:clamp(38px,5vw,62px);line-height:1.07;letter-spacing:-.025em;font-weight:700;margin:4px 0 24px}
+.hero .lead{max-width:34em}
+.actions{display:flex;flex-wrap:wrap;gap:14px;margin-top:32px}
+.report{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(22px,3vw,36px);box-shadow:0 24px 48px -30px rgba(14,34,51,.45)}
+.report-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:12px}
+.report-head strong{font-family:var(--display);font-size:20px;font-weight:600}
+.report-head span{font-size:13px;color:var(--soft)}
+.report ul{list-style:none;margin:0;padding:0}
+.report li{display:flex;justify-content:space-between;gap:16px;padding:15px 0;border-top:1px solid var(--line-2);font-size:16px}
+.ok{font-weight:600;color:var(--accent);white-space:nowrap}
+.todo{font-weight:600;color:var(--warn);white-space:nowrap}
+.report p{margin-top:12px;font-size:15px;color:var(--muted);background:var(--ground);border-radius:10px;padding:16px 18px}
+
+/* Certs */
+.certs{background:var(--surface);border-block:1px solid var(--line);padding-block:36px}
+.certs .wrap{display:flex;align-items:center;gap:40px}
+.certs h2{font-size:18px;font-weight:600;flex:0 0 220px}
+.chips{display:flex;flex-wrap:wrap;gap:10px;list-style:none;margin:0;padding:0}
+.chips li{padding:8px 14px;border-radius:999px;background:var(--tint);font-size:14px;font-weight:500}
+
+/* Sections */
+.section{padding-block:clamp(72px,9vw,112px)}
+.sec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:48px;margin-bottom:56px}
+.sec-head > div{max-width:720px}
+.sec-head .lead{max-width:420px;font-size:18px}
+.services{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.service{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(24px,3vw,40px)}
+.service svg{color:var(--accent);margin-bottom:16px}
+.service h3{font-size:clamp(21px,2vw,26px);font-weight:600;line-height:1.25}
+.service > p{color:var(--muted);margin:10px 0 18px}
+.service ul{margin:0;padding-left:20px;display:grid;gap:8px;font-size:16px;line-height:1.5}
+
+.compliance{background:var(--navy);color:#E8EEF5}
+.compliance h2{color:#FFFFFF}
+.compliance .label{color:var(--navy-accent)}
+.comp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;margin-top:56px}
+.comp{border:1px solid var(--navy-line);border-radius:16px;padding:28px}
+.comp h3{font-size:22px;font-weight:600;color:#FFFFFF}
+.comp .who{font-size:15px;font-weight:600;color:var(--navy-accent);margin:8px 0 10px}
+.comp p:last-child{font-size:16px;color:var(--navy-text)}
+
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:48px;margin:56px 0 0;padding:0;list-style:none;counter-reset:s}
+.steps li{border-top:3px solid var(--accent);padding-top:24px;counter-increment:s}
+.steps li::before{content:"0" counter(s);display:block;font-family:var(--display);font-weight:700;font-size:18px;color:var(--accent);margin-bottom:10px}
+.steps h3{font-size:24px;font-weight:600;margin-bottom:10px}
+.steps p{color:var(--muted)}
+
+.proof{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;padding-bottom:clamp(72px,9vw,112px)}
+.proof > *{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(24px,3vw,44px);margin:0}
+.proof h2{font-size:20px;font-weight:600;margin-bottom:20px}
+.brands{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;list-style:none;margin:0;padding:0;font-family:var(--display);font-weight:600;font-size:18px;color:var(--muted)}
+
+/* Contact */
+.contact{background:var(--band)}
+.contact .wrap{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:72px;align-items:start}
+.contact .lead{margin:20px 0 24px;font-size:18px}
+.direct{display:grid;gap:6px;font-size:18px;font-weight:500}
+.direct a{display:inline-flex;align-items:center;gap:12px;min-height:44px;color:var(--ink);text-decoration:none}
+.direct a:hover{color:var(--accent)}
+.direct svg{color:var(--accent);flex:none}
+.help{margin-top:0;background:var(--surface);border-radius:14px;padding:24px}
+.help h3{font-size:18px;font-weight:600;margin-bottom:6px}
+.help p{font-size:16px;color:var(--muted);margin-bottom:10px}
+.help a{font-weight:600;display:inline-flex;min-height:44px;align-items:center}
+.social{display:flex;gap:24px;margin-top:12px;font-weight:500}
+.social a{min-height:44px;display:inline-flex;align-items:center}
+
+.site-footer{background:var(--navy);color:var(--navy-text);font-size:14px}
+.site-footer .wrap{min-height:96px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:24px;flex-wrap:wrap}
+.site-footer b{font-family:var(--display);font-size:18px;color:#FFFFFF}
+.site-footer .footer-links a{color:#FFFFFF;text-decoration:none;font-weight:600}.site-footer .footer-links a:hover{text-decoration:underline}
+
+/* Responsive */
+@media (max-width:1100px){
+  .comp-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .nav{gap:22px}
+}
+@media (min-width:1081px) and (max-width:1400px){
+  .nav{gap:16px;font-size:15px}
+  .nav a{white-space:nowrap}
+  .nav .btn{padding:0 14px;font-size:15px}
+}
+@media (max-width:1080px){
+  .menu-btn{display:inline-flex}
+  .nav{position:absolute;top:100%;left:0;right:0;background:var(--surface);border-bottom:1px solid var(--line);flex-direction:column;align-items:stretch;gap:0;padding:8px var(--pad) 20px;display:none}
+  .nav.open{display:flex}
+  .nav a:not(.btn){min-height:52px;display:flex;align-items:center;border-bottom:1px solid var(--line-2)}
+  .nav .btn{margin-top:16px;min-height:52px}
+}
+@media (max-width:900px){
+  .hero .wrap,.contact .wrap,.services{grid-template-columns:minmax(0,1fr)}
+  .hero .wrap,.contact .wrap{gap:48px}
+  .sec-head{flex-direction:column;align-items:flex-start;gap:16px;margin-bottom:40px}
+  .steps{grid-template-columns:minmax(0,1fr);gap:28px;margin-top:40px}
+  .certs .wrap{flex-direction:column;align-items:flex-start;gap:16px}
+  .certs h2{flex:none}
+  .menu-btn{display:inline-flex}
+  .nav{position:absolute;top:100%;left:0;right:0;background:var(--surface);border-bottom:1px solid var(--line);flex-direction:column;align-items:stretch;gap:0;padding:8px var(--pad) 20px;display:none}
+  .nav.open{display:flex}
+  .nav a:not(.btn){min-height:52px;display:flex;align-items:center;border-bottom:1px solid var(--line-2)}
+  .nav .btn{margin-top:16px;min-height:52px}
+}
+@media (max-width:600px){
+  .comp-grid{grid-template-columns:minmax(0,1fr)}
+  .actions .btn{width:100%}
+  .brands{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .site-header .wrap{height:68px}
+  .brand img{height:44px}
+}
+/* Panel de amenazas */
+:root{--crit:#B42318;--crit-bg:#FDECEA;--high:#A34A06;--high-bg:#FDF1E6;--elev:#1557C0;--elev-bg:#EEF3FB;--live:#12805C}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--crit:#FF8A80;--crit-bg:#3A1A1C;--high:#F2A661;--high-bg:#3A2614;--elev:#7AAEFF;--elev-bg:#1A3350;--live:#4FD1A1}}
+:root[data-theme="dark"]{--crit:#FF8A80;--crit-bg:#3A1A1C;--high:#F2A661;--high-bg:#3A2614;--elev:#7AAEFF;--elev-bg:#1A3350;--live:#4FD1A1}
+.nav a[aria-current="page"]{color:var(--accent)}
+.brand{flex:none}
+.tz-hero{padding-block:clamp(48px,7vw,88px) 0}
+.tz-hero h1{margin-top:8px;max-width:20ch}
+.tz-hero .lead{margin-top:16px;max-width:62ch}
+.status{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-top:28px;font-size:15px;color:var(--muted)}
+.live{display:inline-flex;align-items:center;gap:8px;font-weight:600;color:var(--live)}
+.live i{width:10px;height:10px;border-radius:50%;background:var(--live);position:relative}
+.live i::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--live);animation:pulse 2s ease-out infinite}
+@keyframes pulse{from{transform:scale(1);opacity:.6}to{transform:scale(2.8);opacity:0}}
+@media (prefers-reduced-motion:reduce){.live i::after{animation:none}}
+.status.is-stale .live{color:var(--high)}.status.is-stale .live i,.status.is-stale .live i::after{background:var(--high)}
+.refresh{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-weight:500;cursor:pointer}
+.refresh:hover{border-color:var(--accent);color:var(--accent)}
+.refresh[disabled]{opacity:.6;cursor:progress}
+.refresh svg{flex:none}
+.refresh.spin svg{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:36px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.kpi b{display:block;font-family:var(--display);font-size:clamp(28px,3vw,36px);line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi span{display:block;margin-top:6px;font-size:14px;color:var(--muted);line-height:1.4}
+.board{padding-block:32px clamp(64px,8vw,104px)}
+.threats{list-style:none;margin:0;padding:0;display:grid;gap:18px}
+.threat{display:grid;grid-template-columns:72px minmax(0,1fr) 220px;gap:28px;background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--lvl,var(--elev));border-radius:16px;padding:clamp(20px,2.6vw,32px)}
+.threat[data-level="critica"]{--lvl:var(--crit);--lvl-bg:var(--crit-bg)}
+.threat[data-level="alta"]{--lvl:var(--high);--lvl-bg:var(--high-bg)}
+.threat[data-level="elevada"]{--lvl:var(--elev);--lvl-bg:var(--elev-bg)}
+.rank{font-family:var(--display);font-weight:700;font-size:44px;line-height:1;color:var(--lvl)}
+.t-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-bottom:8px}
+.badge{display:inline-flex;align-items:center;min-height:28px;padding:2px 12px;border-radius:999px;font-size:13px;font-weight:600;background:var(--lvl-bg);color:var(--lvl)}
+.t-type{font-size:15px;font-weight:600;color:var(--muted)}
+.threat h2{font-size:clamp(21px,2vw,26px);font-weight:600;line-height:1.25}
+.threat h2 small{display:block;font-family:var(--body);font-size:15px;font-weight:500;color:var(--soft);margin-top:4px}
+.chips2{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:14px 0 0;padding:0}
+.chips2 li{display:inline-flex;align-items:center;min-height:30px;padding:2px 12px;border-radius:999px;background:var(--ground);border:1px solid var(--line-2);font-size:13px;font-weight:500}
+.chips2 li.hot{background:var(--crit-bg);color:var(--crit);border-color:transparent;font-weight:600}
+.chips2 li.smb{background:var(--tint);color:var(--accent);border-color:transparent;font-weight:600}
+.chips2 a{color:inherit;text-decoration:none}.chips2 a:hover{text-decoration:underline}
+.todo-box{margin-top:16px;background:var(--ground);border-radius:10px;padding:14px 16px;font-size:16px}
+.todo-box strong{display:block;font-size:14px;color:var(--ink);margin-bottom:2px}
+.threat details{margin-top:12px;font-size:15px;color:var(--muted)}
+.threat summary{cursor:pointer;font-weight:500;color:var(--accent);min-height:36px;display:flex;align-items:center}
+.threat details p{margin-top:6px;line-height:1.55}
+.side{display:flex;flex-direction:column;gap:14px;font-size:14px;color:var(--muted)}
+.meter b{display:flex;justify-content:space-between;font-size:14px;color:var(--ink);margin-bottom:6px}
+.meter b span{font-family:var(--display);font-size:20px;font-variant-numeric:tabular-nums}
+.bar{height:8px;border-radius:999px;background:var(--line-2);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px;background:var(--lvl);width:0;transition:width .8s ease}
+.side dl{margin:0;display:grid;gap:8px}
+.side dt{font-size:13px;color:var(--soft)}.side dd{margin:0;color:var(--ink);font-weight:500}
+.side a.adv{font-weight:600;min-height:40px;display:inline-flex;align-items:center}
+.skeleton .threat{min-height:180px;border-left-color:var(--line);background:linear-gradient(90deg,var(--surface) 0%,var(--ground) 50%,var(--surface) 100%);background-size:200% 100%;animation:shimmer 1.4s linear infinite}
+@keyframes shimmer{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.skeleton .threat{animation:none}}
+.err{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px;color:var(--muted)}
+.method{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;margin-top:40px}
+.method > div{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:clamp(22px,3vw,36px)}
+.method h2{font-size:20px;font-weight:600;margin-bottom:12px}
+.method ul{margin:0;padding-left:20px;display:grid;gap:8px;color:var(--muted);font-size:16px}
+.method p{color:var(--muted);font-size:16px}
+.method .cta{background:var(--navy);border-color:var(--navy);color:var(--navy-text)}
+.method .cta h2{color:#FFFFFF}
+.method .cta p{color:var(--navy-text);margin-bottom:20px}
+.method .cta .btn-primary{background:#FFFFFF;color:#0E2233}.method .cta .btn-primary:hover{background:#DCE7F7;color:#0E2233}
+.fine{margin-top:20px;font-size:13px;color:var(--soft)}
+@media (max-width:1000px){.threat{grid-template-columns:52px minmax(0,1fr)}.side{grid-column:2}.rank{font-size:34px}.method{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:700px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.threat{grid-template-columns:minmax(0,1fr);gap:14px}.side{grid-column:auto}.rank{font-size:28px}}
+
+/* Assessment (/assessment/) */
+:root{--as-good:#17744F;--as-good-bg:#E2F2EA;--as-warn:#A34A06;--as-warn-bg:#FBEEDC;--as-bad:#B42F25;--as-bad-bg:#FBE6E3}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--as-good:#5FD39C;--as-good-bg:#11372A;--as-warn:#F2A661;--as-warn-bg:#3A2610;--as-bad:#F4877C;--as-bad-bg:#3D1C19}}
+:root[data-theme="dark"]{--as-good:#5FD39C;--as-good-bg:#11372A;--as-warn:#F2A661;--as-warn-bg:#3A2610;--as-bad:#F4877C;--as-bad-bg:#3D1C19}
+.as-hero{padding-block:clamp(48px,6vw,80px) 28px}
+.as-hero .lead{max-width:40em;margin-top:16px}
+.as-hero h1{font-size:clamp(34px,4.4vw,54px)}
+.as-sample{display:inline-block;margin-top:20px;font-size:15px;font-weight:600;color:var(--as-warn);background:var(--as-warn-bg);padding:6px 12px;border-radius:8px}
+.as-tool{padding-block:12px clamp(64px,8vw,104px)}
+.as-layout{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:28px;align-items:start}
+.as-form{display:grid;gap:18px;min-width:0}
+.as-domain{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(20px,2.4vw,30px) clamp(20px,2.4vw,30px) 10px;min-width:0}
+.as-dhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.as-dhead h2{font-size:21px;font-weight:600}
+.as-dscore{font-weight:600;font-size:14px;padding:3px 11px;border-radius:999px;font-variant-numeric:tabular-nums;background:var(--tint);color:var(--soft)}
+.as-q{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 20px;align-items:center;padding-block:14px;border-top:1px solid var(--line-2)}
+.as-dhead+.as-q{border-top:0}
+.as-q p{font-size:16px;line-height:1.5}
+.as-q small{display:block;color:var(--soft);font-size:13px;margin-top:2px}
+.as-opts{display:flex;gap:6px;flex-wrap:wrap}
+.as-opts label{position:relative}
+.as-opts input{position:absolute;opacity:0;pointer-events:none}
+.as-opts span{display:inline-flex;align-items:center;min-height:38px;padding:0 13px;border:1.5px solid var(--line);border-radius:8px;font-size:15px;cursor:pointer;background:var(--surface);color:var(--muted);user-select:none;font-weight:500}
+.as-opts span:hover{border-color:var(--accent)}
+.as-opts input:focus-visible+span{outline:3px solid var(--accent);outline-offset:2px}
+.as-opts input[value="yes"]:checked+span{background:var(--as-good-bg);border-color:var(--as-good);color:var(--as-good);font-weight:600}
+.as-opts input[value="partial"]:checked+span{background:var(--as-warn-bg);border-color:var(--as-warn);color:var(--as-warn);font-weight:600}
+.as-opts input[value="no"]:checked+span,.as-opts input[value="unsure"]:checked+span{background:var(--as-bad-bg);border-color:var(--as-bad);color:var(--as-bad);font-weight:600}
+.as-side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 100px);display:grid;gap:16px}
+.as-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;min-width:0}
+.as-result{box-shadow:0 24px 48px -30px rgba(14,34,51,.45)}
+.as-kicker{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);margin-bottom:14px}
+.as-score{display:flex;align-items:center;gap:18px}
+.as-gauge{width:104px;height:104px;flex:none}
+.as-big{font-family:var(--display);font-size:40px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.as-of{font-size:14px;color:var(--soft)}
+.as-rating{display:inline-block;margin-top:8px;font-size:14px;font-weight:600;padding:3px 11px;border-radius:999px}
+.as-bars{display:grid;gap:9px;margin-top:18px}
+.as-bar{display:grid;grid-template-columns:132px minmax(0,1fr) 32px;gap:10px;align-items:center;font-size:14px;color:var(--muted)}
+.as-track{height:8px;background:var(--line-2);border-radius:999px;overflow:hidden}
+.as-fill{display:block;height:100%;border-radius:999px;transition:width .4s ease}
+.as-num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink)}
+.as-fixes{margin:0;padding-left:20px;display:grid;gap:12px;font-size:15px;line-height:1.5}
+.as-sev{font-size:11px;font-weight:600;letter-spacing:.05em;padding:2px 7px;border-radius:5px;margin-right:6px;vertical-align:1px}
+.as-high{background:var(--as-bad-bg);color:var(--as-bad)}.as-med{background:var(--as-warn-bg);color:var(--as-warn)}
+.as-empty{color:var(--muted);font-size:15px}
+.as-verify{color:var(--soft);font-style:normal}
+.as-btns{display:flex;gap:8px;flex-wrap:wrap}
+.as-btn{font:inherit;font-size:15px;font-weight:600;min-height:42px;padding:0 14px;border-radius:9px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.as-btn:hover{border-color:var(--accent);color:var(--accent)}
+.as-btn-main{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.as-btn-main:hover{background:var(--accent-hover);border-color:var(--accent-hover);color:var(--on-accent)}
+.as-cta{background:var(--navy);border-color:var(--navy);color:var(--navy-text)}
+.as-cta h2{color:#FFFFFF;font-size:20px;font-weight:600;margin-bottom:10px}
+.as-cta p{font-size:15px;margin-bottom:18px}
+.as-cta .btn-primary{background:#FFFFFF;color:#0E2233;font-size:16px;min-height:48px;padding:0 20px}
+.as-cta .btn-primary:hover{background:#DCE7F7;color:#0E2233}
+.as-cta .as-contact{margin:16px 0 0;font-size:14px;user-select:all}
+@media (max-width:1000px){.as-layout{grid-template-columns:minmax(0,1fr)}.as-side{position:static}}
+@media (max-width:600px){.as-q{grid-template-columns:minmax(0,1fr)}.as-bar{grid-template-columns:110px minmax(0,1fr) 30px}}
+
+/* Compliance check (/chequeo-cumplimiento/) */
+.cc-sectors{border:0;margin:0 0 20px;padding:0;min-width:0}
+.cc-sectors legend{padding:0}
+.cc-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.cc-sector{position:relative}
+.cc-sector input{position:absolute;opacity:0;pointer-events:none}
+.cc-sector span{display:flex;flex-direction:column;gap:4px;height:100%;padding:16px 18px;border:1.5px solid var(--line);border-radius:14px;background:var(--surface);cursor:pointer}
+.cc-sector b{font-family:var(--display);font-size:17px;font-weight:600;color:var(--ink);line-height:1.3}
+.cc-sector small{font-size:13px;font-weight:600;color:var(--accent)}
+.cc-sector span:hover{border-color:var(--accent)}
+.cc-sector input:checked+span{border-color:var(--accent);background:var(--tint);box-shadow:inset 0 0 0 1px var(--accent)}
+.cc-sector input:focus-visible+span{outline:3px solid var(--accent);outline-offset:2px}
+.cc-small{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin-bottom:16px}
+.cc-check{display:flex;gap:12px;align-items:flex-start;font-size:15px;color:var(--muted);cursor:pointer}
+.cc-check input{width:20px;height:20px;margin-top:2px;flex:none;accent-color:var(--accent)}
+.as-sample{margin:0 0 20px}
+.cc-ref{display:inline-block;font-size:12px;font-weight:500;color:var(--soft);background:var(--ground);border:1px solid var(--line-2);border-radius:5px;padding:0 6px;margin-left:6px;white-space:nowrap}
+.as-q small .cc-ref{margin-left:0}
+.cc-na .as-opts{opacity:.45;pointer-events:none}
+.cc-na p{color:var(--soft)}
+.cc-pct{font-size:22px;margin-left:2px}
+.cc-dintro{font-size:14px;color:var(--soft);margin:-2px 0 6px}
+.cc-note{margin-top:28px;display:grid;gap:10px;font-size:14px;color:var(--soft);max-width:70em}
+.cc-note b{color:var(--muted)}
+.as-fixes .cc-ref{margin:4px 0 0;display:inline-block}
+@media (max-width:1100px){.cc-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:640px){.cc-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+@media (max-width:400px){.cc-grid{grid-template-columns:minmax(0,1fr)}}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/#inicio"><img src="/logo.png" alt="Netblue IT Consulting" width="175" height="56"></a>
+    <button class="menu-btn" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg>
+    </button>
+    <nav class="nav" id="nav" aria-label="Principal">
+      <a href="/#servicios">Servicios</a>
+      <a href="/precios/">Precios</a>
+      <a href="/#cumplimiento">Cumplimiento</a>
+      <a href="/#proceso">Cómo trabajamos</a>
+      <a href="/sobre-nosotros/">Nosotros</a>
+      <a href="/blog/">Blog</a>
+      <a href="https://cursos.netbluepr.com/">Cursos</a>
+      <a href="https://store.netbluepr.com/">Tienda</a>
+      <a href="https://support.netbluepr.com/">Soporte</a>
+      <a href="/#contacto">Contacto</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section class="tz-hero as-hero">
+  <div class="wrap">
+    <p class="label">Chequeo de cumplimiento · gratuito</p>
+    <h1 class="h2">¿Su negocio cumple con las reglas de seguridad de su industria?</h1>
+    <p class="lead">Escoja su tipo de negocio y conteste unas preguntas sobre los controles que exige su regulación: HIPAA, FTC Safeguards o PCI DSS, más la Ley 111 de Puerto Rico. Verá su nivel de cumplimiento y qué le falta, con la referencia de cada requisito.</p>
+  </div>
+</section>
+
+<section class="as-tool" aria-label="Chequeo de cumplimiento">
+  <div class="wrap">
+    <fieldset class="cc-sectors" id="sectors">
+      <legend class="as-kicker">1. Escoja su tipo de negocio</legend>
+      <div class="cc-grid" id="sectorGrid"></div>
+    </fieldset>
+
+    <div class="cc-small" id="smallBox" hidden>
+      <label class="cc-check"><input type="checkbox" id="small"> <span>Mi negocio guarda información de <b>menos de 5,000 clientes</b>. La FTC exime a estos negocios de algunos requisitos, que se marcarán como «No aplica».</span></label>
+    </div>
+
+    <p class="as-sample" id="sampleBadge">Mostrando una oficina médica de ejemplo. Pulse «Empezar de nuevo» para evaluar la suya.</p>
+
+    <div class="as-layout">
+      <div id="form" class="as-form"></div>
+      <aside class="as-side">
+        <div class="as-card as-result">
+          <p class="as-kicker" id="regLabel">Cumplimiento</p>
+          <div class="as-score">
+            <svg class="as-gauge" viewBox="0 0 100 100" aria-hidden="true">
+              <circle cx="50" cy="50" r="42" fill="none" stroke="var(--line-2)" stroke-width="10"/>
+              <circle id="arc" cx="50" cy="50" r="42" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" transform="rotate(-90 50 50)" stroke-dasharray="0 264"/>
+            </svg>
+            <div>
+              <div class="as-big"><span id="total">0</span><span class="cc-pct">%</span></div>
+              <div class="as-of" id="answered">0 de 0 contestadas</div>
+              <span class="as-rating" id="rating">–</span>
+            </div>
+          </div>
+          <div class="as-bars" id="bars"></div>
+        </div>
+        <div class="as-card">
+          <p class="as-kicker">Requisitos pendientes</p>
+          <ol class="as-fixes" id="fixes"></ol>
+        </div>
+        <div class="as-card as-btns">
+          <button class="as-btn as-btn-main" id="reset" type="button">Empezar de nuevo</button>
+          <button class="as-btn" id="copy" type="button">Copiar informe</button>
+        </div>
+        <div class="as-card as-cta">
+          <h2>Le ayudamos a cumplir</h2>
+          <p id="ctaText">Preparamos el análisis de riesgo, las políticas y los controles técnicos que su regulación exige.</p>
+          <a class="btn btn-primary" id="ctaLink" href="/#contacto">Hable con Netblue</a>
+          <p class="as-contact">787-337-9818 · eocasio@netbluepr.com</p>
+        </div>
+      </aside>
+    </div>
+
+    <div class="cc-note">
+      <p><b>Información general, no asesoría legal.</b> Este chequeo resume los requisitos principales de cada regulación para ayudarle a identificar brechas. No sustituye una evaluación formal ni la opinión de un abogado. Referencias: HIPAA Security Rule (45 CFR Parte 164), FTC Safeguards Rule (16 CFR Parte 314), PCI DSS v4.0.1 y Ley 111-2005 de Puerto Rico.</p>
+      <p id="hipaaNote" hidden>HHS propuso en 2025 una actualización mayor de la HIPAA Security Rule, con la versión final ahora esperada para julio de 2027. Mientras tanto aplica la regla vigente; varias prácticas que hoy son «direccionables», como el cifrado, pasarían a ser obligatorias.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <b>netblue</b>
+    <span class="footer-links"><a href="tel:+17873379818">787-337-9818</a> · <a href="mailto:eocasio@netbluepr.com">eocasio@netbluepr.com</a> · <a href="https://support.netbluepr.com/">Soporte</a> · <a href="/resenas/">Reseñas</a> · <a href="/amenazas/">Amenazas de hoy</a></span>
+    <span>Servicio en toda la isla de Puerto Rico · © 2026 Netblue IT Consulting. Todos los derechos reservados.</span>
+  </div>
+</footer>
+<script>
+(function(){
+  var btn=document.querySelector('.menu-btn'), nav=document.getElementById('nav');
+  function close(){nav.classList.remove('open');btn.setAttribute('aria-expanded','false');btn.setAttribute('aria-label','Abrir menú');}
+  btn.addEventListener('click',function(){
+    var open=nav.classList.toggle('open');
+    btn.setAttribute('aria-expanded',open?'true':'false');
+    btn.setAttribute('aria-label',open?'Cerrar menú':'Abrir menú');
+  });
+  nav.addEventListener('click',function(e){ if(e.target.closest('a')) close(); });
+
+})();
+</script>
+<script>
+(function(){
+// w = peso (5 crítico … 2 apoyo); ex = la FTC exime a negocios con menos de 5,000 clientes (16 CFR 314.6)
+var HIPAA={name:"HIPAA Security Rule",domains:[
+ {name:"Administración",qs:[
+  {t:"Tiene un análisis de riesgo de seguridad documentado de los últimos 12 meses",w:5,ref:"45 CFR 164.308(a)(1)",fix:"Haga y documente un análisis de riesgo de seguridad de todos los sistemas con información de pacientes."},
+  {t:"Tiene un plan para reducir los riesgos encontrados, con responsables y fechas",w:3,ref:"164.308(a)(1)(ii)(B)",fix:"Prepare un plan de manejo de riesgos con acciones, responsables y fechas."},
+  {t:"Hay un oficial de seguridad designado por escrito",w:3,ref:"164.308(a)(2)",fix:"Designe por escrito a un oficial de seguridad responsable del programa."},
+  {t:"Tiene contratos de socio de negocios (BAA) con todos los proveedores que manejan información de pacientes",w:4,ref:"164.308(b)",fix:"Firme acuerdos BAA con el EHR, facturación, soporte de TI y servicios en la nube."},
+  {t:"El personal recibe adiestramiento de seguridad y queda documentado",w:3,ref:"164.308(a)(5)",fix:"Ofrezca adiestramiento de seguridad al personal y guarde evidencia de asistencia."}]},
+ {name:"Controles técnicos",qs:[
+  {t:"Cada empleado tiene su propio usuario; no hay cuentas compartidas",w:4,ref:"164.312(a)(2)(i)",fix:"Asigne un usuario único a cada empleado en el EHR y en las computadoras."},
+  {t:"Laptops, servidores y respaldos con información de pacientes están cifrados",w:4,ref:"164.312(a)(2)(iv)",fix:"Cifre laptops, servidores y respaldos con información de pacientes."},
+  {t:"Los equipos cierran la sesión solos después de un tiempo sin uso",w:2,ref:"164.312(a)(2)(iii)",fix:"Configure el cierre automático de sesión en todos los equipos."},
+  {t:"Se revisan periódicamente los registros de acceso (logs) del EHR",w:3,ref:"164.312(b)",fix:"Revise cada mes los registros de acceso del EHR y documente la revisión."}]},
+ {name:"Continuidad y brechas",qs:[
+  {t:"Hay respaldos y un plan de contingencia, y se han probado",w:4,ref:"164.308(a)(7)",fix:"Pruebe la restauración de respaldos y documente el plan de contingencia."},
+  {t:"Tiene un procedimiento para notificar brechas a pacientes y a HHS dentro de 60 días",w:3,ref:"164.404–164.408",fix:"Escriba el procedimiento de notificación de brechas a pacientes y a HHS."}]}
+]};
+var FTC_CORE=[
+ {name:"Programa y gobierno",qs:[
+  {t:"Hay una persona calificada designada para dirigir el programa de seguridad",w:4,ref:"16 CFR 314.4(a)",fix:"Designe a una persona calificada (interna o externa) para dirigir el programa."},
+  {t:"Tiene una evaluación de riesgos escrita",w:5,ref:"314.4(b)",ex:1,fix:"Prepare una evaluación de riesgos escrita sobre la información de clientes."},
+  {t:"La persona calificada entrega un informe escrito anual al dueño o la junta",w:2,ref:"314.4(i)",ex:1,fix:"Prepare el informe anual escrito del programa para el dueño o la junta."},
+  {t:"Tiene un plan escrito de respuesta a incidentes",w:4,ref:"314.4(h)",ex:1,fix:"Escriba un plan de respuesta a incidentes con roles y pasos."}]},
+ {name:"Controles técnicos",qs:[
+  {t:"Todo acceso a información de clientes requiere MFA",w:5,ref:"314.4(c)(5)",fix:"Active MFA en todo sistema con información de clientes."},
+  {t:"La información de clientes está cifrada en tránsito y en reposo",w:4,ref:"314.4(c)(3)",fix:"Cifre la información de clientes en equipos, servidores y al transmitirla."},
+  {t:"Cada empleado solo accede a la información que necesita",w:4,ref:"314.4(c)(1)",fix:"Revise y limite los permisos de acceso al mínimo necesario."},
+  {t:"Tiene un inventario de datos, equipos y sistemas",w:3,ref:"314.4(c)(2)",fix:"Haga un inventario de dónde está la información de clientes y en qué sistemas."},
+  {t:"Se registra y vigila la actividad de los usuarios",w:3,ref:"314.4(c)(8)",fix:"Active registros de actividad y alertas de acceso no autorizado."},
+  {t:"La información se destruye de forma segura a más tardar 2 años después de su último uso",w:2,ref:"314.4(c)(6)",fix:"Adopte una política de destrucción segura de datos de clientes."},
+  {t:"Hace una prueba de penetración anual y escaneos de vulnerabilidades cada 6 meses",w:3,ref:"314.4(d)(2)",ex:1,fix:"Programe una prueba de penetración anual y escaneos semestrales."}]},
+ {name:"Personas y proveedores",qs:[
+  {t:"El personal recibe adiestramiento de seguridad",w:3,ref:"314.4(e)",fix:"Ofrezca adiestramiento de seguridad periódico al personal."},
+  {t:"Supervisa a los proveedores que manejan información de clientes",w:3,ref:"314.4(f)",fix:"Exija controles de seguridad por contrato a sus proveedores y revíselos."},
+  {t:"Sabe que debe notificar a la FTC dentro de 30 días una brecha de 500 personas o más",w:3,ref:"314.4(j)",fix:"Incluya en su plan la notificación a la FTC dentro de 30 días."}]}
+];
+var CPA_EXTRA={name:"Preparadores de planillas",qs:[
+  {t:"Tiene un plan escrito de seguridad de la información (WISP) como pide el IRS",w:4,ref:"IRS Pub. 5708",fix:"Prepare su WISP siguiendo la plantilla de la Publicación 5708 del IRS."}]};
+var PCI={name:"PCI DSS v4.0.1",domains:[
+ {name:"Datos de tarjeta",qs:[
+  {t:"No guarda números de tarjeta completos ni el código de seguridad (CVV)",w:5,ref:"Req. 3",fix:"Elimine cualquier número de tarjeta o CVV guardado en papel, hojas de cálculo o sistemas."},
+  {t:"Sabe qué cuestionario de autoevaluación (SAQ) le corresponde y lo completa cada año",w:4,ref:"Req. 12.5",fix:"Confirme su SAQ con su procesador y complételo cada año."},
+  {t:"Las terminales de pago se inspeccionan contra manipulación",w:3,ref:"Req. 9.5",fix:"Inspeccione las terminales con regularidad y adiestre al personal para detectar manipulación."}]},
+ {name:"Red y sistemas",qs:[
+  {t:"La red de pagos está separada del Wi-Fi de clientes y empleados",w:4,ref:"Req. 1",fix:"Separe la red del POS del Wi-Fi de clientes con un firewall o VLAN."},
+  {t:"Cambió las contraseñas de fábrica del POS, router y equipos",w:4,ref:"Req. 2.2",fix:"Cambie todas las contraseñas de fábrica del POS y la red."},
+  {t:"El POS y las computadoras se mantienen actualizados",w:4,ref:"Req. 6.3",fix:"Aplique las actualizaciones de seguridad del POS y los equipos cada mes."},
+  {t:"Hay antivirus o antimalware activo en los equipos",w:3,ref:"Req. 5",fix:"Instale antimalware en todos los equipos del área de pagos."},
+  {t:"Hace los escaneos trimestrales externos (ASV) si su SAQ los pide",w:3,ref:"Req. 11.3.2",fix:"Contrate un ASV para los escaneos trimestrales si su SAQ los requiere."}]},
+ {name:"Acceso y personal",qs:[
+  {t:"Cada empleado entra al POS con su propio usuario",w:3,ref:"Req. 8.2",fix:"Cree un usuario único para cada empleado en el POS."},
+  {t:"El acceso remoto y administrativo requiere MFA",w:4,ref:"Req. 8.4",fix:"Exija MFA para acceso remoto y cuentas administrativas."},
+  {t:"Hay una política de seguridad y adiestramiento anual",w:2,ref:"Req. 12.1, 12.6",fix:"Escriba una política de seguridad corta y adiestre al personal cada año."},
+  {t:"Tiene un plan de respuesta si se compromete la información de tarjetas",w:3,ref:"Req. 12.10",fix:"Escriba un plan de respuesta para incidentes con datos de tarjetas."}]}
+]};
+var LAW={name:"Bufetes de abogados",domains:[
+ {name:"Confidencialidad del cliente",qs:[
+  {t:"Hay MFA en el correo y en el sistema de manejo de casos",w:5,ref:"Confidencialidad",fix:"Active MFA en el correo y el sistema de casos."},
+  {t:"Las laptops y teléfonos con expedientes están cifrados",w:4,ref:"Confidencialidad",fix:"Cifre laptops y teléfonos que contienen expedientes."},
+  {t:"Comparte documentos con clientes por un portal seguro o correo cifrado",w:3,ref:"Confidencialidad",fix:"Use un portal seguro o correo cifrado para documentos de clientes."},
+  {t:"Evaluó la seguridad de sus proveedores de nube y software",w:3,ref:"Diligencia razonable",fix:"Revise los términos de seguridad de sus proveedores de nube."}]},
+ {name:"Operación",qs:[
+  {t:"Hay respaldos automáticos con una copia fuera de línea",w:4,ref:"Continuidad",fix:"Configure respaldos automáticos con una copia fuera de línea."},
+  {t:"Verifica por teléfono toda instrucción de transferencia de fondos",w:4,ref:"Fraude de transferencias",fix:"Exija verificación telefónica de toda instrucción de pago o transferencia."},
+  {t:"El personal recibe adiestramiento de phishing",w:3,ref:"Diligencia razonable",fix:"Ofrezca adiestramiento de phishing al personal."},
+  {t:"Tiene una política de retención y destrucción de expedientes",w:2,ref:"Retención",fix:"Adopte una política de retención y destrucción segura de expedientes."},
+  {t:"Tiene un plan de respuesta a incidentes",w:3,ref:"Continuidad",fix:"Escriba un plan de respuesta a incidentes de una página."}]}
+]};
+var PR={name:"Ley 111 de Puerto Rico",qs:[
+  {t:"Sabe qué datos personales cubiertos guarda (seguro social, cuentas, salud, contraseñas) y dónde",w:3,ref:"Ley 111-2005",fix:"Identifique dónde guarda datos personales cubiertos por la Ley 111."},
+  {t:"Esos datos están cifrados (si están cifrados, una pérdida no requiere notificación)",w:4,ref:"Ley 111-2005",fix:"Cifre los datos personales cubiertos; el cifrado reduce su obligación de notificar."},
+  {t:"Tiene un procedimiento para notificar a DACO dentro de 10 días de detectar una brecha",w:4,ref:"Ley 111-2005",fix:"Escriba el procedimiento para notificar a DACO dentro de 10 días."},
+  {t:"Tiene lista una plantilla para notificar a los clientes afectados",w:2,ref:"Ley 111-2005",fix:"Prepare una plantilla de notificación a clientes afectados."}]};
+
+var SECTORS=[
+ {id:"medica",name:"Oficina médica o dental",reg:"HIPAA",link:"/sectores/oficinas-medicas-hipaa/",build:function(){return HIPAA.domains.concat([PR]);},label:"HIPAA + Ley 111"},
+ {id:"cpa",name:"Contable, CPA o planillas",reg:"FTC Safeguards",link:"/sectores/contables-cpa-ftc-safeguards/",build:function(){return FTC_CORE.concat([CPA_EXTRA,PR]);},label:"FTC Safeguards + Ley 111",ftc:1},
+ {id:"auto",name:"Concesionario o financiera",reg:"FTC Safeguards",link:"/sectores/concesionarios-financieras-ftc/",build:function(){return FTC_CORE.concat([PR]);},label:"FTC Safeguards + Ley 111",ftc:1},
+ {id:"pci",name:"Comercio que acepta tarjetas",reg:"PCI DSS",link:"/sectores/comercios-pci-dss/",build:function(){return PCI.domains.concat([PR]);},label:"PCI DSS + Ley 111"},
+ {id:"law",name:"Bufete de abogados",reg:"Confidencialidad",link:"/sectores/bufetes-abogados/",build:function(){return LAW.domains.concat([PR]);},label:"Buenas prácticas + Ley 111"}
+];
+var SAMPLE={medica:["yes","no","partial","no","partial","no","partial","yes","no","partial","no","unsure","no","unsure","no"]};
+var VAL={yes:1,partial:.5,no:0,unsure:0}, LBL={yes:"Sí",partial:"En parte",no:"No",unsure:"No sé"};
+var C={good:["var(--as-good)","var(--as-good-bg)"],warn:["var(--as-warn)","var(--as-warn-bg)"],bad:["var(--as-bad)","var(--as-bad-bg)"]};
+function lvl(p){return p>=80?"good":p>=50?"warn":"bad";}
+var $=function(id){return document.getElementById(id);};
+var cur=null, domains=[], qs=[];
+
+var grid=$("sectorGrid");
+SECTORS.forEach(function(s){
+  var l=document.createElement("label");l.className="cc-sector";
+  l.innerHTML='<input type="radio" name="sector" id="sec-'+s.id+'" value="'+s.id+'"><span><b>'+s.name+'</b><small>'+s.reg+'</small></span>';
+  grid.appendChild(l);
+});
+function esc(t){return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");}
+function render(id){
+  cur=SECTORS.filter(function(s){return s.id===id;})[0];
+  domains=cur.build(); qs=[];
+  var f=$("form"); f.innerHTML="";
+  domains.forEach(function(d,di){
+    var sec=document.createElement("section");sec.className="as-domain";
+    var h='<div class="as-dhead"><h2>'+d.name+'</h2><span class="as-dscore" id="ds-'+di+'"></span></div>';
+    if(d===PR) h+='<p class="cc-dintro">Aplica a todo negocio en Puerto Rico que guarde datos personales de residentes.</p>';
+    sec.innerHTML=h;
+    d.qs.forEach(function(q){
+      var k=qs.length; qs.push({q:q,d:di});
+      var row=document.createElement("div");row.className="as-q";row.id="row"+k;
+      row.innerHTML='<p>'+esc(q.t)+'<small><span class="cc-ref">'+q.ref+'</span>'+(q.ex?' · exento si tiene menos de 5,000 clientes':'')+'</small></p><div class="as-opts" role="radiogroup" aria-label="'+esc(q.t)+'">'+Object.keys(LBL).map(function(v){return '<label><input type="radio" id="q'+k+'-'+v+'" name="q'+k+'" value="'+v+'"><span>'+LBL[v]+'</span></label>';}).join("")+'</div>';
+      sec.appendChild(row);
+    });
+    f.appendChild(sec);
+  });
+  $("smallBox").hidden=!cur.ftc;
+  $("hipaaNote").hidden=cur.id!=="medica";
+  $("regLabel").textContent="Cumplimiento · "+cur.label;
+  $("ctaLink").setAttribute("href",cur.link);
+  $("ctaLink").textContent="Ver cómo ayudamos a su sector";
+  update();
+}
+function na(item){return cur.ftc && $("small").checked && item.q.ex;}
+function update(){
+  var tw=0,ts=0,ans=0,applic=0,gaps=[],per=domains.map(function(){return {w:0,s:0,a:0};});
+  qs.forEach(function(item,k){
+    var row=$("row"+k), skip=na(item); row.classList.toggle("cc-na",skip);
+    if(skip) return;
+    applic++;
+    var c=document.querySelector('input[name="q'+k+'"]:checked'), w=item.q.w, P=per[item.d];
+    tw+=w;P.w+=w;
+    if(c){ans++;P.a++;var v=VAL[c.value];ts+=w*v;P.s+=w*v;if(v<1)gaps.push({q:item.q,lost:w*(1-v),v:c.value});}
+  });
+  var bars="";
+  domains.forEach(function(d,di){
+    var P=per[di],p=P.w?Math.round(P.s/P.w*100):100,L=C[lvl(p)],el=$("ds-"+di);
+    el.textContent=P.a?p+"%":"–";el.style.background=P.a?L[1]:"";el.style.color=P.a?L[0]:"";
+    bars+='<div class="as-bar"><span>'+d.name+'</span><div class="as-track"><i class="as-fill" style="width:'+p+'%;background:'+L[0]+'"></i></div><span class="as-num">'+p+'</span></div>';
+  });
+  var total=tw?Math.round(ts/tw*100):0,L=C[lvl(total)];
+  $("total").textContent=total;
+  $("answered").textContent=ans+" de "+applic+" contestadas";
+  var arc=$("arc");arc.setAttribute("stroke-dasharray",(total/100*264)+" 264");arc.setAttribute("stroke",L[0]);
+  var r=$("rating");r.textContent=total>=80?"Buen nivel":total>=50?"Brechas importantes":"Riesgo de incumplimiento";r.style.background=L[1];r.style.color=L[0];
+  $("bars").innerHTML=bars;
+  gaps.sort(function(a,b){return b.lost-a.lost;});
+  $("fixes").innerHTML=gaps.length?gaps.slice(0,7).map(function(g){return '<li><span class="as-sev '+(g.q.w>=4?'as-high':'as-med')+'">'+(g.q.w>=4?'ALTO':'MEDIO')+'</span>'+g.q.fix+(g.v==="unsure"?' <em class="as-verify">(verifique primero)</em>':'')+'<br><span class="cc-ref">'+g.q.ref+'</span></li>';}).join(""):'<p class="as-empty">Todavía no hay brechas. Conteste las preguntas para ver qué le falta.</p>';
+  window._ccReport={total:total,rating:r.textContent,gaps:gaps};
+}
+function fill(arr){
+  document.querySelectorAll("#form input[type=radio]").forEach(function(i){i.checked=false;});
+  if(arr)arr.forEach(function(v,i){var el=$("q"+i+"-"+v);if(el)el.checked=true;});
+  update();
+}
+var badge=$("sampleBadge");
+grid.addEventListener("change",function(e){badge.hidden=true;$("small").checked=false;render(e.target.value);});
+$("form").addEventListener("change",function(){badge.hidden=true;update();});
+$("small").addEventListener("change",update);
+$("reset").onclick=function(){badge.hidden=true;fill(null);};
+$("copy").onclick=function(e){
+  var R=window._ccReport,b=e.currentTarget;
+  var txt="Chequeo de cumplimiento Netblue · "+cur.name+" ("+cur.label+")\nCumplimiento: "+R.total+"% ("+R.rating+")\n\nRequisitos pendientes:\n"+R.gaps.map(function(g,i){return (i+1)+". "+g.q.fix+" ["+g.q.ref+"]";}).join("\n")+"\n\nInformación general, no asesoría legal.\nNetblue IT Consulting · 787-337-9818 · eocasio@netbluepr.com";
+  function done(m){b.textContent=m;setTimeout(function(){b.textContent="Copiar informe";},1800);}
+  if(navigator.clipboard)navigator.clipboard.writeText(txt).then(function(){done("Copiado");},function(){done("No se pudo copiar");});else done("No se pudo copiar");
+};
+$("sec-medica").checked=true; render("medica"); fill(SAMPLE.medica);
+})();
+</script>
+
+</body>
+</html>
