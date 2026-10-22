@@ -427,7 +427,6 @@ p{margin:0}
         <div class="as-card as-btns">
           <button class="as-btn as-btn-main" id="pdf" type="button">Descargar informe (PDF)</button>
           <button class="as-btn" id="reset" type="button">Empezar de nuevo</button>
-          <button class="as-btn" id="copy" type="button">Copiar informe</button>
         </div>
         <div class="as-card as-cta">
           <h2>Le ayudamos a cumplir</h2>
@@ -624,12 +623,6 @@ grid.addEventListener("change",function(e){badge.hidden=true;$("small").checked=
 $("form").addEventListener("change",function(){badge.hidden=true;update();});
 $("small").addEventListener("change",update);
 $("reset").onclick=function(){badge.hidden=true;fill(null);};
-$("copy").onclick=function(e){
-  var R=window._ccReport,b=e.currentTarget;
-  var txt="Chequeo de cumplimiento Netblue · "+cur.name+" ("+cur.label+")\nCumplimiento: "+R.total+"% ("+R.rating+")\n\nRequisitos pendientes:\n"+R.gaps.map(function(g,i){return (i+1)+". "+g.q.fix+" ["+g.q.ref+"]";}).join("\n")+"\n\nInformación general, no asesoría legal.\nNetblue IT Consulting · 787-337-9818 · eocasio@netbluepr.com";
-  function done(m){b.textContent=m;setTimeout(function(){b.textContent="Copiar informe";},1800);}
-  if(navigator.clipboard)navigator.clipboard.writeText(txt).then(function(){done("Copiado");},function(){done("No se pudo copiar");});else done("No se pudo copiar");
-};
 $("pdf").onclick=function(e){NBReport.download(e.currentTarget,function(){
   var LB={yes:"Sí",partial:"En parte",no:"No",unsure:"No sé"},tw=0,ts=0,ans=0,app=0,nas=0,gaps=[],areas=[],sections=[];
   domains.forEach(function(d,di){

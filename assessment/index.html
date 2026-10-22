@@ -389,7 +389,6 @@ p{margin:0}
           <button class="as-btn as-btn-main" id="pdf" type="button">Descargar informe (PDF)</button>
           <button class="as-btn" id="reset" type="button">Empezar de nuevo</button>
           <button class="as-btn" id="sample" type="button">Ver ejemplo</button>
-          <button class="as-btn" id="copy" type="button">Copiar informe</button>
         </div>
         <div class="as-card as-cta">
           <h2>¿Necesita ayuda con estas brechas?</h2>
@@ -496,10 +495,6 @@ const badge=document.getElementById("sampleBadge");
 form.addEventListener("change",()=>{badge.hidden=true;update();});
 document.getElementById("reset").onclick=()=>{fill(null);badge.hidden=true;};
 document.getElementById("sample").onclick=()=>{fill(SAMPLE);badge.hidden=false;};
-document.getElementById("copy").onclick=async e=>{const R=window._report,b=e.currentTarget;
-  const txt=`Chequeo de Seguridad Netblue\nPuntuación: ${R.total}/100 (${R.rating})\n\nCorrecciones prioritarias:\n`+R.gaps.map((g,i)=>`${i+1}. ${g.q.fix}`).join("\n")+`\n\nNetblue IT Consulting · 787-337-9818 · eocasio@netbluepr.com`;
-  try{await navigator.clipboard.writeText(txt);b.textContent="Copiado";}catch{b.textContent="No se pudo copiar";}
-  setTimeout(()=>b.textContent="Copiar informe",1800);};
 document.getElementById("pdf").onclick=function(e){NBReport.download(e.currentTarget,function(){
   var R=window._report,ans=0,n=0,areas=[],sections=[];
   DOMAINS.forEach(function(d){var w=0,s=0,items=[];
