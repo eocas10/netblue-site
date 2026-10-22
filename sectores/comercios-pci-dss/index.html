@@ -200,6 +200,11 @@ p{margin:0}
 .blog-embed img{max-width:100%;height:auto}
 .nav a[aria-current="page"]{color:var(--accent)}
 .brand{flex:none}.nav .btn svg{flex:none}
+.cc-callout{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 28px;margin:40px 0 8px;padding:24px 28px;border:1.5px solid var(--accent);border-radius:16px;background:var(--tint)}
+.cc-callout > div{flex:1 1 320px;min-width:0}
+.cc-callout h2{margin:0 0 6px!important;font-size:22px}
+.cc-callout p{margin:0;color:var(--muted)}
+.cc-callout .btn{flex:none}
 </style>
 <style>
 .article{max-width:820px}
@@ -280,6 +285,13 @@ p{margin:0}
 <li>Su procesador le cobra un cargo mensual por no tener el cuestionario PCI al día.</li>
 <li>Varios empleados comparten el mismo usuario en el sistema de ventas.</li>
 </ul>
+<aside class="cc-callout" aria-label="Chequeo de cumplimiento">
+  <div>
+    <h2>¿Cumple su negocio con PCI DSS?</h2>
+    <p>Haga nuestro chequeo gratuito: conteste unas preguntas sobre los requisitos de PCI DSS y la Ley 111 de Puerto Rico, y vea en minutos qué le falta, con la referencia de cada requisito.</p>
+  </div>
+  <a class="btn btn-primary" href="/chequeo-cumplimiento/#pci">Haga el chequeo de cumplimiento</a>
+</aside>
 <h2>Preguntas frecuentes</h2>
 <div class="faq">
 <details><summary>¿PCI DSS aplica a un negocio pequeño?</summary><p>Sí. Aplica a todo negocio que acepte tarjetas, sin importar su tamaño. Lo que cambia según el volumen de transacciones y la forma de cobrar es el tipo de cuestionario y la cantidad de controles.</p></details>
