@@ -6,3 +6,13 @@
   [headers.values]
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[redirects]]
+  from = "/assesment"
+  to = "/assessment/"
+  status = 301
+
+[[redirects]]
+  from = "/assesment/*"
+  to = "/assessment/"
+  status = 301
