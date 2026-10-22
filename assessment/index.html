@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Evaluación de ciberseguridad gratuita para negocios en Puerto Rico | Netblue</title>
-<meta name="description" content="Evaluación de ciberseguridad gratuita para negocios pequeños y medianos en Puerto Rico. Conteste 22 preguntas en 10 minutos y reciba su puntuación y las correcciones prioritarias.">
+<meta name="description" content="Evaluación de ciberseguridad gratuita para negocios pequeños y medianos en Puerto Rico. Conteste 21 preguntas en 10 minutos y reciba su puntuación y las correcciones prioritarias.">
 <link rel="canonical" href="https://netbluepr.com/assessment/">
 <meta property="og:title" content="¿Qué tan protegido está su negocio? Evaluación gratuita | Netblue">
-<meta property="og:description" content="Conteste 22 preguntas en 10 minutos y reciba su puntuación de seguridad y las correcciones prioritarias para su negocio.">
+<meta property="og:description" content="Conteste 21 preguntas en 10 minutos y reciba su puntuación de seguridad y las correcciones prioritarias para su negocio.">
 <meta property="og:locale" content="es_PR">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://netbluepr.com/assessment/">
@@ -356,7 +356,7 @@ p{margin:0}
   <div class="wrap">
     <p class="label">Evaluación de vulnerabilidades · gratuita</p>
     <h1 class="h2">¿Qué tan protegido está su negocio?</h1>
-    <p class="lead">Conteste 22 preguntas en unos 10 minutos. Verá su puntuación de seguridad y las correcciones que más reducen su riesgo, en orden de prioridad. Sus respuestas no salen de su navegador.</p>
+    <p class="lead">Conteste 21 preguntas en unos 10 minutos. Verá su puntuación de seguridad y las correcciones que más reducen su riesgo, en orden de prioridad. Sus respuestas no salen de su navegador.</p>
     <p class="as-sample" id="sampleBadge">Mostrando una oficina de ejemplo. Pulse «Empezar de nuevo» para evaluar la suya.</p>
   </div>
 </section>
@@ -386,7 +386,8 @@ p{margin:0}
           <ol class="as-fixes" id="fixes"></ol>
         </div>
         <div class="as-card as-btns">
-          <button class="as-btn as-btn-main" id="reset" type="button">Empezar de nuevo</button>
+          <button class="as-btn as-btn-main" id="pdf" type="button">Descargar informe (PDF)</button>
+          <button class="as-btn" id="reset" type="button">Empezar de nuevo</button>
           <button class="as-btn" id="sample" type="button">Ver ejemplo</button>
           <button class="as-btn" id="copy" type="button">Copiar informe</button>
         </div>
@@ -499,7 +500,130 @@ document.getElementById("copy").onclick=async e=>{const R=window._report,b=e.cur
   const txt=`Chequeo de Seguridad Netblue\nPuntuación: ${R.total}/100 (${R.rating})\n\nCorrecciones prioritarias:\n`+R.gaps.map((g,i)=>`${i+1}. ${g.q.fix}`).join("\n")+`\n\nNetblue IT Consulting · 787-337-9818 · eocasio@netbluepr.com`;
   try{await navigator.clipboard.writeText(txt);b.textContent="Copiado";}catch{b.textContent="No se pudo copiar";}
   setTimeout(()=>b.textContent="Copiar informe",1800);};
+document.getElementById("pdf").onclick=function(e){NBReport.download(e.currentTarget,function(){
+  var R=window._report,ans=0,n=0,areas=[],sections=[];
+  DOMAINS.forEach(function(d){var w=0,s=0,items=[];
+    d.qs.forEach(function(q){n++;var c=document.querySelector("input[name=q"+q.k+"]:checked");w+=q.w;
+      if(c){ans++;s+=q.w*VAL[c.value];}
+      items.push({q:q.t,a:c?LBL[c.value]:"Sin contestar"});});
+    areas.push({name:d.name,p:Math.round(s/w*100)});sections.push({name:d.name,items:items});});
+  return {title:"Chequeo de seguridad",subtitle:"Evaluación de vulnerabilidades para su negocio",total:R.total,unit:"/100",goodAt:75,
+    rating:R.rating,answeredText:ans+" de "+n+" preguntas contestadas",areas:areas,gapsTitle:"Correcciones prioritarias",
+    gaps:R.gaps.map(function(g){return {fix:g.q.fix,high:g.q.w>=4,unsure:g.v==="unsure"};}),sections:sections,file:"chequeo-seguridad-netblue",
+    note:"Autoevaluación basada en sus respuestas. Para confirmar cada hallazgo, Netblue puede hacer una evaluación de su red sin compromiso."};
+});};
 fill(SAMPLE);
+</script>
+<script>
+/* Informe PDF de Netblue: genera el PDF en el navegador; nada se envía a un servidor. */
+window.NBReport=(function(){
+  var JSPDF="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js", loading=null;
+  function loadLib(){
+    if(window.jspdf) return Promise.resolve();
+    if(loading) return loading;
+    loading=new Promise(function(ok,fail){var s=document.createElement("script");s.src=JSPDF;s.onload=ok;s.onerror=function(){loading=null;fail(new Error("lib"));};document.head.appendChild(s);});
+    return loading;
+  }
+  function loadLogo(){
+    return fetch("/logo.png").then(function(r){return r.blob();}).then(function(b){
+      return new Promise(function(ok){var fr=new FileReader();fr.onload=function(){ok(fr.result);};fr.onerror=function(){ok(null);};fr.readAsDataURL(b);});
+    }).catch(function(){return null;});
+  }
+  var NAVY=[14,34,51],ACC=[21,87,192],MUTED=[74,85,99],LINE=[221,216,206];
+  var LVL={good:[23,116,79],warn:[163,74,6],bad:[180,47,37]};
+  function lvl(p,hi){return p>=hi?"good":p>=50?"warn":"bad";}
+  function clean(t){return String(t).replace(/[–—]/g,"-").replace(/[“”]/g,'"');}
+  function build(o,logo){
+    var doc=new window.jspdf.jsPDF({unit:"mm",format:"letter"});
+    var W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight(),M=18,y=M,CW=W-2*M;
+    function color(c){doc.setTextColor(c[0],c[1],c[2]);}
+    function need(h){if(y+h>H-22){doc.addPage();y=M;}}
+    function text(t,size,style,c,x,maxW,lh){
+      doc.setFont("helvetica",style||"normal");doc.setFontSize(size);color(c||NAVY);
+      var lines=doc.splitTextToSize(clean(t),maxW||CW),step=(lh||size*0.42);
+      lines.forEach(function(l){need(step);doc.text(l,x||M,y+step*0.8);y+=step;});
+      return lines.length;
+    }
+    function rule(){doc.setDrawColor(LINE[0],LINE[1],LINE[2]);doc.setLineWidth(0.3);doc.line(M,y,W-M,y);}
+    function heading(t){y+=5;need(14);text(t,13,"bold",NAVY);y+=1.5;rule();y+=3;}
+    // encabezado
+    if(logo){try{var pr=doc.getImageProperties(logo),h=13,w=pr.width*h/pr.height;doc.addImage(logo,"PNG",M,y,w,h);}catch(e){}}
+    doc.setFont("helvetica","normal");doc.setFontSize(9);color(MUTED);
+    doc.text("netbluepr.com",W-M,y+5,{align:"right"});doc.text(o.date,W-M,y+10,{align:"right"});
+    y+=19;
+    text(o.title,19,"bold",NAVY,null,null,8);
+    if(o.subtitle) text(o.subtitle,11,"normal",ACC,null,null,5.5);
+    y+=4;
+    // resumen
+    var L=LVL[lvl(o.total,o.goodAt||75)];
+    need(30);
+    doc.setFillColor(244,242,237);doc.roundedRect(M,y,CW,26,3,3,"F");
+    doc.setFont("helvetica","bold");doc.setFontSize(30);color(L);
+    doc.text(o.total+o.unit,M+8,y+16.5);
+    doc.setFontSize(12);doc.text(clean(o.rating),M+52,y+11);
+    doc.setFont("helvetica","normal");doc.setFontSize(10);color(MUTED);
+    doc.text(clean(o.answeredText),M+52,y+17.5);
+    y+=32;
+    // áreas
+    heading("Resultado por área");
+    o.areas.forEach(function(a){
+      need(8);var c=LVL[lvl(a.p,o.goodAt||75)];
+      doc.setFont("helvetica","normal");doc.setFontSize(10);color(NAVY);doc.text(clean(a.name),M,y+4);
+      var bx=M+62,bw=CW-62-14;
+      doc.setFillColor(LINE[0],LINE[1],LINE[2]);doc.roundedRect(bx,y+1.4,bw,3,1.5,1.5,"F");
+      if(a.p>0){doc.setFillColor(c[0],c[1],c[2]);doc.roundedRect(bx,y+1.4,Math.max(3,bw*a.p/100),3,1.5,1.5,"F");}
+      doc.setFont("helvetica","bold");doc.text(String(a.p),W-M,y+4,{align:"right"});
+      y+=7;
+    });
+    // pendientes
+    heading(o.gapsTitle);
+    if(!o.gaps.length){text("No hay brechas entre las preguntas contestadas.",10,"normal",MUTED);}
+    o.gaps.forEach(function(g,i){
+      need(12);
+      var sev=g.high?"ALTO":"MEDIO",c=g.high?LVL.bad:LVL.warn;
+      doc.setFont("helvetica","bold");doc.setFontSize(10);color(NAVY);doc.text((i+1)+".",M,y+4);
+      doc.setFontSize(7.5);color(c);doc.text(sev,M+7,y+4);
+      var y0=y;text(g.fix+(g.unsure?" (verifique primero)":""),10,"normal",NAVY,M+20,CW-20,4.6);
+      if(g.ref){text(g.ref,8.5,"normal",MUTED,M+20,CW-20,4);}
+      y+=2.5;
+    });
+    // respuestas
+    heading("Sus respuestas");
+    o.sections.forEach(function(s){
+      need(10);text(s.name,10.5,"bold",ACC,null,null,5);y+=1;
+      s.items.forEach(function(it){
+        doc.setFont("helvetica","normal");doc.setFontSize(9.5);
+        var lines=doc.splitTextToSize(clean(it.q+(it.ref?"  ("+it.ref+")":"")),CW-30),hh=lines.length*4.3+2;
+        need(hh);color(NAVY);lines.forEach(function(l,ix){doc.text(l,M,y+3.6+ix*4.3);});
+        var ac=it.a==="Sí"?LVL.good:it.a==="En parte"?LVL.warn:(it.a==="No aplica"||it.a==="Sin contestar")?MUTED:LVL.bad;
+        doc.setFont("helvetica","bold");color(ac);doc.text(clean(it.a),W-M,y+3.6,{align:"right"});
+        y+=hh;
+      });
+      y+=2;
+    });
+    // nota y contacto
+    y+=4;need(26);rule();y+=4;
+    if(o.note) text(o.note,8.5,"normal",MUTED,null,null,4);
+    y+=2;text("¿Necesita ayuda para cerrar estas brechas? Netblue IT Consulting · 787-337-9818 · eocasio@netbluepr.com · netbluepr.com",9.5,"bold",NAVY,null,null,4.6);
+    // pie
+    var n=doc.getNumberOfPages();
+    for(var p=1;p<=n;p++){doc.setPage(p);doc.setFont("helvetica","normal");doc.setFontSize(8);color(MUTED);
+      doc.text("Netblue IT Consulting · "+clean(o.title),M,H-10);doc.text("Página "+p+" de "+n,W-M,H-10,{align:"right"});}
+    return doc;
+  }
+  function today(){return new Date().toLocaleDateString("es-PR",{day:"numeric",month:"long",year:"numeric"});}
+  function stamp(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+  function download(btn,getData){
+    var label=btn.textContent;btn.disabled=true;btn.textContent="Preparando PDF…";
+    Promise.all([loadLib(),loadLogo()]).then(function(r){
+      var o=getData();o.date=today();
+      build(o,r[1]).save(o.file+"-"+stamp()+".pdf");
+      btn.textContent="Descargado";
+    }).catch(function(){btn.textContent="No se pudo crear el PDF";})
+    .then(function(){setTimeout(function(){btn.disabled=false;btn.textContent=label;},2200);});
+  }
+  return {download:download};
+})();
 </script>
 </body>
 </html>
