@@ -586,7 +586,7 @@ function render(id){
   $("ctaLink").textContent="Ver cómo ayudamos a su sector";
   update();
 }
-function na(item){return cur.ftc && $("small").checked && item.q.ex;}
+function na(item){return !!(cur.ftc && $("small").checked && item.q.ex);}
 function update(){
   var tw=0,ts=0,ans=0,applic=0,gaps=[],per=domains.map(function(){return {w:0,s:0,a:0};});
   qs.forEach(function(item,k){
