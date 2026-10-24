@@ -217,7 +217,7 @@ p{margin:0}
 .price{display:flex;align-items:baseline;gap:6px;margin:20px 0 4px}
 .price b{font-family:var(--display);font-size:clamp(40px,4vw,52px);font-weight:700;letter-spacing:-.02em;line-height:1}
 .price span{font-size:15px;color:var(--soft)}
-.plan .terms{font-size:14px;color:var(--soft);margin-bottom:20px}
+.plan .terms{font-size:14px;color:var(--soft);margin-bottom:20px;line-height:1.5}.terms strong{color:var(--ink)}
 .plan ul{list-style:none;margin:0 0 28px;padding:0;display:grid;gap:10px;font-size:16px;line-height:1.45}
 .plan li{display:flex;gap:10px}
 .plan li::before{content:"\2713";flex:none;width:20px;height:20px;margin-top:2px;border-radius:50%;background:var(--tint);color:var(--accent);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
@@ -277,20 +277,21 @@ p{margin:0}
       <div class="block-head"><div><p class="label">Servicios gestionados</p><h2 class="h2">Soporte y ciberseguridad por usuario</h2></div>
       <p>Pague solo por las personas que usan tecnología en su negocio. Agregue o quite usuarios cuando lo necesite.</p></div>
       <div class="plans">
-<div class="plan"><h3>Básico</h3><p class="for">Oficinas de 5 a 15 empleados sin personal de TI.</p>
-<div class="price"><b>$45</b><span>por usuario / mes</span></div><p class="terms">Mínimo 5 usuarios · contrato de 12 meses</p><ul><li>Soporte remoto en horario laboral</li><li>Monitoreo y actualizaciones de equipos</li><li>Antivirus avanzado (EDR) administrado</li><li>Seguridad de Microsoft 365 y verificación en dos pasos</li><li>Respaldo de correo y archivos de Microsoft 365</li></ul>
+<div class="plan"><h3>Básico</h3><p class="for">Oficinas de 4 a 15 empleados sin personal de TI.</p>
+<div class="price"><b>$45</b><span>por usuario / mes</span></div><p class="terms">Mínimo 4 usuarios · sin contrato<br><strong>$38.25</strong> por usuario con contrato de 12 meses (15% menos)</p><ul><li>Soporte remoto en horario laboral</li><li>Monitoreo y actualizaciones de equipos</li><li>Antivirus avanzado (EDR) administrado</li><li>Seguridad de Microsoft 365 y verificación en dos pasos</li><li>Respaldo de correo y archivos de Microsoft 365</li></ul>
 <a class="btn btn-outline" href="/#contacto">Solicitar cotización</a></div>
 <div class="plan featured"><span class="tag">Más completo</span><h3>Seguro</h3><p class="for">Negocios que manejan datos de clientes, pagos o expedientes.</p>
-<div class="price"><b>$85</b><span>por usuario / mes</span></div><p class="terms">Mínimo 5 usuarios · contrato de 12 meses</p><ul><li class="plus">Todo lo del plan Básico</li><li>Firewall administrado incluido</li><li>Respaldo local y recuperación de desastres</li><li>Simulación de phishing trimestral</li><li>2 visitas al local al mes</li></ul>
+<div class="price"><b>$85</b><span>por usuario / mes</span></div><p class="terms">Mínimo 4 usuarios · sin contrato<br><strong>$72.25</strong> por usuario con contrato de 12 meses (15% menos)</p><ul><li class="plus">Todo lo del plan Básico</li><li>Firewall administrado incluido</li><li>Respaldo local y recuperación de desastres</li><li>Simulación de phishing trimestral</li><li>2 visitas al local al mes</li></ul>
 <a class="btn btn-primary" href="/#contacto">Solicitar cotización</a></div>
 <div class="plan"><h3>Cumplimiento</h3><p class="for">Oficinas médicas y dentales, CPA, bufetes y financieras.</p>
-<div class="price"><b>$125</b><span>por usuario / mes</span></div><p class="terms">Mínimo 5 usuarios · contrato de 12 meses</p><ul><li class="plus">Todo lo del plan Seguro</li><li>Asesor de seguridad (vCISO) mensual</li><li>Evaluación de riesgo HIPAA / FTC anual</li><li>Políticas y procedimientos de seguridad</li><li>Escaneo de vulnerabilidades trimestral e informe ejecutivo</li></ul>
+<div class="price"><b>$125</b><span>por usuario / mes</span></div><p class="terms">Mínimo 4 usuarios · sin contrato<br><strong>$106.25</strong> por usuario con contrato de 12 meses (15% menos)</p><ul><li class="plus">Todo lo del plan Seguro</li><li>Asesor de seguridad (vCISO) mensual</li><li>Evaluación de riesgo HIPAA / FTC anual</li><li>Políticas y procedimientos de seguridad</li><li>Escaneo de vulnerabilidades trimestral e informe ejecutivo</li></ul>
 <a class="btn btn-outline" href="/#contacto">Solicitar cotización</a></div>
       </div>
       <div class="extras">
         <div class="box"><h3>Licencias de Microsoft 365</h3><p>Los planes no incluyen la licencia de Microsoft 365. Puede usar la que ya tiene o se la gestionamos nosotros al precio vigente de Microsoft.</p></div>
         <div class="box"><h3>Servicios por proyecto</h3><table>
           <tr><td>Evaluación de seguridad de red (48 horas)</td><td>Gratis</td></tr>
+          <tr><td>Soporte por hora, sin plan (mínimo 2 horas)</td><td>$125/hora</td></tr>
           <tr><td>Evaluación de riesgo HIPAA</td><td>Desde $1,500</td></tr>
           <tr><td>Asesor de seguridad (vCISO) sin plan</td><td>Desde $1,200/mes</td></tr>
           <tr><td>Adiestramiento de concienciación (hasta 20 personas)</td><td>Desde $600</td></tr>
@@ -322,7 +323,7 @@ p{margin:0}
       </div>
     </div>
 
-    <p class="fine">Precios en dólares estadounidenses, antes del IVU. Los planes por usuario requieren un mínimo de 5 usuarios y un contrato de 12 meses. El firewall como servicio requiere un contrato de 36 meses y el equipo es propiedad de Netblue durante el contrato. Precios sujetos a cambio; la cotización final depende de la evaluación de su negocio.</p>
+    <p class="fine">Precios en dólares estadounidenses, antes del IVU. Los planes por usuario requieren un mínimo de 4 usuarios, no requieren contrato y tienen un 15% de descuento con contrato de 12 meses. El soporte por hora se factura con un mínimo de 2 horas. El firewall como servicio requiere un contrato de 36 meses y el equipo es propiedad de Netblue durante el contrato. Precios sujetos a cambio; la cotización final depende de la evaluación de su negocio.</p>
 
     <div class="cta"><div><h2>¿Cuál plan le conviene?</h2><p>Le hacemos una evaluación gratuita de su red y le recomendamos el plan correcto.</p></div>
       <div class="actions" style="margin-top:0"><a class="btn btn-primary" href="tel:+17873379818">Llame al 787-337-9818</a><a class="btn btn-outline" href="/#contacto">Llene el formulario</a></div></div>
