@@ -40,6 +40,9 @@ export default async (req, context) => {
   let p = String(body.p || "/").split("?")[0].split("#")[0].slice(0, 120);
   if (!p.startsWith("/") || p.startsWith("/admin")) return new Response(null, { status: 204 });
   p = p.replace(/\/index\.html$/, "/");
+  // Visitas desde los subdominios (store, cursos, support): se anotan con su nombre delante
+  const h = String(body.h || "").toLowerCase();
+  if (/^[a-z0-9-]+\.netbluepr\.com$/.test(h) && h !== "www.netbluepr.com") p = h.split(".")[0] + ":" + p;
 
   const ua = req.headers.get("user-agent") || "";
   const ahora = new Date();
