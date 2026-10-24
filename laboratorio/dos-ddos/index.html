@@ -1,0 +1,615 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>DoS y DDoS | Laboratorio Netblue</title><meta name="description" content="Satura un servidor con una fuente o una botnet, y aplica la mitigación. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><link rel="canonical" href="https://netbluepr.com/laboratorio/dos-ddos/"><link rel="icon" type="image/png" href="/favicon.png"><meta property="og:title" content="DoS y DDoS | Laboratorio Netblue"><meta property="og:description" content="Satura un servidor con una fuente o una botnet, y aplica la mitigación. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><meta property="og:url" content="https://netbluepr.com/laboratorio/dos-ddos/"><meta property="og:image" content="https://netbluepr.com/og-image.png"><meta property="og:locale" content="es_PR"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>DoS y DDoS</title>
+<style>
+  /* Layout: laboratorio visual — lienzo de simulación a la izquierda/arriba, panel de control y métricas a la derecha/abajo */
+  :root {
+    --bg: #f4f6f8;
+    --surface: #ffffff;
+    --surface-2: #eef1f5;
+    --border: #d4dae2;
+    --fg: #1a2330;
+    --fg-muted: #5b6878;
+    --accent: #0b6e99;
+    --accent-soft: #d6ebf4;
+    --ok: #1a7f4b;
+    --ok-soft: #d6f0e1;
+    --warn: #b4690e;
+    --warn-soft: #f7e7cc;
+    --crit: #c0392b;
+    --crit-soft: #f7dcd8;
+    --legit: #1a7f4b;
+    --attack: #c0392b;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1620;
+      --surface: #161f2b;
+      --surface-2: #1d2835;
+      --border: #2b3a4a;
+      --fg: #e6edf4;
+      --fg-muted: #93a1b2;
+      --accent: #3fb6e0;
+      --accent-soft: #10303d;
+      --ok: #4ecb8a;
+      --ok-soft: #10311f;
+      --warn: #e0a84a;
+      --warn-soft: #3a2c12;
+      --crit: #f07567;
+      --crit-soft: #3a1b17;
+      --legit: #4ecb8a;
+      --attack: #f07567;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1620;
+    --surface: #161f2b;
+    --surface-2: #1d2835;
+    --border: #2b3a4a;
+    --fg: #e6edf4;
+    --fg-muted: #93a1b2;
+    --accent: #3fb6e0;
+    --accent-soft: #10303d;
+    --ok: #4ecb8a;
+    --ok-soft: #10311f;
+    --warn: #e0a84a;
+    --warn-soft: #3a2c12;
+    --crit: #f07567;
+    --crit-soft: #3a1b17;
+    --legit: #4ecb8a;
+    --attack: #f07567;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--sans); line-height: 1.5; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 48px; }
+
+  header.page { margin-bottom: 22px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
+  h1 { font-size: clamp(28px, 6vw, 40px); line-height: 1.05; margin: 0 0 10px; text-wrap: balance; letter-spacing: -0.02em; }
+  header.page p { margin: 0; max-width: 64ch; color: var(--fg-muted); font-size: 15px; }
+
+  .stage { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; align-items: start; }
+
+  .canvas-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 10px; min-width: 0; }
+  canvas { width: 100%; height: auto; display: block; border-radius: 9px; background: var(--surface-2); }
+
+  .side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+  .panel h2 { font-size: 12px; font-family: var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); margin: 0 0 14px; font-weight: 600; }
+
+  .mode-toggle { display: flex; gap: 6px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 4px; margin-bottom: 16px; }
+  .mode-toggle button { flex: 1; font-family: var(--sans); font-size: 14px; font-weight: 600; padding: 9px; border-radius: 7px; border: none; background: transparent; color: var(--fg-muted); cursor: pointer; }
+  .mode-toggle button.active { background: var(--accent); color: #fff; }
+
+  .slider-row { margin-bottom: 14px; }
+  .slider-row label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .slider-row label .val { font-family: var(--mono); color: var(--accent); font-weight: 700; }
+  .slider-row input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+  .switch-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-top: 1px solid var(--border); }
+  .switch-row:first-of-type { border-top: none; }
+  .switch-row .txt { font-size: 13.5px; font-weight: 600; }
+  .switch-row .txt small { display: block; font-weight: 400; color: var(--fg-muted); font-size: 12px; }
+  .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle .track { position: absolute; inset: 0; background: var(--border); border-radius: 999px; transition: background 0.15s; }
+  .toggle .track::before { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.15s; }
+  .toggle input:checked + .track { background: var(--ok); }
+  .toggle input:checked + .track::before { transform: translateX(20px); }
+
+  .controls { display: flex; gap: 10px; margin-top: 4px; }
+  button.go, button.ghost { font-family: var(--sans); font-size: 15px; font-weight: 600; padding: 11px 18px; border-radius: 9px; cursor: pointer; border: 1px solid transparent; flex: 1; }
+  button.go { background: var(--accent); color: #fff; }
+  button.go:hover { filter: brightness(1.08); }
+  button.ghost { background: transparent; color: var(--fg); border-color: var(--border); }
+  button.ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .metric { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+  .metric .k { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); font-family: var(--mono); }
+  .metric .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 3px; }
+
+  .health-wrap { margin-top: 14px; }
+  .health-label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+  .health-label .status { font-family: var(--mono); }
+  .health-track { height: 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+  .health-bar { height: 100%; width: 100%; background: var(--ok); transition: width 0.2s, background 0.2s; }
+
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; font-size: 12px; color: var(--fg-muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+  .edu { margin-top: 34px; }
+  .edu h2 { font-size: 20px; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .edu > p.sub { margin: 0 0 16px; color: var(--fg-muted); font-size: 14px; max-width: 64ch; }
+  .defense-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .def { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; min-width: 0; }
+  .def h3 { font-size: 15px; margin: 0 0 6px; display: flex; align-items: center; gap: 8px; }
+  .def h3 .tag { font-family: var(--mono); font-size: 10px; padding: 2px 6px; border-radius: 5px; background: var(--accent-soft); color: var(--accent); letter-spacing: 0.04em; }
+  .def p { margin: 0; font-size: 13.5px; color: var(--fg-muted); }
+
+  .diff { margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .diff .box { border: 1px solid var(--border); border-radius: 12px; padding: 16px; background: var(--surface); }
+  .diff .box h3 { margin: 0 0 8px; font-size: 16px; }
+  .diff .box p { margin: 0; font-size: 13.5px; color: var(--fg-muted); }
+  .diff .box.dos { border-left: 4px solid var(--warn); }
+  .diff .box.ddos { border-left: 4px solid var(--crit); }
+
+  .note { margin-top: 22px; font-size: 12.5px; color: var(--fg-muted); border-left: 3px solid var(--border); padding: 4px 0 4px 14px; }
+
+  @media (max-width: 760px) {
+    .stage { grid-template-columns: 1fr; }
+    .defense-grid { grid-template-columns: 1fr; }
+    .diff { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="page">
+    <p class="eyebrow">Laboratorio de concientización · Netblue</p>
+    <h1>DoS y DDoS</h1>
+    <p>Un ataque de denegación de servicio satura un servidor con más peticiones de las que puede atender, dejando fuera a los usuarios legítimos. En <strong>DoS</strong> el tráfico sale de una sola fuente; en <strong>DDoS</strong> sale de una botnet distribuida. Ajusta los controles y observa cómo cae —y se recupera— la disponibilidad.</p>
+  </header>
+
+  <div class="stage">
+    <div class="canvas-card">
+      <canvas id="sim" width="640" height="440" aria-label="Simulación visual del ataque"></canvas>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--legit)"></span> Usuarios legítimos</span>
+        <span><span class="dot" style="background:var(--attack)"></span> Tráfico de ataque</span>
+        <span><span class="dot" style="background:var(--accent)"></span> Servidor / mitigación</span>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="panel">
+        <h2>Tipo de ataque</h2>
+        <div class="mode-toggle" id="mode">
+          <button data-mode="dos" class="active">DoS · 1 fuente</button>
+          <button data-mode="ddos">DDoS · botnet</button>
+        </div>
+
+        <div class="slider-row">
+          <label>Intensidad del ataque <span class="val" id="rate-val">6×</span></label>
+          <input type="range" id="rate" min="0" max="20" value="6" />
+        </div>
+        <div class="slider-row" id="bots-row" hidden>
+          <label>Bots en la botnet <span class="val" id="bots-val">24</span></label>
+          <input type="range" id="bots" min="4" max="60" value="24" />
+        </div>
+
+        <div class="switch-row">
+          <div class="txt">Mitigación activa <small>Scrubbing + rate limiting + WAF</small></div>
+          <label class="toggle"><input type="checkbox" id="mitig" /><span class="track"></span></label>
+        </div>
+
+        <div class="controls">
+          <button class="go" id="toggle">Pausar</button>
+          <button class="ghost" id="reset">Reiniciar</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Estado del servidor</h2>
+        <div class="metrics">
+          <div class="metric"><div class="k">Entrada req/s</div><div class="v" id="m-in">0</div></div>
+          <div class="metric"><div class="k">Capacidad</div><div class="v" id="m-cap">40</div></div>
+          <div class="metric"><div class="k">Legítimas OK</div><div class="v" id="m-ok" style="color:var(--ok)">0</div></div>
+          <div class="metric"><div class="k">Legítimas caídas</div><div class="v" id="m-drop" style="color:var(--crit)">0</div></div>
+        </div>
+        <div class="health-wrap">
+          <div class="health-label"><span>Disponibilidad</span><span class="status" id="h-status">100%</span></div>
+          <div class="health-track"><div class="health-bar" id="h-bar"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="edu">
+    <h2>DoS vs DDoS</h2>
+    <p class="sub">La diferencia está en el origen del tráfico, y eso cambia radicalmente cómo se defiende cada uno.</p>
+    <div class="diff">
+      <div class="box dos">
+        <h3>DoS</h3>
+        <p>Una sola máquina o conexión genera el flujo. Es más fácil de identificar y bloquear: basta con filtrar esa IP o cerrar ese patrón de tráfico.</p>
+      </div>
+      <div class="box ddos">
+        <h3>DDoS</h3>
+        <p>Miles de dispositivos comprometidos (una botnet) atacan a la vez desde IPs distintas en todo el mundo. Bloquear una no sirve de nada; hace falta mitigación a escala de red.</p>
+      </div>
+    </div>
+
+    <h2 style="margin-top:28px;">Cómo defenderse</h2>
+    <div class="defense-grid">
+      <div class="def">
+        <h3>Scrubbing / CDN <span class="tag">red</span></h3>
+        <p>Servicios como Cloudflare o AWS Shield absorben y filtran el tráfico malicioso antes de que llegue al origen, dejando pasar solo lo legítimo.</p>
+      </div>
+      <div class="def">
+        <h3>Rate limiting <span class="tag">app</span></h3>
+        <p>Limitar peticiones por IP y por segundo frena los floods básicos y protege endpoints costosos de abusos.</p>
+      </div>
+      <div class="def">
+        <h3>WAF <span class="tag">app</span></h3>
+        <p>Un Web Application Firewall bloquea patrones de ataque conocidos (L7) y distingue bots de usuarios reales mediante retos y reputación.</p>
+      </div>
+      <div class="def">
+        <h3>Anycast + sobrecapacidad <span class="tag">red</span></h3>
+        <p>Distribuir el servicio en muchos nodos reparte la carga geográficamente, de modo que ninguna ubicación recibe todo el golpe.</p>
+      </div>
+      <div class="def">
+        <h3>Blackholing / BGP <span class="tag">ISP</span></h3>
+        <p>El proveedor puede desviar o descartar el tráfico hacia la IP atacada para proteger el resto de la red durante el pico.</p>
+      </div>
+      <div class="def">
+        <h3>Plan de respuesta <span class="tag">proceso</span></h3>
+        <p>Tener runbook, contactos del ISP y umbrales de alerta definidos reduce el tiempo de reacción de horas a minutos.</p>
+      </div>
+    </div>
+    <p class="note">Simulación conceptual con fines de concientización. Los números (req/s, capacidad) son ilustrativos y no representan un sistema real; la página no genera tráfico de red hacia ningún destino.</p>
+
+  <nav class="lab-nav" aria-label="Otros simuladores del laboratorio">
+    <style>
+      .lab-nav{margin-top:34px;padding-top:22px;border-top:1px solid #D5DEE9}
+      .lab-nav .nav-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+      .lab-nav .nav-top a.portal{font-family:'Archivo','Segoe UI',sans-serif;font-size:14px;font-weight:700;text-decoration:none;color:#fff;background:#1657C7;padding:9px 16px;border-radius:6px}
+      .lab-nav .nav-top a.portal:hover{background:#0F2742}
+      .lab-nav .nav-top .lbl{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#44566C}
+      .lab-nav .chips{display:flex;flex-wrap:wrap;gap:8px}
+      .lab-nav .chips a{font-size:12.5px;text-decoration:none;color:#0F2742;background:#E8EEF6;border:1px solid #C3CFDD;padding:6px 11px;border-radius:999px}
+      .lab-nav .chips a:hover{border-color:#1657C7;color:#1657C7}
+    </style>
+    <div class="nav-top">
+      <a class="portal" href="/laboratorio/">⬡ Portal del laboratorio</a>
+      <span class="lbl">Otros simuladores</span>
+    </div>
+    <div class="chips">
+      <a href="/laboratorio/detecta-el-phishing/">Phishing</a>
+      <a href="/laboratorio/spear-phishing-bec/">Spear Phishing / BEC</a>
+      <a href="/laboratorio/smishing-vishing/">Smishing / Vishing</a>
+      <a href="/laboratorio/ataque-diccionario/">Diccionario</a>
+      <a href="/laboratorio/fuerza-bruta-calculadora/">Fuerza Bruta</a>
+      <a href="/laboratorio/credential-stuffing/">Credential Stuffing</a>
+      <a href="/laboratorio/rainbow-tables-salt/">Rainbow Tables</a>
+      <a href="/laboratorio/sql-injection/">SQL Injection</a>
+      <a href="/laboratorio/cross-site-scripting/">XSS</a>
+      <a href="/laboratorio/man-in-the-middle/">Man-in-the-Middle</a>
+      <a href="/laboratorio/dos-ddos/">DoS / DDoS</a>
+      <a href="/laboratorio/ransomware/">Ransomware</a>
+      <a href="/laboratorio/keylogger-troyanos/">Keylogger</a>
+    </div>
+  </nav>
+  </section>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var canvas = $("sim"), ctx = canvas.getContext("2d");
+
+  // --- estado ---
+  var state = {
+    mode: "dos",
+    rate: 6,
+    bots: 24,
+    mitig: false,
+    running: true,
+    capacity: 40
+  };
+
+  var css = function (name) { return getComputedStyle(document.body).getPropertyValue(name).trim(); };
+  var COL = {};
+  function refreshColors() {
+    COL.legit = css("--legit");
+    COL.attack = css("--attack");
+    COL.accent = css("--accent");
+    COL.muted = css("--fg-muted");
+    COL.border = css("--border");
+    COL.surface2 = css("--surface-2");
+    COL.ok = css("--ok");
+    COL.warn = css("--warn");
+    COL.crit = css("--crit");
+  }
+  refreshColors();
+
+  // geometría lógica (coordenadas de dibujo 640x440)
+  var W = 640, H = 440;
+  var server = { x: 500, y: 220, r: 34 };
+
+  var packets = [];      // {x,y,tx,ty,vx,vy,attack,prog}
+  var sources = [];      // posiciones de origen (bots o 1 atacante)
+  var users = [];        // usuarios legítimos (posiciones)
+
+  function buildSources() {
+    sources = [];
+    if (state.mode === "dos") {
+      sources.push({ x: 70, y: 220 });
+    } else {
+      var n = state.bots;
+      // rejilla de bots en la franja izquierda
+      var cols = 4, idx = 0;
+      var rows = Math.ceil(n / cols);
+      for (var r = 0; r < rows; r++) {
+        for (var c = 0; c < cols; c++) {
+          if (idx >= n) break;
+          sources.push({
+            x: 40 + c * 34,
+            y: 70 + r * (300 / Math.max(1, rows - 1 || 1)) * (rows > 1 ? 1 : 0) + (rows === 1 ? 150 : 0)
+          });
+          idx++;
+        }
+      }
+    }
+  }
+  function buildUsers() {
+    users = [];
+    for (var i = 0; i < 5; i++) {
+      users.push({ x: 60 + (i % 2) * 26, y: 90 + i * 60 });
+    }
+    // en DoS/DDoS los usuarios legítimos se colocan abajo-izquierda para distinguirlos
+    users = [
+      { x: 55, y: 360 }, { x: 95, y: 395 }, { x: 150, y: 370 }, { x: 55, y: 400 }, { x: 120, y: 410 }
+    ];
+  }
+  buildSources();
+  buildUsers();
+
+  // métricas acumuladas
+  var stats = { in: 0, ok: 0, drop: 0, availability: 100 };
+  var queue = 0; // carga instantánea aproximada (req/s estimadas)
+
+  // spawner timers
+  var acc = 0;
+
+  function spawnPacket(from, attack) {
+    var sx = from.x, sy = from.y;
+    var dx = server.x - sx, dy = server.y - sy;
+    var d = Math.sqrt(dx * dx + dy * dy) || 1;
+    var speed = 2.4 + Math.random() * 1.2;
+    packets.push({
+      x: sx, y: sy,
+      vx: (dx / d) * speed, vy: (dy / d) * speed,
+      attack: attack, dist: d, travelled: 0,
+      r: attack ? 2.2 : 3
+    });
+  }
+
+  var last = performance.now();
+  function frame(now) {
+    var dt = Math.min(50, now - last) / 1000;
+    last = now;
+
+    if (state.running) {
+      step(dt);
+    }
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  function step(dt) {
+    // --- generación de tráfico ---
+    // tráfico de ataque proporcional a intensidad y (en DDoS) nº de bots
+    var attackPerSec;
+    if (state.mode === "dos") {
+      attackPerSec = state.rate * 6;
+    } else {
+      attackPerSec = state.rate * state.bots * 0.9;
+    }
+    // tráfico legítimo constante y modesto
+    var legitPerSec = 14;
+
+    // spawn de ataque
+    acc += dt;
+    // atacantes
+    var atkThisFrame = attackPerSec * dt;
+    spawnFromRate(atkThisFrame, true);
+    // legítimos
+    spawnFromRate(legitPerSec * dt, false);
+
+    // --- avanzar paquetes y resolver llegada ---
+    var arrivingAttack = 0, arrivingLegit = 0;
+    for (var i = packets.length - 1; i >= 0; i--) {
+      var p = packets[i];
+      p.x += p.vx; p.y += p.vy;
+      p.travelled += Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+      var ddx = p.x - server.x, ddy = p.y - server.y;
+      if (ddx * ddx + ddy * ddy < (server.r + 6) * (server.r + 6)) {
+        if (p.attack) arrivingAttack++; else arrivingLegit++;
+        packets.splice(i, 1);
+      } else if (p.x < -20 || p.x > W + 20 || p.y < -20 || p.y > H + 20) {
+        packets.splice(i, 1);
+      }
+    }
+
+    // --- mitigación: filtra la mayor parte del tráfico de ataque ---
+    var effAttack = arrivingAttack;
+    if (state.mitig) {
+      effAttack = arrivingAttack * 0.12; // ~88% filtrado
+    }
+
+    // carga estimada req/s (suavizada)
+    var instLoad = (effAttack + arrivingLegit) / Math.max(dt, 0.001);
+    queue = queue * 0.85 + instLoad * 0.15;
+
+    // --- disponibilidad según carga vs capacidad ---
+    var overload = queue / state.capacity;
+    var targetAvail;
+    if (overload <= 1) targetAvail = 100;
+    else targetAvail = Math.max(0, 100 - (overload - 1) * 55);
+    stats.availability = stats.availability * 0.9 + targetAvail * 0.1;
+
+    // --- contar legítimas servidas vs caídas en esta llegada ---
+    // probabilidad de servir una legítima = disponibilidad
+    for (var k = 0; k < arrivingLegit; k++) {
+      stats.in++;
+      if (Math.random() * 100 < stats.availability) stats.ok++;
+      else stats.drop++;
+    }
+
+    updateHUD(queue);
+  }
+
+  var spawnRemainder = { atk: 0, legit: 0 };
+  function spawnFromRate(count, attack) {
+    var key = attack ? "atk" : "legit";
+    spawnRemainder[key] += count;
+    while (spawnRemainder[key] >= 1) {
+      spawnRemainder[key] -= 1;
+      if (attack) {
+        var s = sources[(Math.random() * sources.length) | 0];
+        if (s) spawnPacket(s, true);
+      } else {
+        var u = users[(Math.random() * users.length) | 0];
+        if (u) spawnPacket(u, false);
+      }
+    }
+    // limitar paquetes en pantalla por rendimiento
+    if (packets.length > 1400) packets.splice(0, packets.length - 1400);
+  }
+
+  function updateHUD(load) {
+    $("m-in").textContent = Math.round(load);
+    $("m-cap").textContent = state.capacity;
+    $("m-ok").textContent = stats.ok;
+    $("m-drop").textContent = stats.drop;
+    var a = Math.round(stats.availability);
+    var bar = $("h-bar"), status = $("h-status");
+    bar.style.width = a + "%";
+    status.textContent = a + "%";
+    var col = a > 70 ? COL.ok : (a > 35 ? COL.warn : COL.crit);
+    bar.style.background = col;
+    status.style.color = col;
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // líneas guía tenues de orígenes al servidor
+    ctx.strokeStyle = COL.border;
+    ctx.globalAlpha = 0.25;
+    ctx.lineWidth = 1;
+    for (var i = 0; i < sources.length; i++) {
+      ctx.beginPath();
+      ctx.moveTo(sources[i].x, sources[i].y);
+      ctx.lineTo(server.x, server.y);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    // paquetes
+    for (var j = 0; j < packets.length; j++) {
+      var p = packets[j];
+      ctx.beginPath();
+      ctx.fillStyle = p.attack ? COL.attack : COL.legit;
+      ctx.globalAlpha = p.attack ? 0.8 : 0.95;
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // orígenes de ataque
+    for (var s = 0; s < sources.length; s++) {
+      var src = sources[s];
+      ctx.beginPath();
+      ctx.fillStyle = COL.attack;
+      var rr = state.mode === "dos" ? 11 : 5.5;
+      ctx.arc(src.x, src.y, rr, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // usuarios legítimos
+    for (var u = 0; u < users.length; u++) {
+      ctx.beginPath();
+      ctx.fillStyle = COL.legit;
+      ctx.arc(users[u].x, users[u].y, 7, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // mitigación: anillo escudo
+    if (state.mitig) {
+      ctx.beginPath();
+      ctx.strokeStyle = COL.ok;
+      ctx.lineWidth = 3;
+      ctx.globalAlpha = 0.9;
+      ctx.arc(server.x, server.y, server.r + 16, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 0.12;
+      ctx.fillStyle = COL.ok;
+      ctx.beginPath();
+      ctx.arc(server.x, server.y, server.r + 16, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    // servidor: color según disponibilidad
+    var a = stats.availability;
+    var srvCol = a > 70 ? COL.accent : (a > 35 ? COL.warn : COL.crit);
+    ctx.beginPath();
+    ctx.fillStyle = srvCol;
+    ctx.arc(server.x, server.y, server.r, 0, Math.PI * 2);
+    ctx.fill();
+    // icono servidor (barras)
+    ctx.fillStyle = css("--surface");
+    ctx.fillRect(server.x - 14, server.y - 12, 28, 7);
+    ctx.fillRect(server.x - 14, server.y - 2, 28, 7);
+    ctx.fillRect(server.x - 14, server.y + 8, 28, 7);
+
+    // etiqueta estado servidor
+    ctx.fillStyle = COL.muted;
+    ctx.font = "600 12px " + "-apple-system, system-ui, sans-serif";
+    ctx.textAlign = "center";
+    var label = a > 70 ? "SERVIDOR OK" : (a > 35 ? "DEGRADADO" : "CAÍDO");
+    ctx.fillText(label, server.x, server.y + server.r + (state.mitig ? 34 : 20));
+    ctx.textAlign = "left";
+  }
+
+  // --- controles ---
+  $("mode").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-mode]");
+    if (!b) return;
+    state.mode = b.dataset.mode;
+    [].forEach.call(this.querySelectorAll("button"), function (x) { x.classList.toggle("active", x === b); });
+    $("bots-row").hidden = state.mode !== "ddos";
+    buildSources();
+  });
+
+  $("rate").addEventListener("input", function () {
+    state.rate = Number(this.value);
+    $("rate-val").textContent = state.rate + "×";
+  });
+  $("bots").addEventListener("input", function () {
+    state.bots = Number(this.value);
+    $("bots-val").textContent = state.bots;
+    buildSources();
+  });
+  $("mitig").addEventListener("change", function () { state.mitig = this.checked; });
+
+  $("toggle").addEventListener("click", function () {
+    state.running = !state.running;
+    this.textContent = state.running ? "Pausar" : "Reanudar";
+    last = performance.now();
+  });
+  $("reset").addEventListener("click", function () {
+    packets = [];
+    stats = { in: 0, ok: 0, drop: 0, availability: 100 };
+    queue = 0;
+    spawnRemainder = { atk: 0, legit: 0 };
+    updateHUD(0);
+  });
+
+  // reaccionar a cambio de tema (recolorear)
+  if (window.matchMedia) {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", refreshColors);
+  }
+
+  updateHUD(0);
+  requestAnimationFrame(frame);
+})();
+</script>
+
+<script id="nb-track">(function(){try{if(localStorage.getItem('nb-notrack'))return;}catch(_){}try{var q=new URLSearchParams(location.search),d=JSON.stringify({p:location.pathname,r:document.referrer,s:q.get('utm_source')||''});if(navigator.sendBeacon)navigator.sendBeacon('/api/track',d);else fetch('/api/track',{method:'POST',body:d,keepalive:true});}catch(_){}})();</script>
+</body></html>

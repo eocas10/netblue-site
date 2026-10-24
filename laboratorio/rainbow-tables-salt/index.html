@@ -1,0 +1,255 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Rainbow Tables y Salt | Laboratorio Netblue</title><meta name="description" content="Hashing SHA-256 real y cómo el salt inutiliza las tablas precalculadas. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><link rel="canonical" href="https://netbluepr.com/laboratorio/rainbow-tables-salt/"><link rel="icon" type="image/png" href="/favicon.png"><meta property="og:title" content="Rainbow Tables y Salt | Laboratorio Netblue"><meta property="og:description" content="Hashing SHA-256 real y cómo el salt inutiliza las tablas precalculadas. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><meta property="og:url" content="https://netbluepr.com/laboratorio/rainbow-tables-salt/"><meta property="og:image" content="https://netbluepr.com/og-image.png"><meta property="og:locale" content="es_PR"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Rainbow Tables y Salt</title>
+<style>
+  /* Layout: laboratorio de hashing — entrada de contraseña, su hash, una tabla precalculada que la revierte, y el salt que la inutiliza */
+  :root {
+    --bg: #f4f6f8; --surface: #ffffff; --surface-2: #eef1f5; --border: #d4dae2;
+    --fg: #1a2330; --fg-muted: #5b6878; --accent: #0b6e99; --accent-soft: #d6ebf4;
+    --ok: #1a7f4b; --ok-soft: #d6f0e1; --warn: #b4690e; --warn-soft: #f7e7cc;
+    --crit: #c0392b; --crit-soft: #f7dcd8;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1620; --surface: #161f2b; --surface-2: #1d2835; --border: #2b3a4a;
+      --fg: #e6edf4; --fg-muted: #93a1b2; --accent: #3fb6e0; --accent-soft: #10303d;
+      --ok: #4ecb8a; --ok-soft: #10311f; --warn: #e0a84a; --warn-soft: #3a2c12;
+      --crit: #f07567; --crit-soft: #3a1b17; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1620; --surface: #161f2b; --surface-2: #1d2835; --border: #2b3a4a;
+    --fg: #e6edf4; --fg-muted: #93a1b2; --accent: #3fb6e0; --accent-soft: #10303d;
+    --ok: #4ecb8a; --ok-soft: #10311f; --warn: #e0a84a; --warn-soft: #3a2c12;
+    --crit: #f07567; --crit-soft: #3a1b17; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--sans); line-height: 1.5; }
+  .wrap { max-width: 820px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 48px; }
+  header.page { margin-bottom: 20px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
+  h1 { font-size: clamp(28px, 6vw, 38px); line-height: 1.05; margin: 0 0 10px; text-wrap: balance; letter-spacing: -0.02em; }
+  header.page p { margin: 0; max-width: 64ch; color: var(--fg-muted); font-size: 15px; }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-top: 18px; }
+  .panel h2 { font-size: 12px; font-family: var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); margin: 0 0 14px; font-weight: 600; }
+
+  input[type="text"] { width: 100%; font-family: var(--mono); font-size: 17px; padding: 12px 14px; border-radius: 10px; border: 2px solid var(--border); background: var(--surface-2); color: var(--fg); }
+  input[type="text"]:focus-visible { outline: none; border-color: var(--accent); }
+
+  .flow { display: flex; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .flow .box { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 13px; font-family: var(--mono); font-size: 13px; }
+  .flow .arrow { color: var(--fg-muted); font-size: 18px; }
+  .hash-out { font-family: var(--mono); font-size: 12.5px; word-break: break-all; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-top: 12px; }
+  .hash-out .label { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); margin-bottom: 5px; }
+
+  .switch-row { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding: 12px 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; }
+  .switch-row .txt { font-size: 13.5px; font-weight: 600; }
+  .switch-row .txt small { display: block; font-weight: 400; color: var(--fg-muted); font-size: 12px; }
+  .toggle { position: relative; width: 46px; height: 26px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle .track { position: absolute; inset: 0; background: var(--border); border-radius: 999px; transition: background 0.15s; }
+  .toggle .track::before { content: ""; position: absolute; width: 20px; height: 20px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.15s; }
+  .toggle input:checked + .track { background: var(--ok); }
+  .toggle input:checked + .track::before { transform: translateX(20px); }
+
+  .lookup { margin-top: 14px; padding: 14px 16px; border-radius: 12px; font-size: 14px; border: 1px solid transparent; }
+  .lookup.cracked { background: var(--crit-soft); border-color: var(--crit); }
+  .lookup.safe { background: var(--ok-soft); border-color: var(--ok); }
+  .lookup b { font-family: var(--mono); }
+
+  .rtable { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; font-family: var(--mono); }
+  .rtable th, .rtable td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); }
+  .rtable th { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--fg-muted); }
+  .rtable td.h { color: var(--fg-muted); word-break: break-all; }
+  .rtable tr.match { background: var(--crit-soft); }
+  .rtable tr.match td { color: var(--crit); font-weight: 700; }
+
+  .users { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .user { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; min-width: 0; }
+  .user .name { font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+  .user .pw { font-family: var(--mono); font-size: 12px; color: var(--fg-muted); }
+  .user .salt { font-family: var(--mono); font-size: 11px; color: var(--accent); margin-top: 4px; word-break: break-all; }
+  .user .hash { font-family: var(--mono); font-size: 10.5px; color: var(--fg-muted); margin-top: 4px; word-break: break-all; }
+
+  .edu { margin-top: 32px; }
+  .edu h2 { font-size: 20px; margin: 0 0 14px; letter-spacing: -0.01em; }
+  .defense-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .def { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; min-width: 0; }
+  .def h3 { font-size: 15px; margin: 0 0 6px; }
+  .def p { margin: 0; font-size: 13.5px; color: var(--fg-muted); }
+  .note { margin-top: 20px; font-size: 12.5px; color: var(--fg-muted); border-left: 3px solid var(--border); padding: 4px 0 4px 14px; }
+
+  @media (max-width: 560px) { .users { grid-template-columns: 1fr; } }
+</style>
+
+<div class="wrap">
+  <header class="page">
+    <p class="eyebrow">Laboratorio de concientización · Netblue</p>
+    <h1>Rainbow Tables y Salt</h1>
+    <p>Los sitios no guardan tu contraseña, guardan su <strong>hash</strong> (una huella irreversible). Pero si el hash no lleva <strong>salt</strong>, un atacante puede usar una <strong>rainbow table</strong> — un diccionario gigante de hashes precalculados — para revertirlo al instante. El salt rompe ese truco. Escribe una contraseña y compruébalo con hashing SHA-256 real.</p>
+  </header>
+
+  <section class="panel">
+    <h2>Contraseña → hash</h2>
+    <input type="text" id="pw" value="password123" autocomplete="off" autocapitalize="off" spellcheck="false" />
+
+    <div class="switch-row">
+      <div class="txt">Añadir salt único por usuario <small>Un valor aleatorio se concatena antes de hashear</small></div>
+      <label class="toggle"><input type="checkbox" id="salt" /><span class="track"></span></label>
+    </div>
+
+    <div class="flow">
+      <div class="box" id="flow-in">password123</div>
+      <span class="arrow">→</span>
+      <div class="box">SHA-256</div>
+      <span class="arrow">→</span>
+      <div class="box">hash</div>
+    </div>
+
+    <div class="hash-out"><span class="label">Hash almacenado</span><span id="hash-val">…</span></div>
+
+    <div class="lookup" id="lookup"><b>…</b></div>
+  </section>
+
+  <section class="panel">
+    <h2>Rainbow table del atacante (muestra)</h2>
+    <table class="rtable">
+      <thead><tr><th>Texto plano</th><th>Hash precalculado (SHA-256)</th></tr></thead>
+      <tbody id="rtable-body"></tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>Dos usuarios, misma contraseña</h2>
+    <p style="margin:0 0 4px;font-size:13px;color:var(--fg-muted)">Con salt, aunque dos personas usen <b>"password123"</b>, sus hashes son distintos. La tabla precalculada no sirve para ninguno.</p>
+    <div class="users" id="users"></div>
+  </section>
+
+  <section class="edu">
+    <h2>Cómo defenderse (del lado del servidor)</h2>
+    <div class="defense-grid">
+      <div class="def"><h3>Salt único por usuario</h3><p>Un valor aleatorio por cuenta hace que hashes iguales se vean distintos e inutiliza las rainbow tables.</p></div>
+      <div class="def"><h3>Hashing lento (bcrypt / argon2)</h3><p>Diseñados para ser costosos: cada intento tarda, encareciendo masivamente el ataque offline.</p></div>
+      <div class="def"><h3>Nunca MD5/SHA-1 a secas</h3><p>Son rápidos y tienen tablas enormes ya publicadas. No sirven para almacenar contraseñas.</p></div>
+      <div class="def"><h3>Pepper + rotación</h3><p>Un secreto global adicional (pepper) y políticas de rotación añaden capas extra de protección.</p></div>
+    </div>
+    <p class="note">El hashing es SHA-256 real calculado en tu navegador (Web Crypto). Se usa SHA-256 por ser demostrable; en producción las contraseñas se guardan con bcrypt/argon2, no con SHA-256.</p>
+
+  <nav class="lab-nav" aria-label="Otros simuladores del laboratorio">
+    <style>
+      .lab-nav{margin-top:34px;padding-top:22px;border-top:1px solid #D5DEE9}
+      .lab-nav .nav-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+      .lab-nav .nav-top a.portal{font-family:'Archivo','Segoe UI',sans-serif;font-size:14px;font-weight:700;text-decoration:none;color:#fff;background:#1657C7;padding:9px 16px;border-radius:6px}
+      .lab-nav .nav-top a.portal:hover{background:#0F2742}
+      .lab-nav .nav-top .lbl{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#44566C}
+      .lab-nav .chips{display:flex;flex-wrap:wrap;gap:8px}
+      .lab-nav .chips a{font-size:12.5px;text-decoration:none;color:#0F2742;background:#E8EEF6;border:1px solid #C3CFDD;padding:6px 11px;border-radius:999px}
+      .lab-nav .chips a:hover{border-color:#1657C7;color:#1657C7}
+    </style>
+    <div class="nav-top">
+      <a class="portal" href="/laboratorio/">⬡ Portal del laboratorio</a>
+      <span class="lbl">Otros simuladores</span>
+    </div>
+    <div class="chips">
+      <a href="/laboratorio/detecta-el-phishing/">Phishing</a>
+      <a href="/laboratorio/spear-phishing-bec/">Spear Phishing / BEC</a>
+      <a href="/laboratorio/smishing-vishing/">Smishing / Vishing</a>
+      <a href="/laboratorio/ataque-diccionario/">Diccionario</a>
+      <a href="/laboratorio/fuerza-bruta-calculadora/">Fuerza Bruta</a>
+      <a href="/laboratorio/credential-stuffing/">Credential Stuffing</a>
+      <a href="/laboratorio/rainbow-tables-salt/">Rainbow Tables</a>
+      <a href="/laboratorio/sql-injection/">SQL Injection</a>
+      <a href="/laboratorio/cross-site-scripting/">XSS</a>
+      <a href="/laboratorio/man-in-the-middle/">Man-in-the-Middle</a>
+      <a href="/laboratorio/dos-ddos/">DoS / DDoS</a>
+      <a href="/laboratorio/ransomware/">Ransomware</a>
+      <a href="/laboratorio/keylogger-troyanos/">Keylogger</a>
+    </div>
+  </nav>
+  </section>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var pwEl = $("pw"), saltEl = $("salt");
+
+  // salts fijos para reproducibilidad en la demo
+  var SALT_A = "a1b2c3", SALT_B = "x9y8z7", SALT_SELF = "f4e5d6";
+
+  var common = ["123456", "password", "password123", "qwerty", "abc123", "letmein"];
+  var rtable = []; // {plain, hash}
+
+  async function sha256(str) {
+    var buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+    return [].map.call(new Uint8Array(buf), function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+  }
+
+  async function buildTable() {
+    rtable = [];
+    for (var i = 0; i < common.length; i++) {
+      rtable.push({ plain: common[i], hash: await sha256(common[i]) });
+    }
+    renderTable(null);
+  }
+
+  function renderTable(matchHash) {
+    $("rtable-body").innerHTML = rtable.map(function (r) {
+      var isMatch = matchHash && r.hash === matchHash;
+      return '<tr class="' + (isMatch ? "match" : "") + '"><td>' + r.plain + '</td><td class="h">' + r.hash.slice(0, 40) + '…</td></tr>';
+    }).join("");
+  }
+
+  async function update() {
+    var pw = pwEl.value;
+    var salted = saltEl.checked;
+    $("flow-in").textContent = salted ? SALT_SELF + "+" + pw : pw;
+
+    var input = salted ? (SALT_SELF + pw) : pw;
+    var h = pw ? await sha256(input) : "";
+    $("hash-val").textContent = h || "…";
+
+    // lookup contra rainbow table (que solo tiene hashes SIN salt)
+    var lk = $("lookup");
+    if (!pw) { lk.className = "lookup"; lk.innerHTML = "<b>…</b>"; renderTable(null); return; }
+
+    var found = rtable.find(function (r) { return r.hash === h; });
+    if (found && !salted) {
+      lk.className = "lookup cracked";
+      lk.innerHTML = '✗ <b>CRACKEADA al instante.</b> El hash coincide con una entrada de la rainbow table → contraseña revelada: <b>' + found.plain + '</b>';
+      renderTable(h);
+    } else if (salted) {
+      lk.className = "lookup safe";
+      lk.innerHTML = '✓ <b>La tabla no encuentra nada.</b> El salt cambió el hash por completo; los hashes precalculados ya no coinciden. El atacante tendría que recalcular toda la tabla para este salt.';
+      renderTable(null);
+    } else {
+      lk.className = "lookup safe";
+      lk.innerHTML = '✓ No está en esta tabla de muestra. Pero sin salt, una tabla real (billones de entradas) probablemente sí la tendría si es una contraseña común.';
+      renderTable(null);
+    }
+  }
+
+  async function renderUsers() {
+    var pw = "password123";
+    var ha = await sha256(SALT_A + pw);
+    var hb = await sha256(SALT_B + pw);
+    $("users").innerHTML =
+      '<div class="user"><div class="name">👤 Ana</div><div class="pw">pw: ' + pw + '</div><div class="salt">salt: ' + SALT_A + '</div><div class="hash">' + ha.slice(0, 32) + '…</div></div>' +
+      '<div class="user"><div class="name">👤 Beto</div><div class="pw">pw: ' + pw + '</div><div class="salt">salt: ' + SALT_B + '</div><div class="hash">' + hb.slice(0, 32) + '…</div></div>';
+  }
+
+  pwEl.addEventListener("input", update);
+  saltEl.addEventListener("change", update);
+
+  (async function init() {
+    await buildTable();
+    await renderUsers();
+    await update();
+  })();
+})();
+</script>
+
+<script id="nb-track">(function(){try{if(localStorage.getItem('nb-notrack'))return;}catch(_){}try{var q=new URLSearchParams(location.search),d=JSON.stringify({p:location.pathname,r:document.referrer,s:q.get('utm_source')||''});if(navigator.sendBeacon)navigator.sendBeacon('/api/track',d);else fetch('/api/track',{method:'POST',body:d,keepalive:true});}catch(_){}})();</script>
+</body></html>

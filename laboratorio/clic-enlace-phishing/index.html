@@ -1,0 +1,285 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Qué pasa cuando oprimes un enlace de phishing | Laboratorio Netblue</title><meta name="description" content="Recorrido paso a paso de lo que ocurre tras hacer clic en un enlace malicioso. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><link rel="canonical" href="https://netbluepr.com/laboratorio/clic-enlace-phishing/"><link rel="icon" type="image/png" href="/favicon.png"><meta property="og:title" content="Qué pasa cuando oprimes un enlace de phishing | Laboratorio Netblue"><meta property="og:description" content="Recorrido paso a paso de lo que ocurre tras hacer clic en un enlace malicioso. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><meta property="og:url" content="https://netbluepr.com/laboratorio/clic-enlace-phishing/"><meta property="og:image" content="https://netbluepr.com/og-image.png"><meta property="og:locale" content="es_PR"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Qué pasa cuando oprimes un enlace de phishing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EEF2F6; --panel:#FFFFFF; --ink:#10223A; --soft:#4C5D73; --line:#C9D3DE;
+  --alert:#C8321F; --alert-bg:#FBE4DF; --safe:#14695F; --safe-bg:#DDF1EC; --screen:#DCE4EC;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0C1726; --panel:#14243A; --ink:#E9EFF6; --soft:#9FB0C4; --line:#2B405C;
+    --alert:#FF8672; --alert-bg:#4A1C16; --safe:#6FD3C3; --safe-bg:#0F3A35; --screen:#0A1320;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0C1726; --panel:#14243A; --ink:#E9EFF6; --soft:#9FB0C4; --line:#2B405C;
+  --alert:#FF8672; --alert-bg:#4A1C16; --safe:#6FD3C3; --safe-bg:#0F3A35; --screen:#0A1320;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Archivo","Segoe UI",Helvetica,Arial,sans-serif;font-size:1rem;line-height:1.5}
+.wrap{max-width:68rem;margin:0 auto;padding:1.5rem 1.25rem 2rem}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem}
+h1{font-size:clamp(1.25rem,2.6vw,1.75rem);font-weight:700;font-stretch:112%;margin:0;letter-spacing:-0.01em;line-height:1.2}
+.count{color:var(--soft);font-size:.95rem;font-variant-numeric:tabular-nums}
+.stage{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:1.5rem;align-items:stretch}
+.screen{background:var(--screen);border-radius:14px;padding:clamp(1rem,3vw,2rem);display:flex;align-items:center;justify-content:center;min-height:21rem}
+.win{background:var(--panel);border:1px solid var(--line);border-radius:10px;width:100%;max-width:30rem;overflow:hidden}
+.bar{padding:.6rem .9rem;border-bottom:1px solid var(--line);font-size:.85rem;color:var(--soft);display:flex;gap:.5rem;align-items:center}
+.bar.bad{color:var(--alert)}
+.body{padding:1rem 1.1rem 1.2rem;font-size:.98rem}
+.body p{margin:.3rem 0}
+.from{color:var(--soft);font-size:.85rem}
+.subj{font-weight:700;font-size:1.05rem}
+.btn{display:inline-block;margin-top:.8rem;padding:.5rem 1rem;border-radius:6px;border:1px solid var(--line);font-weight:600}
+.btn.hit{border:2px solid var(--alert);background:var(--alert-bg);color:var(--alert)}
+.url{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.82rem;overflow-wrap:anywhere}
+.bad .url,.url.bad{color:var(--alert)}
+.fld{border:1px solid var(--line);border-radius:6px;padding:.5rem .7rem;margin-top:.6rem;min-height:2.4rem;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.9rem}
+.tag{display:inline-block;margin-top:.8rem;background:var(--alert-bg);color:var(--alert);font-weight:600;font-size:.85rem;padding:.2rem .6rem;border-radius:4px}
+.list{list-style:none;margin:0;padding:0}
+.list li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.list li:last-child{border-bottom:0}
+.tell{display:flex;flex-direction:column;justify-content:center}
+.num{font-size:clamp(4rem,11vw,7.5rem);font-weight:800;font-stretch:80%;line-height:.85;color:var(--alert);font-variant-numeric:tabular-nums}
+.cap{font-size:clamp(1.4rem,3vw,2.1rem);font-weight:700;line-height:1.15;margin:.75rem 0 .5rem;letter-spacing:-0.01em;max-width:22ch}
+.sub{color:var(--soft);font-size:1.05rem;margin:0 0 1.1rem;max-width:44ch}
+.tip{background:var(--safe-bg);color:var(--safe);border-left:4px solid var(--safe);padding:.7rem .9rem;max-width:46ch}
+.tip b{display:block;font-size:.85rem;font-weight:700}
+.tip span{color:var(--ink)}
+.flow{position:relative;margin:2rem 0 1.5rem}
+.rail{position:absolute;left:3.25rem;right:3.25rem;top:1.75rem;border-top:2px dashed var(--line)}
+.dot{position:absolute;top:-.5rem;left:0;margin-left:-.45rem;width:.9rem;height:.9rem;border-radius:50%;background:var(--alert)}
+.actors{display:flex;justify-content:space-between;position:relative}
+.actor{width:6.5rem;text-align:center;font-size:.9rem;color:var(--soft);font-weight:600}
+.ico{width:3.5rem;height:3.5rem;margin:0 auto .4rem;border-radius:50%;background:var(--panel);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink);transition:background .25s,border-color .25s,color .25s}
+.ico svg{width:1.6rem;height:1.6rem;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.actor.on{color:var(--alert)}
+.actor.on .ico{background:var(--alert-bg);border-color:var(--alert);color:var(--alert)}
+.steps{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.4rem;margin-bottom:1rem}
+.step{appearance:none;border:0;background:none;padding:.4rem 0;cursor:pointer;font:inherit;color:var(--soft);text-align:left;font-size:.8rem;font-weight:600}
+.step i{display:block;height:5px;border-radius:3px;background:var(--line);overflow:hidden;margin-bottom:.35rem}
+.step i b{display:block;height:100%;width:0;background:var(--alert)}
+.step.cur{color:var(--ink)}
+.ctrl{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.ctrl button{font:inherit;font-weight:600;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:.55rem 1rem;cursor:pointer}
+.ctrl button.main{background:var(--ink);color:var(--paper);border-color:var(--ink);min-width:8rem}
+button:focus-visible{outline:3px solid var(--safe);outline-offset:2px}
+.hint{color:var(--soft);font-size:.85rem;margin-left:auto}
+.note{color:var(--soft);font-size:.8rem;margin-top:1.25rem}
+@media (max-width:760px){
+  .stage{grid-template-columns:minmax(0,1fr)}
+  .screen{min-height:17rem}
+  .step span{display:none}
+  .hint{display:none}
+  .actor{width:5rem}
+  .rail{left:2.5rem;right:2.5rem}
+}
+/* Barra de navegación del laboratorio (identidad Netblue) */
+.lab-nav{margin-top:2rem;padding-top:1.4rem;border-top:1px solid #D5DEE9}
+.lab-nav .nav-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.lab-nav .nav-top a.portal{font-family:"Archivo","Segoe UI",sans-serif;font-size:14px;font-weight:700;text-decoration:none;color:#fff;background:#1657C7;padding:9px 16px;border-radius:6px}
+.lab-nav .nav-top a.portal:hover{background:#0F2742}
+.lab-nav .nav-top .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#44566C}
+.lab-nav .chips2{display:flex;flex-wrap:wrap;gap:8px}
+.lab-nav .chips2 a{font-size:12.5px;text-decoration:none;color:#0F2742;background:#E8EEF6;border:1px solid #C3CFDD;padding:6px 11px;border-radius:999px}
+.lab-nav .chips2 a:hover{border-color:#1657C7;color:#1657C7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Qué pasa cuando oprimes un enlace de phishing</h1>
+    <div class="count" id="count" aria-live="polite"></div>
+  </header>
+
+  <main>
+    <section class="stage">
+      <div class="screen" aria-label="Lo que ve el usuario en su pantalla"><div class="win" id="win"></div></div>
+      <div class="tell">
+        <div class="num" id="num" aria-hidden="true"></div>
+        <h2 class="cap" id="cap"></h2>
+        <p class="sub" id="sub"></p>
+        <div class="tip"><b id="tipLabel"></b><span id="tip"></span></div>
+      </div>
+    </section>
+
+    <div class="flow" aria-hidden="true">
+      <div class="rail"><div class="dot" id="dot"></div></div>
+      <div class="actors">
+        <div class="actor" id="a0"><div class="ico"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 19h20"/></svg></div>Usuario</div>
+        <div class="actor" id="a1"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></div>Sitio falso</div>
+        <div class="actor" id="a2"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 11h16M7 11l1.5-6h7L17 11"/><circle cx="8.5" cy="16" r="2.5"/><circle cx="15.5" cy="16" r="2.5"/><path d="M11 16h2"/></svg></div>Atacante</div>
+      </div>
+    </div>
+
+    <div class="steps" id="steps"></div>
+    <div class="ctrl">
+      <button id="prev">Anterior</button>
+      <button id="play" class="main">Pausar</button>
+      <button id="next">Siguiente</button>
+      <button id="reset">Reiniciar</button>
+      <span class="hint">Teclado: espacio para pausar, flechas para cambiar de escena</span>
+    </div>
+    <p class="note">Los nombres, el dominio y la contraseña son ficticios y se usan solo como ejemplo.</p>
+  </main>
+
+  <nav class="lab-nav" aria-label="Otros simuladores del laboratorio">
+    <div class="nav-top">
+      <a class="portal" href="/laboratorio/">⬡ Laboratorio Netblue</a>
+      <span class="lbl">Otros simuladores</span>
+    </div>
+    <div class="chips2">
+      <a href="/laboratorio/detecta-el-phishing/">Phishing</a>
+      <a href="/laboratorio/spear-phishing-bec/">Spear Phishing / BEC</a>
+      <a href="/laboratorio/smishing-vishing/">Smishing / Vishing</a>
+      <a href="/laboratorio/ingenieria-social/">Ingeniería Social</a>
+      <a href="/laboratorio/ataque-diccionario/">Diccionario</a>
+      <a href="/laboratorio/fuerza-bruta-calculadora/">Fuerza Bruta</a>
+      <a href="/laboratorio/credential-stuffing/">Credential Stuffing</a>
+      <a href="/laboratorio/password-spraying/">Password Spraying</a>
+      <a href="/laboratorio/rainbow-tables-salt/">Rainbow Tables</a>
+      <a href="/laboratorio/tabla-arcoiris/">Tabla Arcoíris</a>
+      <a href="/laboratorio/ataque-cumpleanos/">Cumpleaños</a>
+      <a href="/laboratorio/volcado-de-memoria/">Volcado de Memoria</a>
+      <a href="/laboratorio/sql-injection/">SQL Injection</a>
+      <a href="/laboratorio/cross-site-scripting/">XSS</a>
+      <a href="/laboratorio/man-in-the-middle/">Man-in-the-Middle</a>
+      <a href="/laboratorio/dos-ddos/">DoS / DDoS</a>
+      <a href="/laboratorio/wardriving/">Wardriving</a>
+      <a href="/laboratorio/bluesnarfing/">Bluesnarfing</a>
+      <a href="/laboratorio/ransomware/">Ransomware</a>
+      <a href="/laboratorio/keylogger-troyanos/">Keylogger</a>
+      <a href="/laboratorio/troyano-rat/">Troyano RAT</a>
+      <a href="/laboratorio/reverse-shell/">Reverse Shell</a>
+    </div>
+  </nav>
+</div>
+
+<script>
+(function(){
+  function mail(hit){
+    return '<div class="bar">Bandeja de entrada</div><div class="body">'+
+      '<p class="from">De: soporte@banc0-seguro.com</p>'+
+      '<p class="subj">Su cuenta será suspendida en 24 horas</p>'+
+      '<p>Detectamos actividad inusual. Verifique su identidad para evitar el bloqueo.</p>'+
+      '<span class="btn'+(hit?' hit':'')+'">Verificar mi cuenta</span>'+
+      (hit?'<p class="url bad" style="margin-top:.7rem">http://banc0-seguro.verificar-login.co/acceso</p>':'')+
+      '</div>';
+  }
+  var urlBar='<div class="bar bad">No seguro <span class="url">banc0-seguro.verificar-login.co</span></div>';
+  var S=[
+    {short:'El correo',c:'Llega un correo que parece legítimo',s:'Imita a una entidad conocida y mete prisa para que el usuario actúe sin pensar.',
+     tl:'Señal de alerta',t:'El remitente usa un dominio parecido al real (banc0, con un cero) y amenaza con un plazo corto.',
+     p:[1,0],on:[2,0],h:mail(false)},
+    {short:'El clic',c:'El usuario oprime el enlace',s:'El botón no lleva al banco real, sino a un dominio que controla el atacante.',
+     tl:'Cómo evitarlo',t:'Pasa el cursor sobre el enlace antes de oprimirlo y lee la dirección completa a la que apunta.',
+     p:[0,.5],on:[0,1],h:mail(true)},
+    {short:'La página falsa',c:'Se abre una página idéntica a la real',s:'El usuario ve el logo y el formulario de siempre, y escribe su usuario y contraseña.',
+     tl:'Cómo evitarlo',t:'Revisa la barra de direcciones. Ante la duda, escribe tú mismo la dirección oficial en el navegador.',
+     p:[.5,0],on:[1,0],type:true,h:urlBar+'<div class="body"><p class="subj">Iniciar sesión</p><div class="fld" id="fu"></div><div class="fld" id="fp"></div></div>'},
+    {short:'El robo',c:'Las credenciales viajan al atacante',s:'Lo que se escribió en el formulario llega directo a su servidor, no al banco.',
+     tl:'Qué reduce el daño',t:'Con autenticación multifactor, una contraseña robada por sí sola no alcanza para entrar.',
+     p:[0,.5,1],on:[0,1,2],h:urlBar+'<div class="body"><p class="from">Enviando datos</p><div class="fld">usuario: maria.rivera</div><div class="fld">clave: Verano2026!</div><span class="tag">Datos capturados</span></div>'},
+    {short:'El malware',c:'En segundo plano se descarga malware',s:'La página puede instalar un programa que registra las teclas o abre una puerta trasera.',
+     tl:'Señal de alerta',t:'Un archivo con doble extensión, como .pdf.exe, es un programa disfrazado de documento.',
+     p:[.5,0],on:[1,0],h:'<div class="bar">Descargas</div><div class="body"><p class="url">comprobante.pdf.exe</p><p class="from">Ejecutándose sin aviso</p><span class="tag">Equipo comprometido</span></div>'},
+    {short:'El acceso',c:'El atacante entra a la cuenta y a la red',s:'Con la clave y el equipo infectado puede moverse a otros sistemas de la empresa.',
+     tl:'Si ya oprimiste el enlace',t:'Desconecta el equipo de la red, cambia la contraseña desde otro dispositivo y avisa a TI de inmediato.',
+     p:[1,0],on:[2,0],h:'<div class="bar bad">Consecuencias</div><div class="body"><ul class="list"><li>Acceso al correo y a los contactos</li><li>Robo de datos de clientes</li><li>Cifrado de archivos (ransomware)</li><li>Fraude y transferencias no autorizadas</li></ul></div>'}
+  ];
+  var DUR=8000,i=0,el=0,anim=null,typer=null;
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var play=!reduce;
+  function $(id){return document.getElementById(id);}
+  var steps=$('steps');
+  S.forEach(function(sc,n){
+    var b=document.createElement('button');
+    b.className='step';b.type='button';
+    b.setAttribute('aria-label','Ir a la escena '+(n+1)+': '+sc.short);
+    b.innerHTML='<i><b></b></i><span>'+(n+1)+'. '+sc.short+'</span>';
+    b.addEventListener('click',function(){i=n;show();});
+    steps.appendChild(b);
+  });
+  function bars(){
+    var bs=steps.querySelectorAll('.step');
+    for(var n=0;n<bs.length;n++){
+      bs[n].classList.toggle('cur',n===i);
+      bs[n].querySelector('b').style.width=(n<i?100:n===i?Math.min(100,Math.round(el/DUR*100)):0)+'%';
+    }
+  }
+  function show(){
+    var sc=S[i];el=0;
+    $('win').innerHTML=sc.h;
+    $('num').textContent=i+1;
+    $('cap').textContent=sc.c;$('sub').textContent=sc.s;
+    $('tipLabel').textContent=sc.tl;$('tip').textContent=sc.t;
+    $('count').textContent='Escena '+(i+1)+' de '+S.length;
+    for(var n=0;n<3;n++){$('a'+n).classList.toggle('on',sc.on.indexOf(n)>-1);}
+    if(anim){anim.cancel();anim=null;}
+    var dot=$('dot');dot.style.left=(sc.p[sc.p.length-1]*100)+'%';
+    if(!reduce&&dot.animate){
+      anim=dot.animate(sc.p.map(function(v){return{left:(v*100)+'%'};}),{duration:1800,iterations:Infinity,easing:'ease-in-out'});
+      if(!play)anim.pause();
+    }
+    clearInterval(typer);
+    if(sc.type){
+      var u='maria.rivera',p='••••••••••';
+      if(reduce){$('fu').textContent=u;$('fp').textContent=p;}
+      else{
+        var k=0;
+        typer=setInterval(function(){
+          if(!play)return;
+          var a=$('fu'),b=$('fp');
+          if(!a){clearInterval(typer);return;}
+          k++;a.textContent=u.slice(0,k);b.textContent=p.slice(0,Math.max(0,k-u.length));
+          if(k>=u.length+p.length)clearInterval(typer);
+        },160);
+      }
+    }
+    bars();
+  }
+  function setPlay(v){
+    play=v;$('play').textContent=v?'Pausar':'Reproducir';
+    if(anim){if(v)anim.play();else anim.pause();}
+  }
+  function atEnd(){return i===S.length-1&&el>=DUR;}
+  function toggle(){if(!play&&atEnd()){i=0;show();}setPlay(!play);}
+  function go(d){i=Math.max(0,Math.min(S.length-1,i+d));show();}
+  setInterval(function(){
+    if(!play)return;
+    el+=100;
+    if(el>=DUR){
+      if(i<S.length-1){i++;show();}
+      else{el=DUR;setPlay(false);}
+    }
+    bars();
+  },100);
+  $('play').addEventListener('click',toggle);
+  $('next').addEventListener('click',function(){go(1);});
+  $('prev').addEventListener('click',function(){go(-1);});
+  $('reset').addEventListener('click',function(){i=0;show();setPlay(!reduce);});
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'){go(1);}
+    else if(e.key==='ArrowLeft'){go(-1);}
+    else if(e.key===' '&&e.target.tagName!=='BUTTON'){e.preventDefault();toggle();}
+  });
+  setPlay(play);
+  show();
+})();
+</script>
+</body>
+</html>
+
+<script id="nb-track">(function(){try{if(localStorage.getItem('nb-notrack'))return;}catch(_){}try{var q=new URLSearchParams(location.search),d=JSON.stringify({p:location.pathname,r:document.referrer,s:q.get('utm_source')||''});if(navigator.sendBeacon)navigator.sendBeacon('/api/track',d);else fetch('/api/track',{method:'POST',body:d,keepalive:true});}catch(_){}})();</script>
+</body></html>

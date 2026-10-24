@@ -1,0 +1,212 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Laboratorio de Ciberseguridad Netblue | Laboratorio Netblue</title><meta name="description" content="27 simuladores interactivos y gratuitos, en español, que muestran cómo funcionan el phishing, el ransomware, el robo de contraseñas y otros ataques, y cómo defenderse."><link rel="canonical" href="https://netbluepr.com/laboratorio/"><link rel="icon" type="image/png" href="/favicon.png"><meta property="og:title" content="Laboratorio de Ciberseguridad Netblue | Laboratorio Netblue"><meta property="og:description" content="27 simuladores interactivos y gratuitos, en español, que muestran cómo funcionan el phishing, el ransomware, el robo de contraseñas y otros ataques, y cómo defenderse."><meta property="og:url" content="https://netbluepr.com/laboratorio/"><meta property="og:image" content="https://netbluepr.com/og-image.png"><meta property="og:locale" content="es_PR"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Laboratorio de Ciberseguridad Netblue</title>
+<style>
+  /* Layout alineado a la página de cursos de Netblue: cabecera con wordmark, hero, secciones por tema con filas de simuladores */
+  :root {
+    --bg: #F3F6FA;
+    --surface: #FFFFFF;
+    --ink: #0F2742;
+    --muted: #2C4159;
+    --muted2: #44566C;
+    --blue: #1657C7;
+    --blue-hover: #0F2742;
+    --orange: #B8440C;
+    --orange-soft: #FDEBDD;
+    --orange-ink: #4A1D05;
+    --border: #D5DEE9;
+    --border2: #C3CFDD;
+    --chip: #E8EEF6;
+    --display: "Archivo", "Segoe UI", sans-serif;
+    --body: "Source Sans 3", "Segoe UI", sans-serif;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 18px; line-height: 1.55; }
+  a { color: var(--blue); }
+  a:hover { color: var(--blue-hover); }
+  a:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+
+  /* header */
+  .site-header { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; }
+  .site-header .inner { max-width: 1040px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .wordmark { display: inline-flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 700; font-size: 20px; color: var(--ink); text-decoration: none; letter-spacing: -0.01em; }
+  .wordmark .mark { width: 30px; height: 30px; border-radius: 7px; background: var(--blue); display: grid; place-items: center; color: #fff; font-size: 16px; }
+  .site-header nav { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+  .site-header nav a { color: var(--ink); text-decoration: none; font-weight: 600; font-size: 15px; padding: 8px 12px; border-radius: 6px; display: inline-flex; align-items: center; min-height: 40px; }
+  .site-header nav a:hover { background: var(--chip); }
+  .site-header nav a.cta { background: var(--blue); color: #fff; }
+
+  .wrap { max-width: 1040px; margin: 0 auto; padding-inline: 20px; }
+
+  /* hero */
+  .hero { padding-block: 48px 36px; }
+  .eyebrow { font-family: var(--body); font-size: 14px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--blue); margin: 0 0 12px; }
+  h1 { font-family: var(--display); font-weight: 700; font-size: clamp(34px, 5.2vw, 56px); line-height: 1.04; letter-spacing: -0.02em; margin: 0 0 14px; text-wrap: balance; max-width: 18ch; }
+  .hero p { margin: 0; font-size: 20px; color: var(--muted); max-width: 56ch; }
+  .hero .stats { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+  .hero .stats .s { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; font-size: 15px; }
+  .hero .stats .s b { font-family: var(--display); color: var(--blue); }
+
+  /* category sections */
+  .cat { padding-block: 10px 30px; }
+  .cat-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+  .cat-head h2 { font-family: var(--display); font-weight: 700; font-size: clamp(24px, 3.2vw, 34px); line-height: 1.1; letter-spacing: -0.01em; margin: 0; }
+  .cat-head .tag { font-family: var(--body); font-size: 13px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #fff; background: var(--orange); padding: 3px 10px; border-radius: 999px; }
+  .cat-head .n { margin-left: auto; font-size: 15px; color: var(--muted2); }
+  .cat-desc { margin: 2px 0 10px; color: var(--muted); font-size: 16px; max-width: 64ch; }
+
+  .rows { display: flex; flex-direction: column; }
+  a.row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 32px; padding: 20px 4px; text-decoration: none; color: inherit; border-top: 1px solid var(--border); transition: background 0.12s; }
+  a.row:first-child { border-top: 2px solid var(--ink); }
+  a.row:hover { background: var(--surface); }
+  a.row .name { flex: 1 1 260px; font-family: var(--display); font-weight: 700; font-size: 21px; line-height: 1.25; min-width: 0; display: flex; align-items: center; gap: 10px; }
+  a.row .name .badge { font-family: var(--body); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--blue); background: var(--chip); padding: 2px 7px; border-radius: 4px; }
+  a.row .desc { flex: 2 1 380px; color: var(--muted); font-size: 16px; min-width: 0; }
+  a.row .go { flex: 0 0 auto; font-weight: 700; color: var(--blue); font-size: 15px; display: inline-flex; align-items: center; gap: 6px; }
+  a.row:hover .go { color: var(--blue-hover); }
+
+  /* usage */
+  .usage { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-block: 14px 10px; }
+  .usage h2 { font-family: var(--display); font-weight: 700; font-size: 22px; margin: 0 0 14px; }
+  .usage ol { margin: 0; padding-left: 22px; }
+  .usage li { font-size: 16px; margin-bottom: 8px; color: var(--muted); }
+  .usage li b { color: var(--ink); }
+
+  /* contacto / footer */
+  .contact { background: var(--ink); color: #fff; border-radius: 12px; padding: 28px; margin-block: 30px 0; display: flex; flex-wrap: wrap; gap: 20px 40px; align-items: center; }
+  .contact h2 { font-family: var(--display); font-weight: 700; font-size: 24px; margin: 0 0 6px; }
+  .contact p { margin: 0; color: #C3CFDD; font-size: 16px; max-width: 42ch; }
+  .contact .info { margin-left: auto; display: flex; flex-direction: column; gap: 6px; font-size: 16px; }
+  .contact .info a, .contact .info span { color: #fff; text-decoration: none; font-weight: 600; }
+  .contact .info .k { color: #8FA6C0; font-weight: 400; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  footer.site { padding-block: 24px 10px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 14px; color: var(--muted2); }
+  footer.site .brand { font-family: var(--display); font-weight: 700; color: var(--ink); }
+  .note { margin-top: 10px; font-size: 13.5px; color: var(--muted2); border-left: 3px solid var(--border2); padding: 4px 0 4px 14px; }
+
+  @media (max-width: 560px) {
+    a.row .go { flex-basis: 100%; }
+    .contact .info { margin-left: 0; }
+  }
+</style>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="wordmark" href="#top"><span class="mark">N</span>Netblue IT Consulting</a>
+    <nav>
+      <a href="https://cursos.netbluepr.com/">← Cursos</a>
+      <a href="#social">Ingeniería social</a>
+      <a href="#cred">Contraseñas</a>
+      <a href="#web">Web</a>
+      <a href="#red">Red</a>
+      <a href="#malware">Malware</a>
+      <a class="cta" href="#contacto">Contacto</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap" id="top">
+  <section class="hero">
+    <p class="eyebrow">Capacitación en ciberseguridad · Netblue</p>
+    <h1>Laboratorio de ataques para entrenar a su equipo</h1>
+    <p>Simuladores interactivos, en español, que muestran cómo funcionan los ataques más comunes y cómo defenderse. Cada uno corre por completo en el navegador: no generan tráfico ni ataques reales, y nada de lo que escriba sale de su equipo.</p>
+    <div class="stats">
+      <span class="s"><b>27</b> simuladores</span>
+      <span class="s"><b>5</b> categorías</span>
+      <span class="s"><b>100%</b> en el navegador</span>
+    </div>
+  </section>
+
+  <section class="cat" id="social">
+    <div class="cat-head"><h2>Ingeniería social y phishing</h2><span class="n">5 simuladores</span></div>
+    <p class="cat-desc">La amenaza que más afecta a todo el personal, técnico o no. El punto de partida de cualquier capacitación.</p>
+    <div class="rows">
+      <a class="row" href="/laboratorio/detecta-el-phishing/"><span class="name">Detecta el Phishing</span><span class="desc">Clasifica correos como legítimos o fraudulentos y aprende las señales.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/spear-phishing-bec/"><span class="name">Spear Phishing y BEC</span><span class="desc">Cómo los datos reales vuelven un correo dirigido peligrosamente creíble.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/smishing-vishing/"><span class="name">Smishing y Vishing</span><span class="desc">El phishing por SMS y por llamada de voz, con sus tácticas de manipulación.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/ingenieria-social/"><span class="name">Ataque de Ingeniería Social</span><span class="desc">Cómo se manipula a las personas para obtener acceso, información o dinero.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/clic-enlace-phishing/"><span class="name">Qué pasa al oprimir un enlace de phishing</span><span class="desc">Recorrido paso a paso de lo que ocurre tras hacer clic en un enlace malicioso.</span><span class="go">Abrir →</span></a>
+    </div>
+  </section>
+
+  <section class="cat" id="cred">
+    <div class="cat-head"><h2>Contraseñas y credenciales</h2><span class="n">10 simuladores</span></div>
+    <p class="cat-desc">Por qué las contraseñas débiles o reutilizadas caen, y cómo las frases de paso, el MFA y el hashing con salt lo evitan.</p>
+    <div class="rows">
+      <a class="row" href="/laboratorio/ataque-diccionario/"><span class="name">Ataque de Diccionario</span><span class="desc">Prueba una lista de contraseñas comunes contra una clave de práctica.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/fuerza-bruta-calculadora/"><span class="name">Fuerza Bruta <span class="badge">Interactivo</span></span><span class="desc">Calculadora de resistencia y tiempos de crackeo según el hardware.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/ataque-fuerza-bruta/"><span class="name">Ataque de Fuerza Bruta</span><span class="desc">Prueba todas las combinaciones posibles hasta dar con la contraseña.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/credential-stuffing/"><span class="name">Credential Stuffing</span><span class="desc">El efecto dominó de reutilizar la misma contraseña en varios sitios.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/password-spraying/"><span class="name">Password Spraying</span><span class="desc">Probar una contraseña común contra muchas cuentas para evadir bloqueos.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/como-se-hashea-una-contrasena/"><span class="name">Cómo se hashea una contraseña <span class="badge">Interactivo</span></span><span class="desc">Paso a paso: sal, PBKDF2, efecto avalancha y verificación de un inicio de sesión.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/rainbow-tables-salt/"><span class="name">Rainbow Tables y Salt</span><span class="desc">Hashing SHA-256 real y cómo el salt inutiliza las tablas precalculadas.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/tabla-arcoiris/"><span class="name">Ataque con Tabla Arcoíris</span><span class="desc">Revertir hashes de contraseñas usando tablas precalculadas.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/ataque-cumpleanos/"><span class="name">Ataque de Cumpleaños</span><span class="desc">Colisiones de hash aprovechando la paradoja del cumpleaños.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/volcado-de-memoria/"><span class="name">Ataque de Volcado de Memoria</span><span class="desc">Cómo se extraen credenciales y datos directamente de la memoria RAM.</span><span class="go">Abrir →</span></a>
+    </div>
+  </section>
+
+  <section class="cat" id="web">
+    <div class="cat-head"><h2>Web y aplicaciones</h2><span class="n">2 simuladores</span></div>
+    <p class="cat-desc">Cómo una entrada mal manejada deja que un atacante cambie el comportamiento de una aplicación.</p>
+    <div class="rows">
+      <a class="row" href="/laboratorio/sql-injection/"><span class="name">SQL Injection</span><span class="desc">Login vulnerable vs consultas parametrizadas, con la consulta a la vista.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/cross-site-scripting/"><span class="name">Cross-Site Scripting (XSS)</span><span class="desc">Un comentario con script que se ejecuta o se escapa según el modo.</span><span class="go">Abrir →</span></a>
+    </div>
+  </section>
+
+  <section class="cat" id="red">
+    <div class="cat-head"><h2>Red e inalámbrico</h2><span class="n">5 simuladores</span></div>
+    <p class="cat-desc">Interceptación, saturación y ataques sobre Wi-Fi y Bluetooth, con sus defensas de red.</p>
+    <div class="rows">
+      <a class="row" href="/laboratorio/man-in-the-middle/"><span class="name">Man-in-the-Middle <span class="badge">Interactivo</span></span><span class="desc">HTTP expone tus credenciales; HTTPS las cifra. Míralo en vivo.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/ataque-man-in-the-middle/"><span class="name">Ataque Man-in-the-Middle</span><span class="desc">Cómo un atacante se interpone e intercepta las comunicaciones.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/dos-ddos/"><span class="name">DoS y DDoS</span><span class="desc">Satura un servidor con una fuente o una botnet, y aplica la mitigación.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/wardriving/"><span class="name">Wardriving</span><span class="desc">Buscar y mapear redes Wi-Fi vulnerables para encontrar puntos de entrada.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/bluesnarfing/"><span class="name">Ataque de Bluesnarfing</span><span class="desc">Robo de datos de un dispositivo a través de una conexión Bluetooth.</span><span class="go">Abrir →</span></a>
+    </div>
+  </section>
+
+  <section class="cat" id="malware">
+    <div class="cat-head"><h2>Malware y acceso remoto</h2><span class="n">5 simuladores</span></div>
+    <p class="cat-desc">Cómo entra el código malicioso, qué hace una vez dentro y cómo lo frenan los backups y el EDR.</p>
+    <div class="rows">
+      <a class="row" href="/laboratorio/ransomware/"><span class="name">Ransomware <span class="badge">Interactivo</span></span><span class="desc">Cifra archivos ficticios y demuestra el valor de los backups 3-2-1.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/ataque-ransomware/"><span class="name">Ataque de Ransomware</span><span class="desc">Cómo entra, cifra los archivos y extorsiona a la víctima.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/keylogger-troyanos/"><span class="name">Keylogger y Troyanos</span><span class="desc">Captura de pulsaciones en vivo hasta que activas el EDR.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/troyano-rat/"><span class="name">Ataque con Troyano RAT</span><span class="desc">Control remoto encubierto del equipo: archivos, cámara y micrófono.</span><span class="go">Abrir →</span></a>
+      <a class="row" href="/laboratorio/reverse-shell/"><span class="name">Ataque de Reverse Shell</span><span class="desc">Una conexión saliente que le entrega al atacante una shell del equipo.</span><span class="go">Abrir →</span></a>
+    </div>
+  </section>
+
+  <section class="usage">
+    <h2>Cómo usar este laboratorio en una sesión</h2>
+    <ol>
+      <li>Empiece por <b>Ingeniería social</b>: es la amenaza que más afecta a todo el personal.</li>
+      <li>Proyecte cada simulador y deje que el grupo <b>proponga la respuesta</b> antes de revelar el resultado.</li>
+      <li>En los de contraseñas, compare una clave débil con una <b>frase de paso larga</b> para que el contraste quede claro.</li>
+      <li>Cierre cada tema leyendo juntos las <b>defensas</b> que aparecen al final de cada simulador.</li>
+    </ol>
+  </section>
+
+  <section class="contact" id="contacto">
+    <div>
+      <h2>¿Quiere esta capacitación para su empresa?</h2>
+      <p>Netblue ofrece estos cursos prácticos en su oficina o en línea, para pequeñas y medianas empresas en Puerto Rico.</p>
+    </div>
+    <div class="info">
+      <span class="k">Teléfono</span><a href="tel:+17873379818">787-337-9818</a>
+      <span class="k">WhatsApp</span><a href="https://wa.me/19392756489?text=Hola%2C%20me%20interesan%20los%20cursos%20de%20ciberseguridad%20de%20Netblue." target="_blank" rel="noopener">939-275-6489</a>
+      <span class="k">Correo</span><a href="mailto:eocasio@netbluepr.com">eocasio@netbluepr.com</a>
+      <span class="k">Web</span><a href="https://netbluepr.com/">netbluepr.com</a>
+    </div>
+  </section>
+
+  <footer class="site">
+    <span class="brand">Netblue IT Consulting</span>
+    <span><a href="https://cursos.netbluepr.com/" style="text-decoration:none;font-weight:600">← Volver a la página de cursos</a></span>
+  </footer>
+</div>
+
+<script id="nb-track">(function(){try{if(localStorage.getItem('nb-notrack'))return;}catch(_){}try{var q=new URLSearchParams(location.search),d=JSON.stringify({p:location.pathname,r:document.referrer,s:q.get('utm_source')||''});if(navigator.sendBeacon)navigator.sendBeacon('/api/track',d);else fetch('/api/track',{method:'POST',body:d,keepalive:true});}catch(_){}})();</script>
+</body></html>

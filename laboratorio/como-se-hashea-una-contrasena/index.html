@@ -1,0 +1,262 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Laboratorio de hash Netblue | Laboratorio Netblue</title><meta name="description" content="Paso a paso: sal, PBKDF2, efecto avalancha y verificación de un inicio de sesión. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><link rel="canonical" href="https://netbluepr.com/laboratorio/como-se-hashea-una-contrasena/"><link rel="icon" type="image/png" href="/favicon.png"><meta property="og:title" content="Laboratorio de hash Netblue | Laboratorio Netblue"><meta property="og:description" content="Paso a paso: sal, PBKDF2, efecto avalancha y verificación de un inicio de sesión. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><meta property="og:url" content="https://netbluepr.com/laboratorio/como-se-hashea-una-contrasena/"><meta property="og:image" content="https://netbluepr.com/og-image.png"><meta property="og:locale" content="es_PR"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Laboratorio de hash Netblue</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: lab bench — a vertical pipeline of numbered stations on the left, a sticky "attacker" readout on the right that collapses below on phones */
+:root{
+  --bg:#f3f6fa; --panel:#ffffff; --ink:#0d1b2e; --muted:#51627a; --line:#d5dde8;
+  --accent:#1452c4; --accent-soft:#e3ecfb; --salt:#0b7a6b; --salt-soft:#dff3ef;
+  --hot:#b84a00; --hot-soft:#fdebd9; --ok:#1d7a33; --bad:#b3261e;
+  --display:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0a1220; --panel:#111c2e; --ink:#e7eef8; --muted:#97a8c0; --line:#24344d;
+  --accent:#6ea1ff; --accent-soft:#16284a; --salt:#4fd1bc; --salt-soft:#0f2e2b;
+  --hot:#ffa463; --hot-soft:#3a2312; --ok:#6fd38a; --bad:#ff8a80; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0a1220; --panel:#111c2e; --ink:#e7eef8; --muted:#97a8c0; --line:#24344d;
+  --accent:#6ea1ff; --accent-soft:#16284a; --salt:#4fd1bc; --salt-soft:#0f2e2b;
+  --hot:#ffa463; --hot-soft:#3a2312; --ok:#6fd38a; --bad:#ff8a80; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:1080px;margin:0 auto}
+header.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-block:20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.01em}
+.brand b{color:var(--accent)}
+.brand small{display:block;font-family:var(--body);font-weight:400;font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.top a{color:var(--accent);font-size:14px;text-decoration:none;font-weight:500}
+.top a:hover{text-decoration:underline}
+.hero{padding-block:40px 28px;max-width:62ch}
+.eyebrow{font-family:var(--mono);font-size:12px;color:var(--salt);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,5vw,46px);line-height:1.08;letter-spacing:-.02em;margin:0 0 14px;text-wrap:balance}
+.hero p{color:var(--muted);margin:0;font-size:17px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.pipe{display:flex;flex-direction:column;gap:0}
+.st{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;min-width:0}
+.st h3{font-family:var(--display);font-weight:500;font-size:17px;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+.st .hint{font-size:14px;color:var(--muted);margin:0 0 12px}
+.num{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:4px;padding:2px 7px}
+.join{display:flex;align-items:center;justify-content:center;height:30px;color:var(--muted);font-family:var(--mono);font-size:13px}
+.join::before,.join::after{content:"";flex:0 0 1px;height:100%;background:var(--line)}
+.join span{padding:0 10px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+input[type=text],input[type=password]{flex:1;min-width:0;width:100%;font-family:var(--mono);font-size:15px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button{font-family:var(--body);font-size:14px;font-weight:500;padding:9px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+button.primary:hover{opacity:.9;color:var(--panel)}
+label.chk{font-size:14px;color:var(--muted);display:flex;gap:6px;align-items:center;cursor:pointer}
+.mono{font-family:var(--mono);font-size:13.5px;word-break:break-all;line-height:1.7}
+.saltv{color:var(--salt);background:var(--salt-soft);padding:6px 10px;border-radius:6px;flex:1;min-width:0}
+.saltv.off{color:var(--bad);background:var(--hot-soft)}
+.concat{margin-top:12px;font-size:13px;color:var(--muted)}
+.concat .mono{display:inline}
+.pw-tag{color:var(--accent)}
+.salt-tag{color:var(--salt)}
+input[type=range]{flex:1;accent-color:var(--accent);min-width:140px}
+.itv{font-family:var(--mono);font-weight:600;min-width:84px;text-align:right;font-variant-numeric:tabular-nums}
+.ticks{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px;padding-inline:2px}
+.hash{background:var(--bg);border:1px dashed var(--line);border-radius:8px;padding:12px;font-size:15px;letter-spacing:.02em}
+.hash .c{background:var(--hot-soft);color:var(--hot);border-radius:2px}
+.meter{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:10px}
+.meter i{display:block;height:100%;width:0;background:var(--hot);transition:width .4s}
+@media (prefers-reduced-motion:reduce){.meter i{transition:none}}
+.aval{font-size:14px;color:var(--muted);margin:8px 0 0}
+.record{background:var(--ink);color:var(--bg);border-radius:10px;padding:16px 18px;font-family:var(--mono);font-size:13px;line-height:1.8;overflow-x:auto}
+.record .k{opacity:.6}
+.record .note{display:block;margin-top:8px;opacity:.6;font-size:12px}
+aside{display:flex;flex-direction:column;gap:16px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px)}
+@media (max-width:860px){aside{position:static}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.card h4{font-family:var(--display);font-weight:500;font-size:16px;margin:0 0 10px}
+.stat{display:flex;justify-content:space-between;gap:8px;font-size:14px;padding-block:6px;border-bottom:1px solid var(--line)}
+.stat:last-of-type{border-bottom:0}
+.stat span{color:var(--muted)}
+.stat b{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.small{font-size:12px;color:var(--muted);margin:10px 0 0;line-height:1.5}
+.verdict{margin:10px 0 0;font-size:15px;font-weight:500}
+.verdict.ok{color:var(--ok)} .verdict.bad{color:var(--bad)}
+.err{color:var(--bad);font-size:13px;margin:6px 0 0}
+section.learn{margin-top:48px}
+section.learn h2{font-family:var(--display);font-weight:700;font-size:26px;letter-spacing:-.01em;margin:0 0 18px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.cols div{border-top:2px solid var(--accent);padding-top:12px}
+.cols h5{font-family:var(--display);font-weight:500;font-size:16px;margin:0 0 6px}
+.cols p{margin:0;font-size:15px;color:var(--muted)}
+footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+footer .contact{font-family:var(--mono);color:var(--ink);user-select:all}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><b>Net</b>blue<small>IT Consulting · Ciberseguridad</small></div>
+    <a href="https://cursos.netbluepr.com">Ver cursos de concientización</a>
+  </header>
+
+  <div class="hero">
+    <p class="eyebrow">Laboratorio interactivo</p>
+    <h1>Así se protege una contraseña antes de guardarla</h1>
+    <p>Un sistema bien diseñado nunca guarda tu contraseña. Guarda una huella irreversible de ella. Escribe una contraseña y sigue cada estación del proceso. Todo se calcula en tu navegador con criptografía real y nada sale de tu equipo.</p>
+  </div>
+
+  <div class="grid">
+    <div class="pipe">
+      <div class="st">
+        <h3><span class="num">01</span>Contraseña en texto plano</h3>
+        <p class="hint">Lo que el usuario escribe en el formulario de registro.</p>
+        <div class="row">
+          <input type="text" id="pw" value="Netblue2026!" autocomplete="off" spellcheck="false" aria-label="Contraseña">
+          <label class="chk"><input type="checkbox" id="show" checked> Mostrar</label>
+        </div>
+        <p class="err" id="pwerr" hidden>Escribe una contraseña para continuar.</p>
+      </div>
+
+      <div class="join"><span>+</span></div>
+
+      <div class="st">
+        <h3><span class="num">02</span>Sal aleatoria</h3>
+        <p class="hint">16 bytes generados al azar para cada usuario y guardados junto al hash. No es secreta; su trabajo es que dos contraseñas iguales produzcan hashes distintos.</p>
+        <div class="row">
+          <span class="mono saltv" id="salt"></span>
+          <button id="newsalt">Generar otra sal</button>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <label class="chk"><input type="checkbox" id="usesalt" checked> Usar sal</label>
+        </div>
+        <p class="concat">Entrada a la función: <span class="mono"><span class="pw-tag" id="cpw"></span> + <span class="salt-tag" id="csalt"></span></span></p>
+      </div>
+
+      <div class="join"><span>↓</span></div>
+
+      <div class="st">
+        <h3><span class="num">03</span>Función lenta: PBKDF2-HMAC-SHA256</h3>
+        <p class="hint">El hash se repite muchas veces a propósito. Un inicio de sesión lo hace una vez; un atacante tendría que hacerlo por cada intento.</p>
+        <div class="row">
+          <input type="range" id="it" min="0" max="4" step="1" value="2" aria-label="Iteraciones">
+          <span class="itv" id="itout"></span>
+        </div>
+        <div class="ticks"><span>1</span><span>1 mil</span><span>100 mil</span><span>310 mil</span><span>600 mil</span></div>
+        <p class="small">600,000 es el mínimo que recomienda OWASP para PBKDF2-SHA256.</p>
+      </div>
+
+      <div class="join"><span>↓</span></div>
+
+      <div class="st">
+        <h3><span class="num">04</span>Hash resultante · 256 bits</h3>
+        <p class="hint">Los caracteres resaltados cambiaron respecto al cálculo anterior. Cambia una sola letra de la contraseña y observa.</p>
+        <div class="mono hash" id="hash">Calculando…</div>
+        <div class="meter" aria-hidden="true"><i id="meter"></i></div>
+        <p class="aval" id="aval"></p>
+      </div>
+
+      <div class="join"><span>↓</span></div>
+
+      <div class="record" id="rec" aria-live="polite"></div>
+    </div>
+
+    <aside>
+      <div class="card">
+        <h4>Inicia sesión como el usuario</h4>
+        <p class="small" style="margin:0 0 10px">El servidor toma lo que escribes, le aplica la sal y las iteraciones guardadas, y compara los hashes.</p>
+        <div class="row">
+          <input type="password" id="att" placeholder="Escribe la contraseña" autocomplete="off" aria-label="Intento de contraseña">
+        </div>
+        <div class="row" style="margin-top:10px"><button class="primary" id="verify">Verificar</button></div>
+        <p class="err" id="atterr" hidden>Escribe un intento primero.</p>
+        <p class="verdict" id="vres" aria-live="polite"></p>
+      </div>
+
+      <div class="card">
+        <h4>Costo para un atacante</h4>
+        <div class="stat"><span>Tiempo por cálculo aquí</span><b id="ms">–</b></div>
+        <div class="stat"><span>Intentos por segundo, una GPU</span><b id="gps">–</b></div>
+        <div class="stat"><span>Probar 1,000 millones de contraseñas</span><b id="crack">–</b></div>
+        <p class="small">Estimado aproximado, suponiendo una GPU moderna que calcula unos 10 mil millones de SHA-256 por segundo. Sin sal, además, un solo cálculo sirve contra todos los usuarios que tengan la misma contraseña.</p>
+      </div>
+    </aside>
+  </div>
+
+  <section class="learn">
+    <h2>Lo que hay que llevarse</h2>
+    <div class="cols">
+      <div><h5>Una sola vía</h5><p>Del hash no se puede volver a la contraseña. Por eso el sistema verifica repitiendo el cálculo, nunca descifrando.</p></div>
+      <div><h5>Sal única</h5><p>Impide las rainbow tables y evita que se note quién comparte contraseña. Se guarda en claro junto al hash.</p></div>
+      <div><h5>Lento a propósito</h5><p>Algoritmos como PBKDF2, bcrypt o Argon2id cuestan tiempo. MD5 o SHA-256 solos son demasiado rápidos para contraseñas.</p></div>
+      <div><h5>Tu parte</h5><p>Ningún hash salva una contraseña corta o repetida. Usa frases largas, un gestor de contraseñas y MFA.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Netblue IT Consulting · Puerto Rico</span>
+    <span class="contact">787-337-9818 · eocasio@netbluepr.com</span>
+  </footer>
+</div>
+
+<script>
+const IT=[1,1000,100000,310000,600000];
+const $=id=>document.getElementById(id);
+const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+const enc=new TextEncoder();
+let salt=crypto.getRandomValues(new Uint8Array(16)),prev='',stored=null,tok=0,timer=null;
+const nf=n=>Math.round(n).toLocaleString('es-PR');
+function dur(s){
+  if(s<1)return 'menos de 1 segundo';
+  const u=[[31536000,'años'],[86400,'días'],[3600,'horas'],[60,'minutos'],[1,'segundos']];
+  for(const [v,l] of u){if(s>=v){const q=s/v;return (q>=100?nf(q):q.toFixed(1))+' '+l;}}
+}
+async function derive(pw,s,n){
+  const k=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveBits']);
+  return hex(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:s,iterations:n},k,256));
+}
+function curSalt(){return $('usesalt').checked?salt:new Uint8Array(0);}
+async function run(){
+  const pw=$('pw').value;
+  $('pwerr').hidden=!!pw; if(!pw)return;
+  const n=IT[+$('it').value]; $('itout').textContent=nf(n);
+  const on=$('usesalt').checked;
+  $('salt').textContent=on?hex(salt):'Sin sal: vulnerable a rainbow tables';
+  $('salt').classList.toggle('off',!on);
+  $('cpw').textContent='"'+($('pw').type==='password'?'•'.repeat(pw.length):pw)+'"';
+  $('csalt').textContent=on?hex(salt).slice(0,8)+'…':'(nada)';
+  const gps=1e10/(2*n); $('gps').textContent=nf(gps);
+  $('crack').textContent=dur(1e9/gps);
+  const t=++tok,t0=performance.now(),s=curSalt();
+  let h; try{h=await derive(pw,s,n);}catch(e){$('hash').textContent='Este navegador no permite Web Crypto en esta página.';return;}
+  if(t!==tok)return;
+  $('ms').textContent=nf(performance.now()-t0)+' ms';
+  let diff=0,html='';
+  for(let i=0;i<h.length;i++){const c=prev&&prev[i]!==h[i];if(c)diff++;html+=c?'<span class="c">'+h[i]+'</span>':h[i];}
+  $('hash').innerHTML=html;
+  const pct=prev&&prev!==h?Math.round(diff/64*100):0;
+  $('meter').style.width=pct+'%';
+  $('aval').textContent=prev&&prev!==h?'Efecto avalancha: cambiaron '+diff+' de 64 caracteres ('+pct+'%). Un cambio mínimo en la entrada produce un hash irreconocible.':'Cambia una sola letra de la contraseña para ver el efecto avalancha.';
+  prev=h; stored={s,n,h};
+  $('rec').innerHTML='<span class="k">tabla</span> usuarios<br><span class="k">usuario  </span> edgar<br><span class="k">algoritmo</span> pbkdf2_sha256<br><span class="k">iteraciones</span> '+n+'<br><span class="k">sal      </span> '+(on?hex(s):'—')+'<br><span class="k">hash     </span> '+h+'<span class="note">Esto es todo lo que la base de datos conoce. La contraseña no aparece en ningún lugar.</span>';
+}
+function schedule(){clearTimeout(timer);timer=setTimeout(run,180);}
+$('pw').addEventListener('input',schedule);
+$('show').addEventListener('change',e=>{$('pw').type=e.target.checked?'text':'password';run();});
+$('usesalt').addEventListener('change',run);
+$('it').addEventListener('input',run);
+$('newsalt').addEventListener('click',()=>{salt=crypto.getRandomValues(new Uint8Array(16));run();});
+$('att').addEventListener('input',()=>{$('vres').textContent='';$('atterr').hidden=true;});
+$('verify').addEventListener('click',async()=>{
+  const a=$('att').value;
+  if(!a){$('atterr').hidden=false;return;}
+  if(!stored)return;
+  const h=await derive(a,stored.s,stored.n), ok=h===stored.h;
+  $('vres').className='verdict '+(ok?'ok':'bad');
+  $('vres').textContent=ok?'Los hashes coinciden. Acceso concedido.':'El hash no coincide. Acceso denegado.';
+});
+$('att').addEventListener('keydown',e=>{if(e.key==='Enter')$('verify').click();});
+run();
+</script>
+
+<script id="nb-track">(function(){try{if(localStorage.getItem('nb-notrack'))return;}catch(_){}try{var q=new URLSearchParams(location.search),d=JSON.stringify({p:location.pathname,r:document.referrer,s:q.get('utm_source')||''});if(navigator.sendBeacon)navigator.sendBeacon('/api/track',d);else fetch('/api/track',{method:'POST',body:d,keepalive:true});}catch(_){}})();</script>
+</body></html>

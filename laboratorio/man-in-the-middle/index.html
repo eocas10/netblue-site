@@ -1,0 +1,229 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Man-in-the-Middle | Laboratorio Netblue</title><meta name="description" content="HTTP expone tus credenciales; HTTPS las cifra. Míralo en vivo. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><link rel="canonical" href="https://netbluepr.com/laboratorio/man-in-the-middle/"><link rel="icon" type="image/png" href="/favicon.png"><meta property="og:title" content="Man-in-the-Middle | Laboratorio Netblue"><meta property="og:description" content="HTTP expone tus credenciales; HTTPS las cifra. Míralo en vivo. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><meta property="og:url" content="https://netbluepr.com/laboratorio/man-in-the-middle/"><meta property="og:image" content="https://netbluepr.com/og-image.png"><meta property="og:locale" content="es_PR"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Man-in-the-Middle</title>
+<style>
+  /* Layout: diagrama de red — usuario, atacante interpuesto y servidor; enviar datos y ver qué captura el atacante en HTTP vs HTTPS */
+  :root {
+    --bg: #f4f6f8; --surface: #ffffff; --surface-2: #eef1f5; --border: #d4dae2;
+    --fg: #1a2330; --fg-muted: #5b6878; --accent: #0b6e99; --accent-soft: #d6ebf4;
+    --ok: #1a7f4b; --ok-soft: #d6f0e1; --warn: #b4690e; --warn-soft: #f7e7cc;
+    --crit: #c0392b; --crit-soft: #f7dcd8;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1620; --surface: #161f2b; --surface-2: #1d2835; --border: #2b3a4a;
+      --fg: #e6edf4; --fg-muted: #93a1b2; --accent: #3fb6e0; --accent-soft: #10303d;
+      --ok: #4ecb8a; --ok-soft: #10311f; --warn: #e0a84a; --warn-soft: #3a2c12;
+      --crit: #f07567; --crit-soft: #3a1b17; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1620; --surface: #161f2b; --surface-2: #1d2835; --border: #2b3a4a;
+    --fg: #e6edf4; --fg-muted: #93a1b2; --accent: #3fb6e0; --accent-soft: #10303d;
+    --ok: #4ecb8a; --ok-soft: #10311f; --warn: #e0a84a; --warn-soft: #3a2c12;
+    --crit: #f07567; --crit-soft: #3a1b17; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--sans); line-height: 1.5; }
+  .wrap { max-width: 860px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 48px; }
+  header.page { margin-bottom: 20px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
+  h1 { font-size: clamp(28px, 6vw, 38px); line-height: 1.05; margin: 0 0 10px; text-wrap: balance; letter-spacing: -0.02em; }
+  header.page p { margin: 0; max-width: 64ch; color: var(--fg-muted); font-size: 15px; }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-top: 18px; }
+
+  .proto-toggle { display: flex; gap: 6px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 4px; max-width: 420px; }
+  .proto-toggle button { flex: 1; font-size: 14px; font-weight: 700; padding: 11px; border-radius: 8px; border: none; background: transparent; color: var(--fg-muted); cursor: pointer; font-family: var(--mono); }
+  .proto-toggle button.active[data-proto="http"] { background: var(--crit); color: #fff; }
+  .proto-toggle button.active[data-proto="https"] { background: var(--ok); color: #fff; }
+
+  .net { position: relative; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 18px; align-items: start; }
+  .node { text-align: center; }
+  .node .ic { width: 64px; height: 64px; border-radius: 16px; margin: 0 auto 8px; display: grid; place-items: center; font-size: 30px; background: var(--surface-2); border: 2px solid var(--border); }
+  .node .lb { font-size: 13px; font-weight: 700; }
+  .node .sub { font-size: 11px; color: var(--fg-muted); font-family: var(--mono); }
+  .node.attacker .ic { border-color: var(--crit); background: var(--crit-soft); }
+  .node.attacker .lb { color: var(--crit); }
+
+  .wire { position: relative; height: 40px; margin: 4px 0; }
+  .packet { position: absolute; top: 50%; transform: translateY(-50%); left: 0; font-family: var(--mono); font-size: 11px; padding: 4px 8px; border-radius: 6px; white-space: nowrap; opacity: 0; }
+  .packet.plain { background: var(--crit-soft); color: var(--crit); border: 1px solid var(--crit); }
+  .packet.enc { background: var(--ok-soft); color: var(--ok); border: 1px solid var(--ok); }
+
+  .form-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-top: 16px; }
+  .form-row label { font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px; }
+  .form-row input { font-family: var(--mono); font-size: 14px; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); color: var(--fg); width: 160px; }
+  .form-row button { font-size: 14px; font-weight: 700; padding: 10px 20px; border-radius: 9px; border: none; background: var(--accent); color: #fff; cursor: pointer; }
+  .form-row button:disabled { opacity: 0.5; }
+
+  .intercept { margin-top: 18px; }
+  .intercept h2 { font-size: 12px; font-family: var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--crit); margin: 0 0 10px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .capture { font-family: var(--mono); font-size: 13px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; min-height: 90px; white-space: pre-wrap; word-break: break-all; }
+  .capture .k { color: var(--fg-muted); }
+  .capture .stolen { color: var(--crit); font-weight: 700; }
+  .capture .safe { color: var(--ok); }
+
+  .edu { margin-top: 32px; }
+  .edu h2 { font-size: 20px; margin: 0 0 14px; letter-spacing: -0.01em; }
+  .defense-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .def { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; min-width: 0; }
+  .def h3 { font-size: 15px; margin: 0 0 6px; }
+  .def p { margin: 0; font-size: 13.5px; color: var(--fg-muted); }
+  .note { margin-top: 20px; font-size: 12.5px; color: var(--fg-muted); border-left: 3px solid var(--border); padding: 4px 0 4px 14px; }
+
+  @media (max-width: 560px) { .node .ic { width: 52px; height: 52px; font-size: 24px; } .form-row input { width: 100%; } }
+</style>
+
+<div class="wrap">
+  <header class="page">
+    <p class="eyebrow">Laboratorio de concientización · Netblue</p>
+    <h1>Man-in-the-Middle</h1>
+    <p>En una red WiFi abierta, un atacante puede colocarse <strong>entre tú y el servidor</strong> y leer todo lo que pasa. La diferencia entre quedar expuesto o no está en una letra: <strong>HTTP</strong> viaja en texto claro; <strong>HTTPS</strong> va cifrado. Envía tus datos y mira qué logra capturar el atacante.</p>
+  </header>
+
+  <section class="panel">
+    <div class="proto-toggle" id="proto">
+      <button data-proto="http" class="active">🔓 HTTP (sin cifrar)</button>
+      <button data-proto="https">🔒 HTTPS (cifrado)</button>
+    </div>
+
+    <div class="net">
+      <div class="node"><div class="ic">💻</div><div class="lb">Tú</div><div class="sub">WiFi café</div></div>
+      <div class="node attacker"><div class="ic">🕵️</div><div class="lb">Atacante</div><div class="sub">interpuesto</div></div>
+      <div class="node"><div class="ic">🖥️</div><div class="lb">Servidor</div><div class="sub">tu-banco.com</div></div>
+    </div>
+
+    <div class="wire"><div class="packet" id="pkt">…</div></div>
+
+    <div class="form-row">
+      <div>
+        <label for="user">Usuario</label>
+        <input id="user" type="text" value="edgar" autocomplete="off" spellcheck="false" />
+      </div>
+      <div>
+        <label for="pass">Contraseña</label>
+        <input id="pass" type="text" value="MiClave2024" autocomplete="off" spellcheck="false" />
+      </div>
+      <button id="send">Enviar login →</button>
+    </div>
+
+    <div class="intercept">
+      <h2>🕵️ Lo que ve el atacante</h2>
+      <div class="capture" id="capture">Esperando tráfico…</div>
+    </div>
+  </section>
+
+  <section class="edu">
+    <h2>Cómo defenderse</h2>
+    <div class="defense-grid">
+      <div class="def"><h3>Exige HTTPS (candado)</h3><p>Verifica el candado y "https://" en la barra. Si un sitio pide datos por HTTP, no los envíes.</p></div>
+      <div class="def"><h3>VPN en redes públicas</h3><p>Cifra todo tu tráfico aunque el sitio no lo haga, protegiéndote en WiFi abiertos.</p></div>
+      <div class="def"><h3>No ignores avisos de certificado</h3><p>Un "certificado no válido" puede ser justo el atacante intentando interponerse. Detente.</p></div>
+      <div class="def"><h3>HSTS y redirección forzada</h3><p>Del lado servidor, obliga a HTTPS siempre para que el navegador nunca caiga a HTTP.</p></div>
+    </div>
+    <p class="note">Simulación conceptual. La página no intercepta ni envía tráfico real; los datos que escribas se quedan en tu navegador.</p>
+
+  <nav class="lab-nav" aria-label="Otros simuladores del laboratorio">
+    <style>
+      .lab-nav{margin-top:34px;padding-top:22px;border-top:1px solid #D5DEE9}
+      .lab-nav .nav-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+      .lab-nav .nav-top a.portal{font-family:'Archivo','Segoe UI',sans-serif;font-size:14px;font-weight:700;text-decoration:none;color:#fff;background:#1657C7;padding:9px 16px;border-radius:6px}
+      .lab-nav .nav-top a.portal:hover{background:#0F2742}
+      .lab-nav .nav-top .lbl{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#44566C}
+      .lab-nav .chips{display:flex;flex-wrap:wrap;gap:8px}
+      .lab-nav .chips a{font-size:12.5px;text-decoration:none;color:#0F2742;background:#E8EEF6;border:1px solid #C3CFDD;padding:6px 11px;border-radius:999px}
+      .lab-nav .chips a:hover{border-color:#1657C7;color:#1657C7}
+    </style>
+    <div class="nav-top">
+      <a class="portal" href="/laboratorio/">⬡ Portal del laboratorio</a>
+      <span class="lbl">Otros simuladores</span>
+    </div>
+    <div class="chips">
+      <a href="/laboratorio/detecta-el-phishing/">Phishing</a>
+      <a href="/laboratorio/spear-phishing-bec/">Spear Phishing / BEC</a>
+      <a href="/laboratorio/smishing-vishing/">Smishing / Vishing</a>
+      <a href="/laboratorio/ataque-diccionario/">Diccionario</a>
+      <a href="/laboratorio/fuerza-bruta-calculadora/">Fuerza Bruta</a>
+      <a href="/laboratorio/credential-stuffing/">Credential Stuffing</a>
+      <a href="/laboratorio/rainbow-tables-salt/">Rainbow Tables</a>
+      <a href="/laboratorio/sql-injection/">SQL Injection</a>
+      <a href="/laboratorio/cross-site-scripting/">XSS</a>
+      <a href="/laboratorio/man-in-the-middle/">Man-in-the-Middle</a>
+      <a href="/laboratorio/dos-ddos/">DoS / DDoS</a>
+      <a href="/laboratorio/ransomware/">Ransomware</a>
+      <a href="/laboratorio/keylogger-troyanos/">Keylogger</a>
+    </div>
+  </nav>
+  </section>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var proto = "http", busy = false;
+
+  function fakeEncrypt(s) {
+    // representación de "cifrado" solo visual (no es cripto real)
+    var out = "";
+    var chars = "A1B2C3D4E5F6a7b8c9d0+/xKzQmNpLtWvJhGfRsYu";
+    for (var i = 0; i < Math.max(24, s.length * 2); i++) out += chars[(Math.random() * chars.length) | 0];
+    return out;
+  }
+
+  function send() {
+    if (busy) return;
+    busy = true; $("send").disabled = true;
+    var u = $("user").value || "(vacío)";
+    var p = $("pass").value || "(vacío)";
+    var enc = proto === "https";
+
+    var pkt = $("pkt");
+    pkt.className = "packet " + (enc ? "enc" : "plain");
+    pkt.textContent = enc ? fakeEncrypt(u + p).slice(0, 18) + "…" : "user=" + u + "&pass=" + p;
+
+    // animar de izquierda (tú) hacia derecha pasando por el atacante
+    pkt.style.transition = "none";
+    pkt.style.left = "0%"; pkt.style.opacity = "0";
+    requestAnimationFrame(function () {
+      pkt.style.transition = "left 1.6s linear, opacity 0.3s";
+      pkt.style.opacity = "1";
+      pkt.style.left = "calc(100% - 90px)";
+    });
+
+    // a mitad de camino, el atacante "captura"
+    setTimeout(function () { capture(u, p, enc); }, 850);
+    setTimeout(function () {
+      pkt.style.opacity = "0";
+      busy = false; $("send").disabled = false;
+    }, 1900);
+  }
+
+  function capture(u, p, enc) {
+    var cap = $("capture");
+    if (enc) {
+      cap.innerHTML =
+        '<span class="k">POST https://tu-banco.com/login</span>\n' +
+        '<span class="k">cuerpo:</span> <span class="safe">' + fakeEncrypt(u + p) + '</span>\n\n' +
+        '<span class="safe">✓ Tráfico cifrado (TLS). El atacante solo ve ruido ilegible.\n  No puede leer usuario ni contraseña.</span>';
+    } else {
+      cap.innerHTML =
+        '<span class="k">POST http://tu-banco.com/login</span>\n' +
+        '<span class="k">cuerpo:</span> user=<span class="stolen">' + u + '</span>&pass=<span class="stolen">' + p + '</span>\n\n' +
+        '<span class="stolen">✗ Credenciales capturadas en texto claro.\n  El atacante ya tiene tu usuario y contraseña.</span>';
+    }
+  }
+
+  $("proto").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-proto]"); if (!b) return;
+    proto = b.dataset.proto;
+    [].forEach.call(this.querySelectorAll("button"), function (x) { x.classList.toggle("active", x === b); });
+    $("capture").textContent = "Esperando tráfico…";
+  });
+  $("send").addEventListener("click", send);
+})();
+</script>
+
+<script id="nb-track">(function(){try{if(localStorage.getItem('nb-notrack'))return;}catch(_){}try{var q=new URLSearchParams(location.search),d=JSON.stringify({p:location.pathname,r:document.referrer,s:q.get('utm_source')||''});if(navigator.sendBeacon)navigator.sendBeacon('/api/track',d);else fetch('/api/track',{method:'POST',body:d,keepalive:true});}catch(_){}})();</script>
+</body></html>

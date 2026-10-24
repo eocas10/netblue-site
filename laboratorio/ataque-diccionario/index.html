@@ -1,0 +1,533 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Ataque de Diccionario | Laboratorio Netblue</title><meta name="description" content="Prueba una lista de contraseñas comunes contra una clave de práctica. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><link rel="canonical" href="https://netbluepr.com/laboratorio/ataque-diccionario/"><link rel="icon" type="image/png" href="/favicon.png"><meta property="og:title" content="Ataque de Diccionario | Laboratorio Netblue"><meta property="og:description" content="Prueba una lista de contraseñas comunes contra una clave de práctica. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><meta property="og:url" content="https://netbluepr.com/laboratorio/ataque-diccionario/"><meta property="og:image" content="https://netbluepr.com/og-image.png"><meta property="og:locale" content="es_PR"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Ataque de Diccionario</title>
+<style>
+  /* Layout: consola de seguridad de un solo panel — cabecera fija, zona de control arriba, registro de intentos desplazable debajo */
+  :root {
+    --bg: #f4f6f8;
+    --surface: #ffffff;
+    --surface-2: #eef1f5;
+    --border: #d4dae2;
+    --fg: #1a2330;
+    --fg-muted: #5b6878;
+    --accent: #0b6e99;        /* azul "terminal" sobrio */
+    --accent-soft: #d6ebf4;
+    --ok: #1a7f4b;
+    --ok-soft: #d6f0e1;
+    --warn: #b4690e;
+    --warn-soft: #f7e7cc;
+    --crit: #c0392b;
+    --crit-soft: #f7dcd8;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1620;
+      --surface: #161f2b;
+      --surface-2: #1d2835;
+      --border: #2b3a4a;
+      --fg: #e6edf4;
+      --fg-muted: #93a1b2;
+      --accent: #3fb6e0;
+      --accent-soft: #10303d;
+      --ok: #4ecb8a;
+      --ok-soft: #10311f;
+      --warn: #e0a84a;
+      --warn-soft: #3a2c12;
+      --crit: #f07567;
+      --crit-soft: #3a1b17;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1620;
+    --surface: #161f2b;
+    --surface-2: #1d2835;
+    --border: #2b3a4a;
+    --fg: #e6edf4;
+    --fg-muted: #93a1b2;
+    --accent: #3fb6e0;
+    --accent-soft: #10303d;
+    --ok: #4ecb8a;
+    --ok-soft: #10311f;
+    --warn: #e0a84a;
+    --warn-soft: #3a2c12;
+    --crit: #f07567;
+    --crit-soft: #3a1b17;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--sans);
+    line-height: 1.5;
+  }
+  .wrap {
+    max-width: 920px;
+    margin: 0 auto;
+    padding-inline: 16px;
+    padding-block: 28px 48px;
+  }
+
+  header.page { margin-bottom: 24px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 6px;
+  }
+  h1 {
+    font-size: clamp(28px, 6vw, 40px);
+    line-height: 1.05;
+    margin: 0 0 10px;
+    text-wrap: balance;
+    letter-spacing: -0.02em;
+  }
+  header.page p {
+    margin: 0;
+    max-width: 62ch;
+    color: var(--fg-muted);
+    font-size: 15px;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-top: 18px;
+  }
+  .panel h2 {
+    font-size: 13px;
+    font-family: var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    margin: 0 0 14px;
+    font-weight: 600;
+  }
+
+  label.field { display: block; margin-bottom: 14px; }
+  label.field .lab {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  label.field .hint {
+    font-weight: 400;
+    color: var(--fg-muted);
+    font-size: 12px;
+  }
+  input[type="text"] {
+    width: 100%;
+    font-family: var(--mono);
+    font-size: 16px;
+    padding: 11px 13px;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--fg);
+  }
+  input[type="text"]:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .chip {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--fg);
+    cursor: pointer;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 4px; }
+  button.go, button.ghost {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 600;
+    padding: 11px 20px;
+    border-radius: 9px;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+  button.go { background: var(--accent); color: #fff; }
+  button.go:hover { filter: brightness(1.08); }
+  button.go:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.ghost { background: transparent; color: var(--fg); border-color: var(--border); }
+  button.ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  .speed { display: flex; align-items: center; gap: 8px; margin-left: auto; font-size: 13px; color: var(--fg-muted); }
+  .speed input { accent-color: var(--accent); }
+
+  /* Barra de estado / estadísticas */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .stat {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+  }
+  .stat .k { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); font-family: var(--mono); }
+  .stat .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 3px; }
+
+  .progress-track {
+    height: 8px;
+    background: var(--surface-2);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 16px;
+    border: 1px solid var(--border);
+  }
+  .progress-bar { height: 100%; width: 0%; background: var(--accent); transition: width 0.06s linear; }
+
+  /* Veredicto */
+  .verdict {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 15px;
+    display: none;
+    border: 1px solid transparent;
+  }
+  .verdict.show { display: block; }
+  .verdict strong { font-family: var(--mono); }
+  .verdict.crit { background: var(--crit-soft); border-color: var(--crit); color: var(--fg); }
+  .verdict.ok { background: var(--ok-soft); border-color: var(--ok); color: var(--fg); }
+
+  /* Registro de intentos */
+  .log-wrap { margin-top: 2px; }
+  .log {
+    font-family: var(--mono);
+    font-size: 13px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    height: 230px;
+    overflow-y: auto;
+    padding: 10px 12px;
+  }
+  .log-line { display: flex; gap: 10px; padding: 2px 0; white-space: nowrap; }
+  .log-line .n { color: var(--fg-muted); min-width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
+  .log-line .w { color: var(--fg); min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .log-line .r { margin-left: auto; }
+  .log-line.hit .w { color: var(--crit); font-weight: 700; }
+  .log-line.hit .r { color: var(--crit); }
+  .log-line .miss { color: var(--fg-muted); }
+
+  /* Sección educativa */
+  .edu { margin-top: 32px; }
+  .edu h2 { font-size: 20px; margin: 0 0 14px; letter-spacing: -0.01em; }
+  .defense-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .def {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    min-width: 0;
+  }
+  .def h3 { font-size: 15px; margin: 0 0 6px; display: flex; align-items: center; gap: 8px; }
+  .def h3 .tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 5px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    letter-spacing: 0.04em;
+  }
+  .def p { margin: 0; font-size: 13.5px; color: var(--fg-muted); }
+
+  .note {
+    margin-top: 22px;
+    font-size: 12.5px;
+    color: var(--fg-muted);
+    border-left: 3px solid var(--border);
+    padding: 4px 0 4px 14px;
+  }
+
+  @media (max-width: 560px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .defense-grid { grid-template-columns: 1fr; }
+    .speed { margin-left: 0; width: 100%; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="page">
+    <p class="eyebrow">Laboratorio de concientización · Netblue</p>
+    <h1>Ataque de Diccionario</h1>
+    <p>Un ataque de diccionario prueba, una por una, una lista de contraseñas conocidas hasta dar con la correcta. Escribe una contraseña de práctica abajo y observa cuántos intentos aguanta. Todo corre en tu navegador: no se envía ni guarda nada.</p>
+  </header>
+
+  <section class="panel" aria-label="Controles de la simulación">
+    <h2>Contraseña objetivo (de práctica)</h2>
+    <label class="field">
+      <span class="lab">Define la contraseña a atacar <span class="hint">— úsala solo como ejemplo, nunca una real</span></span>
+      <input type="text" id="target" autocomplete="off" autocapitalize="off" spellcheck="false" value="Verano2024" />
+    </label>
+    <div class="presets" id="presets" aria-label="Ejemplos rápidos"></div>
+
+    <div class="controls" style="margin-top:16px;">
+      <button class="go" id="run">Lanzar ataque</button>
+      <button class="ghost" id="reset">Reiniciar</button>
+      <label class="speed">
+        Velocidad
+        <input type="range" id="speed" min="1" max="100" value="60" />
+      </label>
+    </div>
+
+    <div class="stats" aria-live="polite">
+      <div class="stat"><div class="k">Intentos</div><div class="v" id="s-tries">0</div></div>
+      <div class="stat"><div class="k">Diccionario</div><div class="v" id="s-size">0</div></div>
+      <div class="stat"><div class="k">Progreso</div><div class="v" id="s-pct">0%</div></div>
+      <div class="stat"><div class="k">Tiempo real*</div><div class="v" id="s-time">—</div></div>
+    </div>
+
+    <div class="progress-track"><div class="progress-bar" id="bar"></div></div>
+
+    <div class="verdict" id="verdict"></div>
+  </section>
+
+  <section class="panel log-wrap" aria-label="Registro de intentos">
+    <h2>Registro de intentos</h2>
+    <div class="log" id="log"></div>
+  </section>
+
+  <section class="edu">
+    <h2>Cómo defenderse</h2>
+    <div class="defense-grid">
+      <div class="def">
+        <h3>Frases de paso largas <span class="tag">clave</span></h3>
+        <p>Cada carácter extra multiplica el espacio de búsqueda. Una frase de 4 palabras no comunes (ej. "ancla-reloj-musgo-faro") vence a cualquier diccionario práctico.</p>
+      </div>
+      <div class="def">
+        <h3>MFA <span class="tag">capa 2</span></h3>
+        <p>Aunque adivinen la contraseña, un segundo factor (app autenticadora, llave FIDO2) detiene el acceso. Es la mitigación más rentable.</p>
+      </div>
+      <div class="def">
+        <h3>Rate limiting y bloqueo <span class="tag">servidor</span></h3>
+        <p>Limitar intentos y bloquear tras N fallos convierte miles de pruebas por segundo en un puñado por hora, haciendo inviable el ataque online.</p>
+      </div>
+      <div class="def">
+        <h3>Hashing lento + salt <span class="tag">servidor</span></h3>
+        <p>Guardar contraseñas con bcrypt/argon2 y un salt único por usuario encarece cada intento offline y anula las tablas precalculadas.</p>
+      </div>
+    </div>
+    <p class="note">*El "tiempo real" es una estimación ilustrativa que asume ~1,000 M de intentos/seg (un ataque offline contra un hash débil como MD5 sin salt). Un login online bien configurado sería órdenes de magnitud más lento. Herramienta de concientización, no de intrusión.</p>
+
+  <nav class="lab-nav" aria-label="Otros simuladores del laboratorio">
+    <style>
+      .lab-nav{margin-top:34px;padding-top:22px;border-top:1px solid #D5DEE9}
+      .lab-nav .nav-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+      .lab-nav .nav-top a.portal{font-family:'Archivo','Segoe UI',sans-serif;font-size:14px;font-weight:700;text-decoration:none;color:#fff;background:#1657C7;padding:9px 16px;border-radius:6px}
+      .lab-nav .nav-top a.portal:hover{background:#0F2742}
+      .lab-nav .nav-top .lbl{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#44566C}
+      .lab-nav .chips{display:flex;flex-wrap:wrap;gap:8px}
+      .lab-nav .chips a{font-size:12.5px;text-decoration:none;color:#0F2742;background:#E8EEF6;border:1px solid #C3CFDD;padding:6px 11px;border-radius:999px}
+      .lab-nav .chips a:hover{border-color:#1657C7;color:#1657C7}
+    </style>
+    <div class="nav-top">
+      <a class="portal" href="/laboratorio/">⬡ Portal del laboratorio</a>
+      <span class="lbl">Otros simuladores</span>
+    </div>
+    <div class="chips">
+      <a href="/laboratorio/detecta-el-phishing/">Phishing</a>
+      <a href="/laboratorio/spear-phishing-bec/">Spear Phishing / BEC</a>
+      <a href="/laboratorio/smishing-vishing/">Smishing / Vishing</a>
+      <a href="/laboratorio/ataque-diccionario/">Diccionario</a>
+      <a href="/laboratorio/fuerza-bruta-calculadora/">Fuerza Bruta</a>
+      <a href="/laboratorio/credential-stuffing/">Credential Stuffing</a>
+      <a href="/laboratorio/rainbow-tables-salt/">Rainbow Tables</a>
+      <a href="/laboratorio/sql-injection/">SQL Injection</a>
+      <a href="/laboratorio/cross-site-scripting/">XSS</a>
+      <a href="/laboratorio/man-in-the-middle/">Man-in-the-Middle</a>
+      <a href="/laboratorio/dos-ddos/">DoS / DDoS</a>
+      <a href="/laboratorio/ransomware/">Ransomware</a>
+      <a href="/laboratorio/keylogger-troyanos/">Keylogger</a>
+    </div>
+  </nav>
+  </section>
+</div>
+
+<script>
+(function () {
+  // --- Diccionario de concientización: contraseñas más comunes + patrones típicos ---
+  var base = [
+    "123456","password","123456789","12345678","12345","qwerty","1234567","111111",
+    "123123","abc123","1234567890","password1","qwerty123","000000","iloveyou",
+    "admin","welcome","monkey","dragon","letmein","football","princess","sunshine",
+    "master","hello","freedom","whatever","superman","trustno1","000000","contraseña",
+    "hola","usuario","administrador","tequiero","mexico","barcelona","realmadrid",
+    "123qwe","qazwsx","passw0rd","Password1","Welcome1","P@ssw0rd","changeme",
+    "secret","root","toor","login","test","guest"
+  ];
+  // patrones estacionales/años que generan variantes muy usadas
+  var seasons = ["Verano","Invierno","Primavera","Otoño","Enero","Marzo"];
+  var years = ["2021","2022","2023","2024","2025","123","!","1","01"];
+  var dict = base.slice();
+  seasons.forEach(function (s) {
+    years.forEach(function (y) { dict.push(s + y); });
+  });
+  // dedupe
+  dict = dict.filter(function (v, i) { return dict.indexOf(v) === i; });
+
+  var presetList = ["Verano2024", "password1", "Netblue2025", "ancla-reloj-musgo-faro", "P@ssw0rd"];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var targetEl = $("target"), logEl = $("log"), barEl = $("bar"), verdictEl = $("verdict");
+  var sTries = $("s-tries"), sSize = $("s-size"), sPct = $("s-pct"), sTime = $("s-time");
+  var runBtn = $("run"), resetBtn = $("reset"), speedEl = $("speed");
+
+  var running = false, timer = null;
+
+  sSize.textContent = dict.length.toLocaleString("es");
+
+  // chips de ejemplo
+  var presetsEl = $("presets");
+  presetList.forEach(function (p) {
+    var b = document.createElement("button");
+    b.className = "chip";
+    b.type = "button";
+    b.textContent = p;
+    b.addEventListener("click", function () { if (!running) { targetEl.value = p; reset(); } });
+    presetsEl.appendChild(b);
+  });
+
+  function fmtTime(sec) {
+    if (sec < 1e-6) return "< 1 µs";
+    if (sec < 1e-3) return (sec * 1e6).toFixed(1) + " µs";
+    if (sec < 1) return (sec * 1e3).toFixed(1) + " ms";
+    if (sec < 60) return sec.toFixed(2) + " s";
+    if (sec < 3600) return (sec / 60).toFixed(1) + " min";
+    if (sec < 86400) return (sec / 3600).toFixed(1) + " h";
+    if (sec < 3.15e7) return (sec / 86400).toFixed(1) + " días";
+    return (sec / 3.15e7).toFixed(1) + " años";
+  }
+
+  // Estima combinaciones por fuerza bruta si NO está en el diccionario
+  function bruteForceSeconds(pw) {
+    var pool = 0;
+    if (/[a-z]/.test(pw)) pool += 26;
+    if (/[A-Z]/.test(pw)) pool += 26;
+    if (/[0-9]/.test(pw)) pool += 10;
+    if (/[^a-zA-Z0-9]/.test(pw)) pool += 33;
+    if (pool === 0) pool = 1;
+    // combinaciones ~ pool^len ; mitad en promedio
+    var combos = Math.pow(pool, pw.length) / 2;
+    return combos / 1e9; // 1,000 M intentos/seg
+  }
+
+  function reset() {
+    if (timer) { clearInterval(timer); timer = null; }
+    running = false;
+    logEl.innerHTML = "";
+    barEl.style.width = "0%";
+    sTries.textContent = "0";
+    sPct.textContent = "0%";
+    sTime.textContent = "—";
+    verdictEl.className = "verdict";
+    verdictEl.innerHTML = "";
+    runBtn.disabled = false;
+    runBtn.textContent = "Lanzar ataque";
+  }
+
+  function addLine(i, word, hit) {
+    var line = document.createElement("div");
+    line.className = "log-line" + (hit ? " hit" : "");
+    var safe = word.replace(/[<>&]/g, function (c) { return ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c]; });
+    line.innerHTML = '<span class="n">#' + i + '</span><span class="w">' + safe + '</span>' +
+      '<span class="r">' + (hit ? '✓ MATCH' : '<span class="miss">×</span>') + '</span>';
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function finishFound(i, pw) {
+    running = false;
+    runBtn.disabled = false;
+    runBtn.textContent = "Lanzar ataque";
+    var secs = i / 1e9;
+    sTime.textContent = fmtTime(secs);
+    verdictEl.className = "verdict crit show";
+    verdictEl.innerHTML = "Contraseña <strong>comprometida</strong> en el intento <strong>#" + i +
+      "</strong>. Estaba en el diccionario: cae casi al instante en un ataque offline. Elige una frase de paso larga y única.";
+  }
+
+  function finishNotFound(pw) {
+    running = false;
+    runBtn.disabled = false;
+    runBtn.textContent = "Lanzar ataque";
+    var secs = bruteForceSeconds(pw);
+    sTime.textContent = fmtTime(secs);
+    var resistant = secs > 3.15e7 * 100; // > ~100 años
+    verdictEl.className = "verdict ok show";
+    verdictEl.innerHTML = "No está en este diccionario. Un atacante tendría que pasar a <strong>fuerza bruta</strong>: ~" +
+      fmtTime(secs) + " estimados a 1,000 M intentos/seg. " +
+      (resistant ? "Excelente resistencia." : "Añade longitud y caracteres variados para subir mucho más esa cifra.");
+  }
+
+  function run() {
+    var pw = targetEl.value;
+    if (!pw) { targetEl.focus(); return; }
+    reset();
+    running = true;
+    runBtn.disabled = true;
+    runBtn.textContent = "Atacando…";
+
+    var i = 0;
+    var total = dict.length;
+
+    function tick() {
+      if (!running) return;
+      // nº de pruebas por frame según velocidad
+      var batch = Math.max(1, Math.round(Number(speedEl.value) / 12));
+      for (var b = 0; b < batch; b++) {
+        if (i >= total) {
+          clearInterval(timer); timer = null;
+          barEl.style.width = "100%";
+          sPct.textContent = "100%";
+          finishNotFound(pw);
+          return;
+        }
+        var word = dict[i];
+        i++;
+        var hit = (word === pw);
+        // registra solo una muestra para no saturar, pero siempre el match y los últimos
+        if (hit || i % 1 === 0) addLine(i, word, hit);
+        sTries.textContent = i.toLocaleString("es");
+        var pct = (i / total) * 100;
+        barEl.style.width = pct.toFixed(1) + "%";
+        sPct.textContent = Math.round(pct) + "%";
+        if (hit) {
+          clearInterval(timer); timer = null;
+          finishFound(i, pw);
+          return;
+        }
+      }
+    }
+    timer = setInterval(tick, 30);
+  }
+
+  runBtn.addEventListener("click", run);
+  resetBtn.addEventListener("click", reset);
+  targetEl.addEventListener("keydown", function (e) { if (e.key === "Enter") run(); });
+})();
+</script>
+
+<script id="nb-track">(function(){try{if(localStorage.getItem('nb-notrack'))return;}catch(_){}try{var q=new URLSearchParams(location.search),d=JSON.stringify({p:location.pathname,r:document.referrer,s:q.get('utm_source')||''});if(navigator.sendBeacon)navigator.sendBeacon('/api/track',d);else fetch('/api/track',{method:'POST',body:d,keepalive:true});}catch(_){}})();</script>
+</body></html>

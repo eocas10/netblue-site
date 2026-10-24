@@ -1,0 +1,232 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Keylogger y Troyanos | Laboratorio Netblue</title><meta name="description" content="Captura de pulsaciones en vivo hasta que activas el EDR. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><link rel="canonical" href="https://netbluepr.com/laboratorio/keylogger-troyanos/"><link rel="icon" type="image/png" href="/favicon.png"><meta property="og:title" content="Keylogger y Troyanos | Laboratorio Netblue"><meta property="og:description" content="Captura de pulsaciones en vivo hasta que activas el EDR. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><meta property="og:url" content="https://netbluepr.com/laboratorio/keylogger-troyanos/"><meta property="og:image" content="https://netbluepr.com/og-image.png"><meta property="og:locale" content="es_PR"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Keylogger y Troyanos</title>
+<style>
+  /* Layout: ventana de login de la víctima a la izquierda, panel del atacante que captura pulsaciones a la derecha; EDR lo detiene */
+  :root {
+    --bg: #f4f6f8; --surface: #ffffff; --surface-2: #eef1f5; --border: #d4dae2;
+    --fg: #1a2330; --fg-muted: #5b6878; --accent: #0b6e99; --accent-soft: #d6ebf4;
+    --ok: #1a7f4b; --ok-soft: #d6f0e1; --warn: #b4690e; --warn-soft: #f7e7cc;
+    --crit: #c0392b; --crit-soft: #f7dcd8;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1620; --surface: #161f2b; --surface-2: #1d2835; --border: #2b3a4a;
+      --fg: #e6edf4; --fg-muted: #93a1b2; --accent: #3fb6e0; --accent-soft: #10303d;
+      --ok: #4ecb8a; --ok-soft: #10311f; --warn: #e0a84a; --warn-soft: #3a2c12;
+      --crit: #f07567; --crit-soft: #3a1b17; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1620; --surface: #161f2b; --surface-2: #1d2835; --border: #2b3a4a;
+    --fg: #e6edf4; --fg-muted: #93a1b2; --accent: #3fb6e0; --accent-soft: #10303d;
+    --ok: #4ecb8a; --ok-soft: #10311f; --warn: #e0a84a; --warn-soft: #3a2c12;
+    --crit: #f07567; --crit-soft: #3a1b17; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--sans); line-height: 1.5; }
+  .wrap { max-width: 860px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 48px; }
+  header.page { margin-bottom: 20px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
+  h1 { font-size: clamp(28px, 6vw, 38px); line-height: 1.05; margin: 0 0 10px; text-wrap: balance; letter-spacing: -0.02em; }
+  header.page p { margin: 0; max-width: 64ch; color: var(--fg-muted); font-size: 15px; }
+
+  .edr-row { display: flex; align-items: center; gap: 12px; margin-top: 18px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+  .edr-row .txt { font-size: 14px; font-weight: 700; }
+  .edr-row .txt small { display: block; font-weight: 400; color: var(--fg-muted); font-size: 12px; }
+  .toggle { position: relative; width: 46px; height: 26px; flex-shrink: 0; margin-left: auto; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle .track { position: absolute; inset: 0; background: var(--border); border-radius: 999px; transition: background 0.15s; }
+  .toggle .track::before { content: ""; position: absolute; width: 20px; height: 20px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.15s; }
+  .toggle input:checked + .track { background: var(--ok); }
+  .toggle input:checked + .track::before { transform: translateX(20px); }
+
+  .stage { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; align-items: start; }
+
+  .window { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; min-width: 0; }
+  .win-bar { display: flex; align-items: center; gap: 6px; padding: 9px 12px; background: var(--surface-2); border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 700; color: var(--fg-muted); }
+  .win-bar .dots { display: flex; gap: 5px; }
+  .win-bar .dots i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .win-body { padding: 16px; }
+
+  .victim label { font-size: 12px; font-weight: 600; margin-bottom: 4px; display: block; }
+  .victim input { width: 100%; font-family: var(--mono); font-size: 14px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); color: var(--fg); margin-bottom: 12px; }
+  .victim input:focus-visible { outline: none; border-color: var(--accent); }
+  .victim .hint { font-size: 12px; color: var(--fg-muted); }
+
+  .attacker .win-bar { background: #2a1414; color: #ff8a7d; }
+  .attacker .win-bar .dots i { background: var(--crit); }
+  .caplog { font-family: var(--mono); font-size: 13px; background: var(--surface-2); border-radius: 8px; padding: 12px; min-height: 150px; white-space: pre-wrap; word-break: break-all; }
+  .caplog .line { margin-bottom: 4px; }
+  .caplog .key { color: var(--crit); }
+  .caplog .field { color: var(--fg-muted); }
+  .exfil { margin-top: 10px; font-size: 12px; font-family: var(--mono); color: var(--crit); }
+
+  .blocked { text-align: center; padding: 24px 12px; }
+  .blocked .shield { font-size: 42px; }
+  .blocked h3 { margin: 8px 0 4px; font-size: 16px; color: var(--ok); }
+  .blocked p { margin: 0; font-size: 13px; color: var(--fg-muted); }
+  .quarantine { margin-top: 12px; font-family: var(--mono); font-size: 12px; background: var(--ok-soft); border: 1px solid var(--ok); border-radius: 8px; padding: 10px; color: var(--ok); }
+
+  .edu { margin-top: 32px; }
+  .edu h2 { font-size: 20px; margin: 0 0 14px; letter-spacing: -0.01em; }
+  .types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
+  .type { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; min-width: 0; }
+  .type h3 { margin: 0 0 5px; font-size: 14px; }
+  .type p { margin: 0; font-size: 12.5px; color: var(--fg-muted); }
+  .defense-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .def { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; min-width: 0; }
+  .def h3 { font-size: 15px; margin: 0 0 6px; }
+  .def p { margin: 0; font-size: 13.5px; color: var(--fg-muted); }
+  .note { margin-top: 20px; font-size: 12.5px; color: var(--fg-muted); border-left: 3px solid var(--border); padding: 4px 0 4px 14px; }
+
+  @media (max-width: 640px) { .stage { grid-template-columns: 1fr; } .types { grid-template-columns: 1fr; } .defense-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="wrap">
+  <header class="page">
+    <p class="eyebrow">Laboratorio de concientización · Netblue</p>
+    <h1>Keylogger y Troyanos</h1>
+    <p>Un troyano se disfraza de programa legítimo y, una vez dentro, instala un <strong>keylogger</strong> que registra cada tecla que pulsas — contraseñas incluidas — y la envía al atacante. Escribe en el login de la izquierda y observa qué captura el atacante a la derecha. Luego activa el <strong>EDR</strong> y míralo detenerlo.</p>
+  </header>
+
+  <div class="edr-row">
+    <div class="txt">Protección EDR / antivirus <small>Detección y respuesta en el endpoint</small></div>
+    <label class="toggle"><input type="checkbox" id="edr" /><span class="track"></span></label>
+  </div>
+
+  <div class="stage">
+    <div class="window victim">
+      <div class="win-bar"><span class="dots"><i style="background:#e35"></i><i style="background:#eb5"></i><i style="background:#5c6"></i></span> Portal de la empresa — Login</div>
+      <div class="win-body">
+        <label for="u">Usuario</label>
+        <input id="u" type="text" placeholder="escribe aquí…" autocomplete="off" spellcheck="false" />
+        <label for="p">Contraseña</label>
+        <input id="p" type="text" placeholder="escribe aquí…" autocomplete="off" spellcheck="false" />
+        <p class="hint">Escribe algo en los campos para ver el ataque en acción.</p>
+      </div>
+    </div>
+
+    <div class="window attacker">
+      <div class="win-bar"><span class="dots"><i></i><i></i><i></i></span> 🕵️ keylogger.exe — capturas</div>
+      <div class="win-body">
+        <div id="attacker-content">
+          <div class="caplog" id="caplog"><span style="color:var(--fg-muted)">Esperando pulsaciones de teclado…</span></div>
+          <div class="exfil" id="exfil"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="edu">
+    <h2>Tipos de malware relacionados</h2>
+    <div class="types">
+      <div class="type"><h3>Keylogger</h3><p>Registra todo lo que tecleas: usuarios, contraseñas, tarjetas, mensajes.</p></div>
+      <div class="type"><h3>Troyano (RAT)</h3><p>Da al atacante control remoto del equipo: archivos, cámara, micrófono.</p></div>
+      <div class="type"><h3>Infostealer</h3><p>Roba cookies de sesión, contraseñas guardadas y billeteras del navegador.</p></div>
+    </div>
+    <h2>Cómo defenderse</h2>
+    <div class="defense-grid">
+      <div class="def"><h3>EDR / antivirus actualizado</h3><p>Detecta comportamientos maliciosos (capturar teclado, exfiltrar datos) y aísla el proceso.</p></div>
+      <div class="def"><h3>Descarga solo de fuentes oficiales</h3><p>Los troyanos se esconden en cracks, instaladores piratas y adjuntos. Usa tiendas y sitios oficiales.</p></div>
+      <div class="def"><h3>MFA</h3><p>Aunque roben tu contraseña con un keylogger, el segundo factor bloquea el acceso.</p></div>
+      <div class="def"><h3>Menos privilegios + parches</h3><p>No uses admin para el día a día y mantén el sistema actualizado para cerrar vías de entrada.</p></div>
+    </div>
+    <p class="note">Simulación didáctica. La captura ocurre solo dentro de esta página y nada sale de tu navegador; no se envía información a ningún lado.</p>
+
+  <nav class="lab-nav" aria-label="Otros simuladores del laboratorio">
+    <style>
+      .lab-nav{margin-top:34px;padding-top:22px;border-top:1px solid #D5DEE9}
+      .lab-nav .nav-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+      .lab-nav .nav-top a.portal{font-family:'Archivo','Segoe UI',sans-serif;font-size:14px;font-weight:700;text-decoration:none;color:#fff;background:#1657C7;padding:9px 16px;border-radius:6px}
+      .lab-nav .nav-top a.portal:hover{background:#0F2742}
+      .lab-nav .nav-top .lbl{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#44566C}
+      .lab-nav .chips{display:flex;flex-wrap:wrap;gap:8px}
+      .lab-nav .chips a{font-size:12.5px;text-decoration:none;color:#0F2742;background:#E8EEF6;border:1px solid #C3CFDD;padding:6px 11px;border-radius:999px}
+      .lab-nav .chips a:hover{border-color:#1657C7;color:#1657C7}
+    </style>
+    <div class="nav-top">
+      <a class="portal" href="/laboratorio/">⬡ Portal del laboratorio</a>
+      <span class="lbl">Otros simuladores</span>
+    </div>
+    <div class="chips">
+      <a href="/laboratorio/detecta-el-phishing/">Phishing</a>
+      <a href="/laboratorio/spear-phishing-bec/">Spear Phishing / BEC</a>
+      <a href="/laboratorio/smishing-vishing/">Smishing / Vishing</a>
+      <a href="/laboratorio/ataque-diccionario/">Diccionario</a>
+      <a href="/laboratorio/fuerza-bruta-calculadora/">Fuerza Bruta</a>
+      <a href="/laboratorio/credential-stuffing/">Credential Stuffing</a>
+      <a href="/laboratorio/rainbow-tables-salt/">Rainbow Tables</a>
+      <a href="/laboratorio/sql-injection/">SQL Injection</a>
+      <a href="/laboratorio/cross-site-scripting/">XSS</a>
+      <a href="/laboratorio/man-in-the-middle/">Man-in-the-Middle</a>
+      <a href="/laboratorio/dos-ddos/">DoS / DDoS</a>
+      <a href="/laboratorio/ransomware/">Ransomware</a>
+      <a href="/laboratorio/keylogger-troyanos/">Keylogger</a>
+    </div>
+  </nav>
+  </section>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var edrOn = false;
+  var captured = { u: "", p: "" };
+
+  function special(k) {
+    if (k === " ") return "[ESPACIO]";
+    if (k === "Enter") return "[ENTER]";
+    if (k === "Backspace") return "[BORRAR]";
+    if (k === "Tab") return "[TAB]";
+    if (k.length === 1) return k;
+    return "";
+  }
+
+  function renderBlocked() {
+    $("attacker-content").innerHTML =
+      '<div class="blocked">' +
+      '<div class="shield">🛡️</div>' +
+      '<h3>Amenaza bloqueada por EDR</h3>' +
+      '<p>El antivirus detectó que un proceso intentaba capturar el teclado.</p>' +
+      '<div class="quarantine">⚠ keylogger.exe → EN CUARENTENA\nProceso finalizado · Teclado protegido</div>' +
+      '</div>';
+  }
+
+  function renderCapture() {
+    $("attacker-content").innerHTML = '<div class="caplog" id="caplog"></div><div class="exfil" id="exfil"></div>';
+    var log = "";
+    if (captured.u) log += '<div class="line"><span class="field">[campo Usuario]</span> <span class="key">' + captured.u + '</span></div>';
+    if (captured.p) log += '<div class="line"><span class="field">[campo Contraseña]</span> <span class="key">' + captured.p + '</span></div>';
+    $("caplog").innerHTML = log || '<span style="color:var(--fg-muted)">Esperando pulsaciones de teclado…</span>';
+    if (captured.u || captured.p) {
+      $("exfil").textContent = "📤 Enviando a atacante.site cada 5 s…";
+    } else {
+      $("exfil").textContent = "";
+    }
+  }
+
+  function onType(field, value) {
+    captured[field] = value;
+    if (edrOn) { renderBlocked(); }
+    else { renderCapture(); }
+  }
+
+  // escapar para innerHTML
+  function esc(s) { return s.replace(/[<>&]/g, function (c) { return ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c]; }); }
+
+  $("u").addEventListener("input", function () { onType("u", esc(this.value)); });
+  $("p").addEventListener("input", function () { onType("p", esc(this.value)); });
+
+  $("edr").addEventListener("change", function () {
+    edrOn = this.checked;
+    if (edrOn) renderBlocked(); else renderCapture();
+  });
+
+  renderCapture();
+})();
+</script>
+
+<script id="nb-track">(function(){try{if(localStorage.getItem('nb-notrack'))return;}catch(_){}try{var q=new URLSearchParams(location.search),d=JSON.stringify({p:location.pathname,r:document.referrer,s:q.get('utm_source')||''});if(navigator.sendBeacon)navigator.sendBeacon('/api/track',d);else fetch('/api/track',{method:'POST',body:d,keepalive:true});}catch(_){}})();</script>
+</body></html>

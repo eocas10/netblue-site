@@ -1,0 +1,431 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Ataque de Password Spraying | Laboratorio Netblue</title><meta name="description" content="Probar una contraseña común contra muchas cuentas para evadir bloqueos. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><link rel="canonical" href="https://netbluepr.com/laboratorio/password-spraying/"><link rel="icon" type="image/png" href="/favicon.png"><meta property="og:title" content="Ataque de Password Spraying | Laboratorio Netblue"><meta property="og:description" content="Probar una contraseña común contra muchas cuentas para evadir bloqueos. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><meta property="og:url" content="https://netbluepr.com/laboratorio/password-spraying/"><meta property="og:image" content="https://netbluepr.com/og-image.png"><meta property="og:locale" content="es_PR"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Ataque de Password Spraying</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single player frame (diagram + side panel that changes per step, controls below), then a static step list. */
+:root{
+  --bg:#EDF0F4; --surface:#FFFFFF; --sunken:#E3E8EF; --ink:#101B2D; --muted:#55657C; --line:#C9D2DE;
+  --legit:#0B6FB8; --threat:#C8323A; --safe:#0F8A5F; --relay:#B26A00;
+  --threat-soft:#FBE9EA; --safe-soft:#E3F4EC; --on-color:#FFFFFF;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Barlow","Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0A1426; --surface:#14233D; --sunken:#0E1B31; --ink:#E8EEF7; --muted:#8CA0BD; --line:#2C4064;
+  --legit:#38BDF8; --threat:#F2555A; --safe:#34D399; --relay:#FBBF24;
+  --threat-soft:#2A121C; --safe-soft:#0E2A26; --on-color:#0A1426; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0A1426; --surface:#14233D; --sunken:#0E1B31; --ink:#E8EEF7; --muted:#8CA0BD; --line:#2C4064;
+  --legit:#38BDF8; --threat:#F2555A; --safe:#34D399; --relay:#FBBF24;
+  --threat-soft:#2A121C; --safe-soft:#0E2A26; --on-color:#0A1426; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;padding-inline:16px;padding-block:28px 48px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.eyebrow{font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0}
+h1,h2,h3,p,ol,ul{margin:0}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(34px,6vw,54px);line-height:1;text-transform:uppercase;letter-spacing:.01em;text-wrap:balance}
+.lede{color:var(--muted);max-width:62ch;font-size:17px}
+header{display:flex;flex-direction:column;gap:10px}
+
+.player{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.main{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+.stage{display:flex;flex-direction:column;gap:10px;padding:18px 18px 14px;min-width:0}
+.stephead{display:flex;flex-direction:column;gap:2px}
+.stephead .n{font-family:var(--display);font-weight:600;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--legit)}
+.stephead h2{font-family:var(--display);font-weight:700;font-size:clamp(24px,3.4vw,32px);line-height:1.1;text-transform:uppercase;letter-spacing:.01em}
+canvas{display:block;width:100%;background:var(--sunken);border-radius:10px}
+.caption{min-height:3em;font-size:16.5px;font-weight:500;max-width:60ch}
+
+.side{border-left:1px solid var(--line);padding:18px;min-width:0;display:flex;flex-direction:column}
+.panel{display:flex;flex-direction:column;gap:10px}
+.panel[hidden]{display:none}
+.panel h3{font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.rv{opacity:0;transform:translateY(6px);transition:opacity .35s,transform .35s}
+.rv.on{opacity:1;transform:none}
+.note{color:var(--muted);font-size:15px}
+
+.hop{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--sunken);border-radius:8px;font-weight:500}
+.hop b{font-family:var(--display);font-size:18px;color:var(--legit);width:1.2em}
+
+.net{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--sunken);border-radius:8px;border:2px solid transparent;flex-wrap:wrap}
+.net .ssid{font-family:var(--mono);font-size:13.5px;min-width:0;overflow-wrap:anywhere;flex:1 1 auto}
+.net:has(.conn.on){border-color:var(--threat);background:var(--threat-soft)}
+.bars{display:inline-flex;align-items:flex-end;gap:2px;height:16px}
+.bars i{width:4px;background:var(--line);border-radius:1px}
+.bars i:nth-child(1){height:5px}.bars i:nth-child(2){height:8px}.bars i:nth-child(3){height:12px}.bars i:nth-child(4){height:16px}
+.bars.s2 i:nth-child(-n+2){background:var(--legit)}
+.bars.s4 i{background:var(--threat)}
+.tag{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.1em;padding:1px 8px;border-radius:99px;background:var(--threat);color:var(--on-color)}
+.conn{font-size:13px;font-weight:600;color:var(--threat);flex-basis:100%}
+
+.cap{background:var(--threat-soft);border:1px solid var(--threat);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.cap div{font-family:var(--mono);font-size:13px;overflow-wrap:anywhere}
+.cap div span{color:var(--muted)}
+
+.can{padding:10px 12px;background:var(--sunken);border-radius:8px}
+.can strong{font-family:var(--display);font-size:20px;text-transform:uppercase;letter-spacing:.03em;display:block;line-height:1.2}
+.can.a strong{color:var(--legit)}.can.b strong{color:var(--relay)}.can.c strong{color:var(--threat)}
+.can span{font-size:15px;color:var(--muted)}
+
+.checks{list-style:none;padding:0;display:flex;flex-direction:column;gap:7px}
+.checks li{display:flex;gap:9px;align-items:flex-start;font-size:15px;font-weight:500;line-height:1.35}
+.checks li{position:relative}
+.checks li::before{content:"";flex:none;width:16px;height:16px;margin-top:2px;border-radius:50%;background:var(--safe)}
+.checks li::after{content:"";position:absolute;left:5px;top:5px;width:5px;height:8px;border:solid var(--on-color);border-width:0 2px 2px 0;transform:rotate(45deg) scale(.8)}
+.vpn{background:var(--safe-soft);border:1px solid var(--safe);border-radius:10px;padding:10px 12px;font-size:14px}
+.vpn code{font-family:var(--mono);color:var(--threat);font-size:13px}
+
+.controls{border-top:1px solid var(--line);padding:12px 18px;display:flex;flex-direction:column;gap:10px}
+.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--legit);outline-offset:2px}
+#play{background:var(--ink);color:var(--bg);border:0;border-radius:8px;padding:7px 16px;font-weight:600;min-width:108px}
+#seek{flex:1 1 180px;min-width:0;accent-color:var(--legit)}
+.time{font-family:var(--mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{background:transparent;border:1px solid var(--line);border-radius:99px;padding:3px 12px;font-size:14px;color:var(--muted)}
+.chips button[aria-current="true"]{background:var(--legit);border-color:var(--legit);color:var(--on-color);font-weight:600}
+
+.summary h2{font-family:var(--display);font-weight:700;font-size:26px;text-transform:uppercase;letter-spacing:.01em;margin-bottom:12px}
+.summary ol{padding-left:1.3em;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px 40px}
+.summary li{padding-left:4px}
+.summary li::marker{font-family:var(--display);font-weight:700;color:var(--legit);font-size:18px}
+.summary li strong{display:block}
+.summary li span{color:var(--muted);font-size:15.5px}
+
+@media (max-width:820px){
+  .main{grid-template-columns:minmax(0,1fr)}
+  .side{border-left:0;border-top:1px solid var(--line);min-height:250px}
+  .stage{padding:14px 14px 10px}.side,.controls{padding-inline:14px}
+}
+@media (prefers-reduced-motion:reduce){.rv{transition:none}}
+
+.kv{display:flex;gap:10px;padding:8px 12px;background:var(--sunken);border-radius:8px;font-size:15px;align-items:baseline}
+.kv span{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);flex:0 0 5.2em}
+.kv b{font-weight:500;min-width:0;overflow-wrap:anywhere}
+.idcard{border:1px dashed var(--legit);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.idcard strong{font-family:var(--display);font-size:22px;text-transform:uppercase;letter-spacing:.03em;color:var(--legit);line-height:1.15}
+.idcard span{font-size:14px;color:var(--muted)}
+.bubble{align-self:flex-start;max-width:92%;background:var(--sunken);border-radius:4px 14px 14px 14px;padding:8px 12px;font-size:15px}
+.bubble.ask{background:var(--threat-soft);border:1px solid var(--threat);font-weight:600}
+.lever{padding:8px 12px;background:var(--sunken);border-radius:8px}
+.lever strong{font-family:var(--display);font-size:18px;text-transform:uppercase;letter-spacing:.04em;color:var(--relay);margin-right:8px}
+.lever span{font-size:15px;color:var(--muted)}
+
+.mail{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.mail div{display:flex;gap:10px;padding:8px 12px;font-size:14.5px;border-bottom:1px solid var(--line);align-items:baseline}
+.mail div:last-child{border-bottom:0;background:var(--threat-soft)}
+.mail span{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);flex:0 0 4.6em}
+.mail b{font-weight:500;min-width:0;overflow-wrap:anywhere}
+.mail code{font-family:var(--mono);font-size:13px;color:var(--threat)}
+.ransom{background:var(--threat-soft);border:1px solid var(--threat);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.ransom strong{font-family:var(--display);font-size:21px;text-transform:uppercase;letter-spacing:.03em;color:var(--threat);line-height:1.15}
+.ransom code{font-family:var(--mono);font-size:13px;overflow-wrap:anywhere}
+.ransom .cd{font-family:var(--mono);font-size:20px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--threat)}
+.ransom small{font-size:13px;color:var(--muted)}
+
+.count{font-family:var(--mono);font-size:26px;font-weight:500;font-variant-numeric:tabular-nums;line-height:1.1}
+.count small{display:block;font-family:var(--body);font-size:13px;color:var(--muted);font-weight:400}
+.cap .hit{color:var(--threat);font-weight:500}
+
+.cap b{font-weight:400}
+.cap b.hit{color:var(--threat);font-weight:500}
+
+/* Barra de navegación del laboratorio (identidad Netblue) */
+.lab-nav{margin-top:8px;padding-top:22px;border-top:1px solid #D5DEE9}
+.lab-nav .nav-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.lab-nav .nav-top a.portal{font-family:"Barlow Condensed",sans-serif;font-size:15px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;text-decoration:none;color:#fff;background:#1657C7;padding:9px 16px;border-radius:6px}
+.lab-nav .nav-top a.portal:hover{background:#0F2742}
+.lab-nav .nav-top .lbl{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#44566C}
+.lab-nav .chips2{display:flex;flex-wrap:wrap;gap:8px}
+.lab-nav .chips2 a{font-size:13px;text-decoration:none;color:#0F2742;background:#E8EEF6;border:1px solid #C3CFDD;padding:6px 11px;border-radius:999px}
+.lab-nav .chips2 a:hover{border-color:#1657C7;color:#1657C7}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Concienciación en ciberseguridad</p>
+    <h1>Ataque de Password Spraying</h1>
+    <p class="lede">Cómo un atacante prueba una sola contraseña común contra muchas cuentas a la vez, sin activar ningún bloqueo, hasta encontrar a quien la usa.</p>
+  </header>
+
+  <section class="player" aria-label="Animación del ataque">
+    <div class="main">
+      <div class="stage">
+        <div class="stephead"><span class="n" id="stepn">Paso 1 de 6</span><h2 id="stept">Los usuarios</h2></div>
+        <canvas id="cv" role="img" aria-label="Diagrama animado: el atacante, la página de acceso y cinco cuentas de empleados"></canvas>
+        <p class="caption" id="cap"></p>
+      </div>
+      <aside class="side">
+        <div class="panel" data-steps="0">
+          <h3>Los usuarios que reúne</h3>
+          <div class="cap">
+            <div class="rv" data-at="1">ana.rivera</div>
+            <div class="rv" data-at="2.1">luis.ortiz</div>
+            <div class="rv" data-at="3.2">carla.gomez</div>
+            <div class="rv" data-at="4.3">jose.diaz</div>
+            <div class="rv" data-at="5.4">marta.cruz</div>
+          </div>
+          <p class="note rv" data-at="6.3">Ejemplo ficticio. Salen de la web de la empresa, las redes profesionales y el formato del correo. En la realidad son cientos.</p>
+        </div>
+        <div class="panel" data-steps="1" hidden>
+          <h3>La clave que elige</h3>
+          <div class="kv rv" data-at="10.5"><span>Clave</span><b>Bienvenido1</b></div>
+          <div class="kv rv" data-at="12"><span>Por qué</span><b>Muchos la reciben el primer día y nunca la cambian</b></div>
+          <div class="kv rv" data-at="13.5"><span>Otras</span><b>Estación y año, o el nombre de la empresa y 123</b></div>
+          <p class="note rv" data-at="15">No busca la clave de una persona: busca a la persona que usa esa clave.</p>
+        </div>
+        <div class="panel" data-steps="2" hidden>
+          <h3>Un intento por cuenta</h3>
+          <div class="kv"><span>Clave</span><b>Bienvenido1</b></div>
+          <div class="cap"><div><span>ana.rivera:</span> <b id="r0"></b></div><div><span>luis.ortiz:</span> <b id="r1"></b></div><div><span>carla.gomez:</span> <b id="r2"></b></div><div><span>jose.diaz:</span> <b id="r3"></b></div><div><span>marta.cruz:</span> <b id="r4"></b></div></div>
+          <p class="note rv" data-at="29">Cinco cuentas, cinco intentos, ningún acierto todavía.</p>
+        </div>
+        <div class="panel" data-steps="3" hidden>
+          <h3>Por qué nadie lo nota</h3>
+          <div class="lever rv" data-at="30.3"><strong>Sin bloqueos</strong><span>Cada cuenta lleva 1 fallo de 5 permitidos.</span></div>
+          <div class="lever rv" data-at="32"><strong>Sin prisa</strong><span>Espera antes de probar la siguiente clave.</span></div>
+          <div class="lever rv" data-at="33.7"><strong>Sin patrón</strong><span>Reparte los intentos entre varias direcciones.</span></div>
+          <div class="lever rv" data-at="35.4"><strong>Parece normal</strong><span>Un fallo aislado luce como un error al teclear.</span></div>
+        </div>
+        <div class="panel" data-steps="4" hidden>
+          <h3>Segunda ronda</h3>
+          <div class="kv"><span>Clave</span><b>Verano2026!</b></div>
+          <div class="cap"><div><span>ana.rivera:</span> <b id="q0"></b></div><div><span>luis.ortiz:</span> <b id="q1"></b></div><div><span>carla.gomez:</span> <b id="q2"></b></div><div><span>jose.diaz:</span> <b id="q3"></b></div><div><span>marta.cruz:</span> <b id="q4"></b></div></div>
+          <p class="note rv" data-at="45.5">Con cientos de cuentas, casi siempre alguna usa una clave común.</p>
+        </div>
+        <div class="panel" data-steps="5" hidden>
+          <h3>Cómo protegerte</h3>
+          <ul class="checks">
+            <li class="rv" data-at="48.5">Activa MFA en todas las cuentas</li>
+            <li class="rv" data-at="49.4">Prohíbe las claves comunes con una lista de bloqueo</li>
+            <li class="rv" data-at="50.3">Obliga a cambiar la clave inicial en el primer acceso</li>
+            <li class="rv" data-at="51.2">Alerta cuando muchas cuentas fallan desde un mismo origen</li>
+            <li class="rv" data-at="52.1">Desactiva los accesos antiguos que no piden MFA</li>
+            <li class="rv" data-at="53">Usa frases largas y únicas</li>
+          </ul>
+          <div class="vpn rv" data-at="55">El bloqueo por intentos no detiene este ataque: nunca llega al límite en ninguna cuenta.</div>
+        </div>
+      </aside>
+    </div>
+    <div class="controls">
+      <div class="row">
+        <button id="play" type="button">Pausar</button>
+        <input id="seek" type="range" min="0" max="60" step="0.1" value="0" aria-label="Posición de la animación">
+        <span class="time" id="time">0:00 / 1:00</span>
+      </div>
+      <div class="chips" id="chips"></div>
+    </div>
+  </section>
+
+  <section class="summary">
+    <h2>Los seis pasos</h2>
+    <ol>
+      <li><strong>Los usuarios</strong><span>El atacante reúne los nombres de usuario de muchos empleados.</span></li>
+      <li><strong>Una sola clave</strong><span>Elige una contraseña muy común en vez de muchas.</span></li>
+      <li><strong>El rocío</strong><span>La prueba una vez en cada cuenta y sigue con la próxima.</span></li>
+      <li><strong>Bajo el radar</strong><span>Ninguna cuenta acumula fallos suficientes para bloquearse.</span></li>
+      <li><strong>El acierto</strong><span>Espera, repite con otra clave común y alguna cuenta coincide.</span></li>
+      <li><strong>La defensa</strong><span>MFA, lista de claves prohibidas, cambio de la clave inicial y alertas por fallos en muchas cuentas.</span></li>
+    </ol>
+  </section>
+
+  <nav class="lab-nav" aria-label="Otros simuladores del laboratorio">
+    <div class="nav-top">
+      <a class="portal" href="/laboratorio/">⬡ Laboratorio Netblue</a>
+      <span class="lbl">Otros simuladores</span>
+    </div>
+    <div class="chips2">
+      <a href="/laboratorio/detecta-el-phishing/">Phishing</a>
+      <a href="/laboratorio/spear-phishing-bec/">Spear Phishing / BEC</a>
+      <a href="/laboratorio/smishing-vishing/">Smishing / Vishing</a>
+      <a href="/laboratorio/ingenieria-social/">Ingeniería Social</a>
+      <a href="/laboratorio/clic-enlace-phishing/">Enlace de phishing</a>
+      <a href="/laboratorio/ataque-diccionario/">Diccionario</a>
+      <a href="/laboratorio/fuerza-bruta-calculadora/">Fuerza Bruta</a>
+      <a href="/laboratorio/credential-stuffing/">Credential Stuffing</a>
+      <a href="/laboratorio/rainbow-tables-salt/">Rainbow Tables</a>
+      <a href="/laboratorio/tabla-arcoiris/">Tabla Arcoíris</a>
+      <a href="/laboratorio/ataque-cumpleanos/">Cumpleaños</a>
+      <a href="/laboratorio/volcado-de-memoria/">Volcado de Memoria</a>
+      <a href="/laboratorio/sql-injection/">SQL Injection</a>
+      <a href="/laboratorio/cross-site-scripting/">XSS</a>
+      <a href="/laboratorio/man-in-the-middle/">Man-in-the-Middle</a>
+      <a href="/laboratorio/dos-ddos/">DoS / DDoS</a>
+      <a href="/laboratorio/wardriving/">Wardriving</a>
+      <a href="/laboratorio/bluesnarfing/">Bluesnarfing</a>
+      <a href="/laboratorio/ransomware/">Ransomware</a>
+      <a href="/laboratorio/keylogger-troyanos/">Keylogger</a>
+      <a href="/laboratorio/troyano-rat/">Troyano RAT</a>
+      <a href="/laboratorio/reverse-shell/">Reverse Shell</a>
+    </div>
+  </nav>
+</div>
+
+<script>
+(function(){
+const S=[0,9,18,30,38,48,60], END=60;
+const STEPS=[
+ {t:"Los usuarios",s:"Usuarios",c:[[0,"El atacante reúne los nombres de usuario de muchos empleados. No necesita saber nada más de ellos."]]},
+ {t:"Una sola clave",s:"Clave",c:[[9,"En vez de probar muchas claves contra una cuenta, elige una sola clave muy común."]]},
+ {t:"El rocío",s:"Rocío",c:[[18,"Prueba esa única clave en cada cuenta, un intento por usuario, y pasa a la siguiente."]]},
+ {t:"Bajo el radar",s:"Sigilo",c:[[30,"Como ninguna cuenta acumula fallos suficientes, nada se bloquea y nadie recibe una alerta."]]},
+ {t:"El acierto",s:"Acierto",c:[[38,"Tras esperar, repite con otra clave común. Entre tantas cuentas, alguna termina coincidiendo."]]},
+ {t:"Cómo protegerte",s:"Defensa",c:[[48,"El bloqueo por intentos no ve este ataque. Hace falta que una clave común no sirva, aunque alguien la use."],[54,"Con MFA y sin claves comunes permitidas, el rocío pasa por todas las cuentas sin abrir ninguna."]]}
+];
+const NAMES=["ana","luis","carla","jose","marta"],HIT=3;
+const $=id=>document.getElementById(id);
+const cv=$("cv"),ctx=cv.getContext("2d"),playB=$("play"),seek=$("seek"),timeEl=$("time"),capEl=$("cap"),chips=$("chips");
+const panels=[...document.querySelectorAll(".panel")],timed=[...document.querySelectorAll("[data-at]")];
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+let t=reduce?43:0,playing=!reduce,last=0,cw=0,ch=0,dpr=1,C={},curStep=-1,curCap="",dragging=false;
+
+STEPS.forEach((s,i)=>{const b=document.createElement("button");b.type="button";b.textContent=(i+1)+" · "+s.s;b.addEventListener("click",()=>{t=S[i];playing=!reduce;sync()});chips.appendChild(b)});
+
+function theme(){const cs=getComputedStyle(document.documentElement);
+  for(const k of ["surface","sunken","ink","muted","line","legit","threat","safe","relay"])C[k]=cs.getPropertyValue("--"+k).trim()}
+theme();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",theme);
+new MutationObserver(theme).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+
+function resize(){const w=cv.clientWidth;if(!w)return;cw=w;ch=Math.round(Math.min(470,Math.max(300,w*0.62)));dpr=window.devicePixelRatio||1;
+  cv.style.height=ch+"px";cv.width=Math.round(cw*dpr);cv.height=Math.round(ch*dpr)}
+new ResizeObserver(resize).observe(cv);resize();
+
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const ease=x=>{x=clamp(x);return x*x*(3-2*x)};
+const pr=(x,a,b)=>ease((x-a)/(b-a));
+const lerp=(a,b,u)=>[a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u];
+const fr=x=>((x%1)+1)%1, edge=u=>Math.min(1,u*8,(1-u)*8);
+const al=a=>{ctx.globalAlpha=clamp(a)};
+function seg(a,b,col,w,a_,dash){al(a_);ctx.strokeStyle=col;ctx.lineWidth=w;ctx.lineCap="round";ctx.setLineDash(dash||[]);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();ctx.setLineDash([])}
+function disc(x,y,r,fill,stroke,w,dash){ctx.setLineDash(dash||[]);ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=w;ctx.stroke()}ctx.setLineDash([])}
+function rrect(x,y,w,h,r,fill){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fillStyle=fill;ctx.fill()}
+function poly(pts,fill){ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fillStyle=fill;ctx.fill()}
+function text(s,x,y,font,col){ctx.font=font;ctx.fillStyle=col;ctx.textAlign="center";ctx.textBaseline="top";ctx.fillText(s,x,y)}
+function waves(c,col,a,n,span,speed,r,k){for(let i=0;i<n;i++){const f=((t*speed+i*span/n)%span)/span;al(a*(1-f)*0.55);disc(c[0],c[1],r+f*span*k,null,col,1.5)}}
+
+function hacker(c,k){const[x,y]=c;poly([[x-38*k,y+36*k],[x-28*k,y+4*k],[x,y-6*k],[x+28*k,y+4*k],[x+38*k,y+36*k]],"#7A1F2B");
+  ctx.beginPath();ctx.ellipse(x,y-15*k,23*k,25*k,0,0,Math.PI*2);ctx.fillStyle="#A32A38";ctx.fill();
+  ctx.beginPath();ctx.ellipse(x,y-12*k,14*k,16*k,0,0,Math.PI*2);ctx.fillStyle="#160A10";ctx.fill();
+  for(const dx of[-6,6]){ctx.beginPath();ctx.ellipse(x+dx*k,y-13*k,3.2*k,2*k,0,0,Math.PI*2);ctx.fillStyle="#FF7878";ctx.fill()}
+  rrect(x-20*k,y+16*k,40*k,22*k,3*k,"#26324E");disc(x,y+27*k,3*k,"#F2555A")}
+function lock(x,y,s,col){ctx.strokeStyle=col;ctx.lineWidth=2.4*s;ctx.beginPath();ctx.arc(x,y-6*s,6*s,Math.PI,0);ctx.stroke();rrect(x-9*s,y-6*s,18*s,14*s,3*s,col)}
+function dot(p,col,a,k){al(a*0.2);disc(p[0],p[1],11*k,col);al(a);disc(p[0],p[1],5*k,col)}
+function msg(p,col,a,k){al(a*0.2);disc(p[0],p[1],14*k,col);al(a);rrect(p[0]-10*k,p[1]-7*k,20*k,13*k,4*k,col);poly([[p[0]-4*k,p[1]+5*k],[p[0]+3*k,p[1]+5*k],[p[0]-5*k,p[1]+11*k]],col)}
+function cred(p,a,k){al(a*0.2);disc(p[0],p[1],16*k,C.threat);al(a);rrect(p[0]-14*k,p[1]-7*k,28*k,14*k,4*k,C.threat);for(let i=-1;i<2;i++)disc(p[0]+i*7*k,p[1],2.2*k,C.surface)}
+function label(c,r,a,title,sub,col){al(a);text(title,c[0],c[1]+r+7,"600 13.5px Barlow, Arial, sans-serif",C.ink);text(sub,c[0],c[1]+r+24,"500 12px Barlow, Arial, sans-serif",col)}
+
+
+function pathPt(p,u){const sg=[];let tot=0;for(let i=0;i<p.length-1;i++){sg.push(Math.hypot(p[i][0]-p[i+1][0],p[i][1]-p[i+1][1]));tot+=sg[i]}
+  let x=clamp(u)*tot;for(let i=0;i<sg.length;i++){if(x<=sg[i])return lerp(p[i],p[i+1],x/sg[i]);x-=sg[i]}return p[p.length-1]}
+function laptop(c,k){const[x,y]=c;rrect(x-27*k,y-25*k,54*k,38*k,4*k,C.ink);rrect(x-23*k,y-21*k,46*k,30*k,2*k,C.surface);poly([[x-36*k,y+16*k],[x+36*k,y+16*k],[x+30*k,y+24*k],[x-30*k,y+24*k]],C.ink)}
+function server(c,k){const[x,y]=c;for(let i=0;i<3;i++){rrect(x-24*k,y+(-26+i*18)*k,48*k,14*k,3*k,C.ink);disc(x-16*k,y+(-19+i*18)*k,2.4*k,C.surface)}}
+function mon(x,y,k){rrect(x-14*k,y-11*k,28*k,20*k,2*k,C.ink);rrect(x-10.5*k,y-8*k,21*k,14*k,1,C.surface);rrect(x-7*k,y+11*k,14*k,3*k,1,C.ink)}
+function pcs(c,k){mon(c[0]-11*k,c[1]-9*k,k);mon(c[0]+11*k,c[1]+11*k,k)}
+function drum(c,k){const[x,y]=c;rrect(x-20*k,y-17*k,40*k,34*k,0,C.ink);for(const dy of[-17,17]){ctx.beginPath();ctx.ellipse(x,y+dy*k,20*k,7*k,0,0,Math.PI*2);ctx.fillStyle=C.ink;ctx.fill()}
+  ctx.strokeStyle=C.surface;ctx.lineWidth=2*k;for(const dy of[-17,-4,8]){ctx.beginPath();ctx.ellipse(x,y+dy*k,20*k,7*k,0,0,Math.PI);ctx.stroke()}}
+function doc(p,a,k){al(a*0.2);disc(p[0],p[1],14*k,C.relay);al(a);rrect(p[0]-7*k,p[1]-9*k,14*k,18*k,2*k,C.relay);ctx.strokeStyle=C.sunken;ctx.lineWidth=1.4*k;for(const dy of[-3,1,5]){ctx.beginPath();ctx.moveTo(p[0]-4*k,p[1]+dy*k);ctx.lineTo(p[0]+4*k,p[1]+dy*k);ctx.stroke()}}
+function badge(c,r,a,pk){if(a<=0)return;const x=c[0]+r*.72,y=c[1]-r*.72;al(a);disc(x,y,11*pk,C.threat,C.surface,2);lock(x,y+2*pk,.5*pk,C.surface)}
+function node(c,r,k,icon,inf,lk,title,sub,col){al(1);disc(c[0],c[1],r,C.surface,C.ink,2.5);if(inf>0){al(inf);disc(c[0],c[1],r,null,C.threat,3.5)}
+  al(1-.65*lk);icon(c,k);label(c,r,1,title,sub,col)}
+function pathPt(p,u){const sg=[];let tot=0;for(let i=0;i<p.length-1;i++){sg.push(Math.hypot(p[i][0]-p[i+1][0],p[i][1]-p[i+1][1]));tot+=sg[i]}
+  let x=clamp(u)*tot;for(let i=0;i<sg.length;i++){if(x<=sg[i])return lerp(p[i],p[i+1],x/sg[i]);x-=sg[i]}return p[p.length-1]}
+function laptop(c,k){const[x,y]=c;rrect(x-27*k,y-25*k,54*k,38*k,4*k,C.ink);rrect(x-23*k,y-21*k,46*k,30*k,2*k,C.surface);poly([[x-36*k,y+16*k],[x+36*k,y+16*k],[x+30*k,y+24*k],[x-30*k,y+24*k]],C.ink)}
+function doc(p,a,k){al(a*0.2);disc(p[0],p[1],14*k,C.relay);al(a);rrect(p[0]-7*k,p[1]-9*k,14*k,18*k,2*k,C.relay);ctx.strokeStyle=C.sunken;ctx.lineWidth=1.4*k;for(const dy of[-3,1,5]){ctx.beginPath();ctx.moveTo(p[0]-4*k,p[1]+dy*k);ctx.lineTo(p[0]+4*k,p[1]+dy*k);ctx.stroke()}}
+function person(c,k){const[x,y]=c;disc(x,y-14*k,12*k,C.ink);ctx.beginPath();ctx.ellipse(x,y+28*k,24*k,24*k,0,Math.PI,0);ctx.fillStyle=C.ink;ctx.fill()}
+
+function phone(c,k){const[x,y]=c;rrect(x-15*k,y-27*k,30*k,54*k,6*k,C.ink);rrect(x-11*k,y-21*k,22*k,37*k,2*k,C.surface);disc(x,y+21.5*k,2.2*k,C.surface)}
+function rune(x,y,s,col,w){ctx.strokeStyle=col;ctx.lineWidth=w;ctx.lineJoin="round";ctx.lineCap="round";ctx.beginPath();ctx.moveTo(x-s*.5,y-s*.5);ctx.lineTo(x+s*.5,y+s*.5);ctx.lineTo(x,y+s);ctx.lineTo(x,y-s);ctx.lineTo(x+s*.5,y-s*.5);ctx.lineTo(x-s*.5,y+s*.5);ctx.stroke()}
+function bt(c,r,col,off,pk){const x=c[0]+r*.72,y=c[1]-r*.72;al(1);disc(x,y,11*pk,col,C.surface,2);rune(x,y,6*pk,C.surface,1.8);
+  if(off){ctx.strokeStyle=C.surface;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x-8*pk,y+8*pk);ctx.lineTo(x+8*pk,y-8*pk);ctx.stroke();ctx.strokeStyle=C.threat;ctx.lineWidth=2;ctx.stroke()}}
+function xmark(mid,a,col,pk){if(a<=0)return;const q=9*pk;al(a);disc(mid[0],mid[1],q*1.6,C.surface,col,2.5);
+  ctx.strokeStyle=col;ctx.lineWidth=3;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(mid[0]-q*.6,mid[1]-q*.6);ctx.lineTo(mid[0]+q*.6,mid[1]+q*.6);ctx.moveTo(mid[0]+q*.6,mid[1]-q*.6);ctx.lineTo(mid[0]-q*.6,mid[1]+q*.6);ctx.stroke()}
+function pathPt(p,u){const sg=[];let tot=0;for(let i=0;i<p.length-1;i++){sg.push(Math.hypot(p[i][0]-p[i+1][0],p[i][1]-p[i+1][1]));tot+=sg[i]}
+  let x=clamp(u)*tot;for(let i=0;i<sg.length;i++){if(x<=sg[i])return lerp(p[i],p[i+1],x/sg[i]);x-=sg[i]}return p[p.length-1]}
+function laptop(c,k){const[x,y]=c;rrect(x-27*k,y-25*k,54*k,38*k,4*k,C.ink);rrect(x-23*k,y-21*k,46*k,30*k,2*k,C.surface);poly([[x-36*k,y+16*k],[x+36*k,y+16*k],[x+30*k,y+24*k],[x-30*k,y+24*k]],C.ink)}
+function server(c,k){const[x,y]=c;for(let i=0;i<3;i++){rrect(x-24*k,y+(-26+i*18)*k,48*k,14*k,3*k,C.ink);disc(x-16*k,y+(-19+i*18)*k,2.4*k,C.surface)}}
+function mon(x,y,k){rrect(x-14*k,y-11*k,28*k,20*k,2*k,C.ink);rrect(x-10.5*k,y-8*k,21*k,14*k,1,C.surface);rrect(x-7*k,y+11*k,14*k,3*k,1,C.ink)}
+function pcs(c,k){mon(c[0]-11*k,c[1]-9*k,k);mon(c[0]+11*k,c[1]+11*k,k)}
+function drum(c,k){const[x,y]=c;rrect(x-20*k,y-17*k,40*k,34*k,0,C.ink);for(const dy of[-17,17]){ctx.beginPath();ctx.ellipse(x,y+dy*k,20*k,7*k,0,0,Math.PI*2);ctx.fillStyle=C.ink;ctx.fill()}
+  ctx.strokeStyle=C.surface;ctx.lineWidth=2*k;for(const dy of[-17,-4,8]){ctx.beginPath();ctx.ellipse(x,y+dy*k,20*k,7*k,0,0,Math.PI);ctx.stroke()}}
+function doc(p,a,k){al(a*0.2);disc(p[0],p[1],14*k,C.relay);al(a);rrect(p[0]-7*k,p[1]-9*k,14*k,18*k,2*k,C.relay);ctx.strokeStyle=C.sunken;ctx.lineWidth=1.4*k;for(const dy of[-3,1,5]){ctx.beginPath();ctx.moveTo(p[0]-4*k,p[1]+dy*k);ctx.lineTo(p[0]+4*k,p[1]+dy*k);ctx.stroke()}}
+function badge(c,r,a,pk){if(a<=0)return;const x=c[0]+r*.72,y=c[1]-r*.72;al(a);disc(x,y,11*pk,C.threat,C.surface,2);lock(x,y+2*pk,.5*pk,C.surface)}
+function node(c,r,k,icon,inf,lk,title,sub,col){al(1);disc(c[0],c[1],r,C.surface,C.ink,2.5);if(inf>0){al(inf);disc(c[0],c[1],r,null,C.threat,3.5)}
+  al(1-.65*lk);icon(c,k);label(c,r,1,title,sub,col)}
+function pathPt(p,u){const sg=[];let tot=0;for(let i=0;i<p.length-1;i++){sg.push(Math.hypot(p[i][0]-p[i+1][0],p[i][1]-p[i+1][1]));tot+=sg[i]}
+  let x=clamp(u)*tot;for(let i=0;i<sg.length;i++){if(x<=sg[i])return lerp(p[i],p[i+1],x/sg[i]);x-=sg[i]}return p[p.length-1]}
+function laptop(c,k){const[x,y]=c;rrect(x-27*k,y-25*k,54*k,38*k,4*k,C.ink);rrect(x-23*k,y-21*k,46*k,30*k,2*k,C.surface);poly([[x-36*k,y+16*k],[x+36*k,y+16*k],[x+30*k,y+24*k],[x-30*k,y+24*k]],C.ink)}
+function doc(p,a,k){al(a*0.2);disc(p[0],p[1],14*k,C.relay);al(a);rrect(p[0]-7*k,p[1]-9*k,14*k,18*k,2*k,C.relay);ctx.strokeStyle=C.sunken;ctx.lineWidth=1.4*k;for(const dy of[-3,1,5]){ctx.beginPath();ctx.moveTo(p[0]-4*k,p[1]+dy*k);ctx.lineTo(p[0]+4*k,p[1]+dy*k);ctx.stroke()}}
+function person(c,k){const[x,y]=c;disc(x,y-14*k,12*k,C.ink);ctx.beginPath();ctx.ellipse(x,y+28*k,24*k,24*k,0,Math.PI,0);ctx.fillStyle=C.ink;ctx.fill()}
+
+function globe(c,k){const[x,y]=c;ctx.strokeStyle=C.ink;ctx.lineWidth=3*k;ctx.beginPath();ctx.arc(x,y,24*k,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.ellipse(x,y,10*k,24*k,0,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(x-24*k,y);ctx.lineTo(x+24*k,y);ctx.stroke()}
+function xmark(mid,a,col,pk){if(a<=0)return;const q=9*pk;al(a);disc(mid[0],mid[1],q*1.6,C.surface,col,2.5);
+  ctx.strokeStyle=col;ctx.lineWidth=3;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(mid[0]-q*.6,mid[1]-q*.6);ctx.lineTo(mid[0]+q*.6,mid[1]+q*.6);ctx.moveTo(mid[0]+q*.6,mid[1]-q*.6);ctx.lineTo(mid[0]-q*.6,mid[1]+q*.6);ctx.stroke()}
+
+function server(c,k){const[x,y]=c;for(let i=0;i<3;i++){rrect(x-24*k,y+(-26+i*18)*k,48*k,14*k,3*k,C.ink);disc(x-16*k,y+(-19+i*18)*k,2.4*k,C.surface)}}
+function mon(x,y,k){rrect(x-14*k,y-11*k,28*k,20*k,2*k,C.ink);rrect(x-10.5*k,y-8*k,21*k,14*k,1,C.surface);rrect(x-7*k,y+11*k,14*k,3*k,1,C.ink)}
+function pcs(c,k){mon(c[0]-11*k,c[1]-9*k,k);mon(c[0]+11*k,c[1]+11*k,k)}
+
+function drum(c,k){const[x,y]=c;rrect(x-20*k,y-17*k,40*k,34*k,0,C.ink);for(const dy of[-17,17]){ctx.beginPath();ctx.ellipse(x,y+dy*k,20*k,7*k,0,0,Math.PI*2);ctx.fillStyle=C.ink;ctx.fill()}
+  ctx.strokeStyle=C.surface;ctx.lineWidth=2*k;for(const dy of[-17,-4,8]){ctx.beginPath();ctx.ellipse(x,y+dy*k,20*k,7*k,0,0,Math.PI);ctx.stroke()}}
+
+function form(c,k){const[x,y]=c;rrect(x-24*k,y-27*k,48*k,54*k,5*k,C.ink);rrect(x-17*k,y-18*k,34*k,9*k,2,C.surface);rrect(x-17*k,y-4*k,34*k,9*k,2,C.surface);rrect(x-10*k,y+11*k,20*k,9*k,3,C.legit)}
+
+function draw(){
+  if(!cw)return;
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,cw,ch);
+  const w=cw,h=ch,r=clamp(w*0.065,26,44),k=r/58,pk=Math.max(0.75,k),rs=r*.5,ks=k*.5;
+  const A=[w*.12,h*.45],P=[w*.42,h*.45],U=NAMES.map((_,i)=>[w*.74,h*(.13+.185*i)]);
+  const fix=pr(t,49,50.2),a1=i=>18.5+2.1*i,a2=i=>38.5+1.4*i,tHit=a2(HIT)+1.3,own=pr(t,tHit,tHit+.6)*(1-fix);
+  seg(A,P,C.muted,1.5,.55,[4,6]);
+  U.forEach((u,i)=>{const d=pr(t,1+1.1*i,1.6+1.1*i);if(d>0)seg(P,u,C.muted,1.2,.5*d,[3,6])});
+  if(own>0){seg(A,P,C.threat,4,own);seg(P,U[HIT],C.threat,4,own)}
+  if(fix>.5)seg(A,P,C.muted,2,.6,[8,7]);
+  const wt=pr(t,30.3,31)*(1-pr(t,38,38.6));if(wt>0)waves(A,C.relay,wt,2,60,14,r,k);
+  U.forEach((u,i)=>{for(const[st,du]of[[a1(i),1.9],[a2(i),1.3]]){const q=(t-st)/du;if(q>0&&q<1)cred(pathPt([A,P,u],q),Math.min(1,q*8,(1-q)*8),pk*.85)}});
+  if(own>0&&t>tHit+.8)for(let i=0;i<2;i++){const q=fr((t-tHit)*.3+i/2);doc(pathPt([U[HIT],P,A],q),own*edge(q),pk)}
+  al(1);disc(P[0],P[1],r,C.surface,C.ink,2.5);if(fix>0){al(fix);disc(P[0],P[1],r+7,null,C.safe,3)}al(1);form(P,k);
+  label(P,r,1,"Página de acceso",fix>.5?"MFA activo":t<18.5?"Correo de la empresa":"0 cuentas bloqueadas",fix>.5?C.safe:C.muted);
+  U.forEach((u,i)=>{const d=pr(t,1+1.1*i,1.6+1.1*i);if(d<=0)return;const f=(t>=a1(i)+1.9?1:0)+(t>=a2(i)+1.3&&i!==HIT?1:0),hit=i===HIT&&t>=tHit&&fix<.5;
+    al(d);disc(u[0],u[1],rs,C.surface,hit?C.threat:C.ink,hit?3:2);disc(u[0],u[1]-5*ks*2,5*ks*2,C.ink);ctx.beginPath();ctx.ellipse(u[0],u[1]+13*ks*2,10*ks*2,10*ks*2,0,Math.PI,0);ctx.fillStyle=C.ink;ctx.fill();
+    if(fix>.5&&i===HIT){al(fix);disc(u[0],u[1],rs+4,null,C.safe,2.5);al(d)}
+    ctx.textAlign="left";ctx.textBaseline="middle";ctx.font="500 11.5px JetBrains Mono, ui-monospace, monospace";ctx.fillStyle=C.ink;ctx.fillText(NAMES[i],u[0]+rs+7,u[1]-6);
+    const s=fix>.5?"MFA":hit?"abierta":f?f+(f>1?" fallos":" fallo"):"";ctx.font="500 11px Barlow, Arial, sans-serif";ctx.fillStyle=fix>.5?C.safe:hit?C.threat:C.muted;ctx.fillText(s,u[0]+rs+7,u[1]+8)});
+  al(1);disc(A[0],A[1],r,C.surface,C.threat,2.5);hacker(A,k);
+  label(A,r,1,"Atacante",t<9?"Reúne usuarios":t<18.5?"Elige una clave":t<30?"Un intento c/u":t<38.3?"Espera":t<tHit?"Otra clave":t<49.5?"Entró":"Sin acceso",C.threat);
+  const kp=pr(t,10.5,11.2);if(kp>0){const x=Math.max(A[0],48),y=A[1]-r-26;al(kp);rrect(x-44,y-4,88,21,4,C.surface);text(t<38.2?"Bienvenido1":"Verano2026!",x,y,"500 11.5px JetBrains Mono, ui-monospace, monospace",C.relay)}
+  xmark(lerp(A,P,.5),fix,C.threat,pk);
+  al(1);
+  for(let i=0;i<5;i++){const e1=$("r"+i),s1=t>=a1(i)+1.9?"incorrecta":t>=a1(i)?"probando…":"pendiente";if(e1.textContent!==s1)e1.textContent=s1;
+    const e2=$("q"+i),ok=i===HIT&&t>=tHit,s2=t>=a2(i)+1.3?(i===HIT?"correcta":"incorrecta"):t>=a2(i)?"probando…":"pendiente";if(e2.textContent!==s2)e2.textContent=s2;e2.classList.toggle("hit",ok)}
+}
+
+function fmt(x){x=Math.floor(x);return Math.floor(x/60)+":"+String(x%60).padStart(2,"0")}
+function sync(){
+  let s=0;while(s<5&&t>=S[s+1])s++;
+  if(s!==curStep){curStep=s;$("stepn").textContent="Paso "+(s+1)+" de 6";$("stept").textContent=STEPS[s].t;
+    panels.forEach(p=>{p.hidden=!p.dataset.steps.split(",").includes(String(s))});
+    [...chips.children].forEach((b,i)=>b.setAttribute("aria-current",i===s?"true":"false"))}
+  let c="";for(const[at,tx]of STEPS[s].c)if(t>=at)c=tx;
+  if(c!==curCap){curCap=c;capEl.textContent=c}
+  for(const el of timed)el.classList.toggle("on",t>=+el.dataset.at);
+  if(!dragging)seek.value=t.toFixed(1);
+  timeEl.textContent=fmt(t)+" / "+fmt(END);
+  playB.textContent=playing?"Pausar":(t>=END?"Repetir":"Reproducir");
+}
+playB.addEventListener("click",()=>{if(t>=END){t=0;playing=true}else playing=!playing;sync()});
+seek.addEventListener("input",()=>{dragging=true;t=+seek.value;sync()});
+seek.addEventListener("change",()=>{dragging=false});
+function frame(now){const dt=Math.min(.1,(now-last)/1000||0);last=now;
+  if(playing){t+=dt;if(t>=END){t=END;playing=false}}
+  sync();draw();requestAnimationFrame(frame)}
+sync();requestAnimationFrame(frame);
+})();
+</script>
+
+<script id="nb-track">(function(){try{if(localStorage.getItem('nb-notrack'))return;}catch(_){}try{var q=new URLSearchParams(location.search),d=JSON.stringify({p:location.pathname,r:document.referrer,s:q.get('utm_source')||''});if(navigator.sendBeacon)navigator.sendBeacon('/api/track',d);else fetch('/api/track',{method:'POST',body:d,keepalive:true});}catch(_){}})();</script>
+</body></html>

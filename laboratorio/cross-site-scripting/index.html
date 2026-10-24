@@ -1,0 +1,231 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Cross-Site Scripting | Laboratorio Netblue</title><meta name="description" content="Un comentario con script que se ejecuta o se escapa según el modo. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><link rel="canonical" href="https://netbluepr.com/laboratorio/cross-site-scripting/"><link rel="icon" type="image/png" href="/favicon.png"><meta property="og:title" content="Cross-Site Scripting | Laboratorio Netblue"><meta property="og:description" content="Un comentario con script que se ejecuta o se escapa según el modo. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><meta property="og:url" content="https://netbluepr.com/laboratorio/cross-site-scripting/"><meta property="og:image" content="https://netbluepr.com/og-image.png"><meta property="og:locale" content="es_PR"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Cross-Site Scripting</title>
+<style>
+  /* Layout: muro de comentarios simulado — publicar un comentario; modo vulnerable "ejecuta" el script, modo seguro lo escapa */
+  :root {
+    --bg: #f4f6f8; --surface: #ffffff; --surface-2: #eef1f5; --border: #d4dae2;
+    --fg: #1a2330; --fg-muted: #5b6878; --accent: #0b6e99; --accent-soft: #d6ebf4;
+    --ok: #1a7f4b; --ok-soft: #d6f0e1; --warn: #b4690e; --warn-soft: #f7e7cc;
+    --crit: #c0392b; --crit-soft: #f7dcd8;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1620; --surface: #161f2b; --surface-2: #1d2835; --border: #2b3a4a;
+      --fg: #e6edf4; --fg-muted: #93a1b2; --accent: #3fb6e0; --accent-soft: #10303d;
+      --ok: #4ecb8a; --ok-soft: #10311f; --warn: #e0a84a; --warn-soft: #3a2c12;
+      --crit: #f07567; --crit-soft: #3a1b17; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1620; --surface: #161f2b; --surface-2: #1d2835; --border: #2b3a4a;
+    --fg: #e6edf4; --fg-muted: #93a1b2; --accent: #3fb6e0; --accent-soft: #10303d;
+    --ok: #4ecb8a; --ok-soft: #10311f; --warn: #e0a84a; --warn-soft: #3a2c12;
+    --crit: #f07567; --crit-soft: #3a1b17; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--sans); line-height: 1.5; }
+  .wrap { max-width: 780px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 48px; }
+  header.page { margin-bottom: 20px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
+  h1 { font-size: clamp(28px, 6vw, 38px); line-height: 1.05; margin: 0 0 10px; text-wrap: balance; letter-spacing: -0.02em; }
+  header.page p { margin: 0; max-width: 64ch; color: var(--fg-muted); font-size: 15px; }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-top: 18px; }
+  .panel h2 { font-size: 12px; font-family: var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); margin: 0 0 14px; font-weight: 600; }
+
+  .mode-toggle { display: flex; gap: 6px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 4px; max-width: 460px; }
+  .mode-toggle button { flex: 1; font-size: 13.5px; font-weight: 700; padding: 11px 8px; border-radius: 8px; border: none; background: transparent; color: var(--fg-muted); cursor: pointer; }
+  .mode-toggle button.active[data-mode="vuln"] { background: var(--crit); color: #fff; }
+  .mode-toggle button.active[data-mode="safe"] { background: var(--ok); color: #fff; }
+
+  .composer { margin-top: 16px; }
+  .composer textarea { width: 100%; font-family: var(--mono); font-size: 13.5px; padding: 11px 13px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); color: var(--fg); resize: vertical; min-height: 70px; }
+  .composer textarea:focus-visible { outline: none; border-color: var(--accent); }
+  .composer .row { display: flex; gap: 10px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
+  .composer button.post { font-size: 14px; font-weight: 700; padding: 10px 20px; border-radius: 9px; border: none; background: var(--accent); color: #fff; cursor: pointer; }
+  .payloads { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .payloads button { font-family: var(--mono); font-size: 11.5px; padding: 6px 10px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface-2); color: var(--fg); cursor: pointer; }
+  .payloads button:hover { border-color: var(--crit); color: var(--crit); }
+
+  .comments { margin-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .comment { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .comment .who { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+  .comment .body { font-size: 14px; word-break: break-word; }
+  .comment .body code { font-family: var(--mono); font-size: 13px; background: var(--surface); padding: 1px 4px; border-radius: 4px; }
+
+  /* simulación del efecto XSS (nunca ejecuta código real) */
+  .xss-alert { margin-top: 14px; border: 2px dashed var(--crit); background: var(--crit-soft); border-radius: 12px; padding: 16px; display: none; }
+  .xss-alert.show { display: block; }
+  .xss-alert h3 { margin: 0 0 8px; font-size: 15px; color: var(--crit); }
+  .xss-alert .popup { background: var(--surface); border: 1px solid var(--crit); border-radius: 8px; padding: 12px; font-family: var(--mono); font-size: 13px; margin-bottom: 10px; }
+  .xss-alert .steal { font-family: var(--mono); font-size: 12px; color: var(--crit); word-break: break-all; }
+  .safe-note { margin-top: 14px; border: 1px solid var(--ok); background: var(--ok-soft); border-radius: 12px; padding: 14px 16px; font-size: 13.5px; display: none; }
+  .safe-note.show { display: block; }
+  .safe-note b { font-family: var(--mono); }
+
+  .edu { margin-top: 32px; }
+  .edu h2 { font-size: 20px; margin: 0 0 14px; letter-spacing: -0.01em; }
+  .defense-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .def { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; min-width: 0; }
+  .def h3 { font-size: 15px; margin: 0 0 6px; }
+  .def p { margin: 0; font-size: 13.5px; color: var(--fg-muted); }
+  .note { margin-top: 20px; font-size: 12.5px; color: var(--fg-muted); border-left: 3px solid var(--border); padding: 4px 0 4px 14px; }
+
+  @media (max-width: 560px) { .defense-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="wrap">
+  <header class="page">
+    <p class="eyebrow">Laboratorio de concientización · Netblue</p>
+    <h1>Cross-Site Scripting</h1>
+    <p>Si una web muestra lo que escriben los usuarios sin limpiarlo, alguien puede dejar un comentario con <strong>código</strong> en vez de texto. Ese código se ejecuta en el navegador de quien lo lea — puede robar su sesión o redirigirlo. Publica un comentario con un payload y compara el modo vulnerable con el que escapa la entrada.</p>
+  </header>
+
+  <section class="panel">
+    <div class="mode-toggle" id="mode">
+      <button data-mode="vuln" class="active">⚠ Muro vulnerable</button>
+      <button data-mode="safe">✓ Muro con sanitización</button>
+    </div>
+
+    <div class="composer">
+      <textarea id="input">&lt;script&gt;robarCookie()&lt;/script&gt;</textarea>
+      <div class="payloads">
+        <span style="font-size:12px;color:var(--fg-muted);align-self:center;">Payloads:</span>
+        <button data-p="&lt;script&gt;robarCookie()&lt;/script&gt;">&lt;script&gt;</button>
+        <button data-p="&lt;img src=x onerror=robarCookie()&gt;">&lt;img onerror&gt;</button>
+        <button data-p="¡Buen artículo, gracias!">texto normal</button>
+      </div>
+      <div class="row"><button class="post" id="post">Publicar comentario</button></div>
+    </div>
+
+    <div class="xss-alert" id="xss-alert"></div>
+    <div class="safe-note" id="safe-note"></div>
+
+    <h2 style="margin-top:20px;">Comentarios</h2>
+    <div class="comments" id="comments"></div>
+  </section>
+
+  <section class="edu">
+    <h2>Cómo defenderse</h2>
+    <div class="defense-grid">
+      <div class="def"><h3>Escapar la salida</h3><p>Al mostrar datos del usuario, convierte <code>&lt;</code> y <code>&gt;</code> en entidades para que se vean como texto, no como código.</p></div>
+      <div class="def"><h3>Content Security Policy</h3><p>Una CSP restringe qué scripts puede ejecutar la página, bloqueando los inyectados aunque se cuelen.</p></div>
+      <div class="def"><h3>Sanitizar HTML permitido</h3><p>Si aceptas formato enriquecido, usa una librería (DOMPurify) que elimine etiquetas y atributos peligrosos.</p></div>
+      <div class="def"><h3>Cookies HttpOnly</h3><p>Marca las cookies de sesión como HttpOnly para que un script no pueda leerlas aunque haya XSS.</p></div>
+    </div>
+    <p class="note">Simulación didáctica: esta página NO ejecuta el código que escribes — detecta el patrón y representa el efecto. Siempre inserta tu texto de forma segura.</p>
+
+  <nav class="lab-nav" aria-label="Otros simuladores del laboratorio">
+    <style>
+      .lab-nav{margin-top:34px;padding-top:22px;border-top:1px solid #D5DEE9}
+      .lab-nav .nav-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+      .lab-nav .nav-top a.portal{font-family:'Archivo','Segoe UI',sans-serif;font-size:14px;font-weight:700;text-decoration:none;color:#fff;background:#1657C7;padding:9px 16px;border-radius:6px}
+      .lab-nav .nav-top a.portal:hover{background:#0F2742}
+      .lab-nav .nav-top .lbl{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#44566C}
+      .lab-nav .chips{display:flex;flex-wrap:wrap;gap:8px}
+      .lab-nav .chips a{font-size:12.5px;text-decoration:none;color:#0F2742;background:#E8EEF6;border:1px solid #C3CFDD;padding:6px 11px;border-radius:999px}
+      .lab-nav .chips a:hover{border-color:#1657C7;color:#1657C7}
+    </style>
+    <div class="nav-top">
+      <a class="portal" href="/laboratorio/">⬡ Portal del laboratorio</a>
+      <span class="lbl">Otros simuladores</span>
+    </div>
+    <div class="chips">
+      <a href="/laboratorio/detecta-el-phishing/">Phishing</a>
+      <a href="/laboratorio/spear-phishing-bec/">Spear Phishing / BEC</a>
+      <a href="/laboratorio/smishing-vishing/">Smishing / Vishing</a>
+      <a href="/laboratorio/ataque-diccionario/">Diccionario</a>
+      <a href="/laboratorio/fuerza-bruta-calculadora/">Fuerza Bruta</a>
+      <a href="/laboratorio/credential-stuffing/">Credential Stuffing</a>
+      <a href="/laboratorio/rainbow-tables-salt/">Rainbow Tables</a>
+      <a href="/laboratorio/sql-injection/">SQL Injection</a>
+      <a href="/laboratorio/cross-site-scripting/">XSS</a>
+      <a href="/laboratorio/man-in-the-middle/">Man-in-the-Middle</a>
+      <a href="/laboratorio/dos-ddos/">DoS / DDoS</a>
+      <a href="/laboratorio/ransomware/">Ransomware</a>
+      <a href="/laboratorio/keylogger-troyanos/">Keylogger</a>
+    </div>
+  </nav>
+  </section>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var mode = "vuln";
+
+  var comments = [
+    { who: "Ana", body: "Muy útil el artículo, lo comparto." },
+    { who: "Beto", body: "¿Tienen una versión en PDF?" }
+  ];
+
+  function esc(s) { return s.replace(/[<>&"]/g, function (c) { return ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" })[c]; }); }
+
+  // entrada del textarea viene ya como entidades visibles (&lt;); la normalizamos a su forma "cruda" conceptual
+  function decodeVisible(s) {
+    return s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+  }
+
+  function isScript(raw) {
+    return /<\s*script/i.test(raw) || /on\w+\s*=/i.test(raw) || /<\s*img[^>]*onerror/i.test(raw);
+  }
+
+  function renderComments() {
+    // SIEMPRE insertamos como texto escapado: la página real nunca ejecuta nada
+    $("comments").innerHTML = comments.map(function (c) {
+      return '<div class="comment"><div class="who">' + esc(c.who) + '</div><div class="body">' + esc(c.body) + '</div></div>';
+    }).join("");
+  }
+
+  function post() {
+    var rawVisible = $("input").value;
+    var raw = decodeVisible(rawVisible);
+    $("xss-alert").className = "xss-alert";
+    $("safe-note").className = "safe-note";
+
+    if (mode === "vuln" && isScript(raw)) {
+      // SIMULAMOS el efecto, sin ejecutar
+      comments.push({ who: "Atacante", body: raw });
+      renderComments();
+      var a = $("xss-alert");
+      a.className = "xss-alert show";
+      a.innerHTML =
+        '<h3>✗ El script se ejecutó en el navegador de la víctima</h3>' +
+        '<div class="popup">⚠ alert("XSS") &nbsp;→ &nbsp;ventana emergente controlada por el atacante</div>' +
+        '<div class="steal">📤 document.cookie enviado al atacante:\n   session=abc123xyz; user=edgar  → http://atacante.site/robo</div>' +
+        '<p style="margin:10px 0 0;font-size:13px;">Cada persona que abra esta página y lea el comentario ejecuta ese código sin darse cuenta. Así se roban sesiones.</p>';
+    } else if (mode === "safe" && isScript(raw)) {
+      comments.push({ who: "Atacante", body: raw });
+      renderComments();
+      var n = $("safe-note");
+      n.className = "safe-note show";
+      n.innerHTML = '✓ <b>Neutralizado.</b> El comentario se guardó pero se muestra como <b>texto escapado</b>: los <code>&lt;script&gt;</code> aparecen como caracteres literales y el navegador no los ejecuta. Mira cómo se ve en la lista de abajo.';
+    } else {
+      comments.push({ who: "Tú", body: raw });
+      renderComments();
+      var n2 = $("safe-note");
+      n2.className = "safe-note show";
+      n2.innerHTML = '✓ Comentario de texto normal publicado sin problemas.';
+    }
+  }
+
+  $("mode").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-mode]"); if (!b) return;
+    mode = b.dataset.mode;
+    [].forEach.call(this.querySelectorAll("button"), function (x) { x.classList.toggle("active", x === b); });
+    $("xss-alert").className = "xss-alert"; $("safe-note").className = "safe-note";
+  });
+  $("post").addEventListener("click", post);
+  document.querySelector(".payloads").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-p]"); if (!b) return;
+    $("input").value = b.dataset.p;
+  });
+
+  renderComments();
+})();
+</script>
+
+<script id="nb-track">(function(){try{if(localStorage.getItem('nb-notrack'))return;}catch(_){}try{var q=new URLSearchParams(location.search),d=JSON.stringify({p:location.pathname,r:document.referrer,s:q.get('utm_source')||''});if(navigator.sendBeacon)navigator.sendBeacon('/api/track',d);else fetch('/api/track',{method:'POST',body:d,keepalive:true});}catch(_){}})();</script>
+</body></html>

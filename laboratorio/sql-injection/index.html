@@ -1,0 +1,253 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>SQL Injection | Laboratorio Netblue</title><meta name="description" content="Login vulnerable vs consultas parametrizadas, con la consulta a la vista. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><link rel="canonical" href="https://netbluepr.com/laboratorio/sql-injection/"><link rel="icon" type="image/png" href="/favicon.png"><meta property="og:title" content="SQL Injection | Laboratorio Netblue"><meta property="og:description" content="Login vulnerable vs consultas parametrizadas, con la consulta a la vista. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><meta property="og:url" content="https://netbluepr.com/laboratorio/sql-injection/"><meta property="og:image" content="https://netbluepr.com/og-image.png"><meta property="og:locale" content="es_PR"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>SQL Injection</title>
+<style>
+  /* Layout: login simulado + consola SQL — se ve la consulta construida; modo vulnerable vs parametrizado */
+  :root {
+    --bg: #f4f6f8; --surface: #ffffff; --surface-2: #eef1f5; --border: #d4dae2;
+    --fg: #1a2330; --fg-muted: #5b6878; --accent: #0b6e99; --accent-soft: #d6ebf4;
+    --ok: #1a7f4b; --ok-soft: #d6f0e1; --warn: #b4690e; --warn-soft: #f7e7cc;
+    --crit: #c0392b; --crit-soft: #f7dcd8; --code-str: #1a7f4b; --code-kw: #0b6e99;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1620; --surface: #161f2b; --surface-2: #1d2835; --border: #2b3a4a;
+      --fg: #e6edf4; --fg-muted: #93a1b2; --accent: #3fb6e0; --accent-soft: #10303d;
+      --ok: #4ecb8a; --ok-soft: #10311f; --warn: #e0a84a; --warn-soft: #3a2c12;
+      --crit: #f07567; --crit-soft: #3a1b17; --code-str: #4ecb8a; --code-kw: #3fb6e0; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1620; --surface: #161f2b; --surface-2: #1d2835; --border: #2b3a4a;
+    --fg: #e6edf4; --fg-muted: #93a1b2; --accent: #3fb6e0; --accent-soft: #10303d;
+    --ok: #4ecb8a; --ok-soft: #10311f; --warn: #e0a84a; --warn-soft: #3a2c12;
+    --crit: #f07567; --crit-soft: #3a1b17; --code-str: #4ecb8a; --code-kw: #3fb6e0; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--sans); line-height: 1.5; }
+  .wrap { max-width: 820px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 48px; }
+  header.page { margin-bottom: 20px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
+  h1 { font-size: clamp(28px, 6vw, 38px); line-height: 1.05; margin: 0 0 10px; text-wrap: balance; letter-spacing: -0.02em; }
+  header.page p { margin: 0; max-width: 64ch; color: var(--fg-muted); font-size: 15px; }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-top: 18px; }
+  .panel h2 { font-size: 12px; font-family: var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); margin: 0 0 14px; font-weight: 600; }
+
+  .mode-toggle { display: flex; gap: 6px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 4px; max-width: 460px; }
+  .mode-toggle button { flex: 1; font-size: 13.5px; font-weight: 700; padding: 11px 8px; border-radius: 8px; border: none; background: transparent; color: var(--fg-muted); cursor: pointer; }
+  .mode-toggle button.active[data-mode="vuln"] { background: var(--crit); color: #fff; }
+  .mode-toggle button.active[data-mode="safe"] { background: var(--ok); color: #fff; }
+
+  .login { display: grid; gap: 12px; max-width: 360px; margin-top: 16px; }
+  .login label { font-size: 12px; font-weight: 600; margin-bottom: 4px; display: block; }
+  .login input { width: 100%; font-family: var(--mono); font-size: 14px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); color: var(--fg); }
+  .login button { font-size: 15px; font-weight: 700; padding: 11px; border-radius: 9px; border: none; background: var(--accent); color: #fff; cursor: pointer; }
+
+  .payloads { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .payloads button { font-family: var(--mono); font-size: 12px; padding: 6px 10px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface-2); color: var(--fg); cursor: pointer; }
+  .payloads button:hover { border-color: var(--crit); color: var(--crit); }
+
+  .sql { font-family: var(--mono); font-size: 13px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-top: 16px; white-space: pre-wrap; word-break: break-all; line-height: 1.7; }
+  .sql .kw { color: var(--code-kw); font-weight: 700; }
+  .sql .str { color: var(--code-str); }
+  .sql .inj { background: var(--crit); color: #fff; padding: 0 3px; border-radius: 3px; }
+  .sql .lab { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); margin-bottom: 8px; font-family: var(--mono); }
+
+  .result { margin-top: 14px; padding: 15px 17px; border-radius: 12px; font-size: 14px; display: none; border: 1px solid transparent; }
+  .result.show { display: block; }
+  .result.breach { background: var(--crit-soft); border-color: var(--crit); }
+  .result.ok { background: var(--ok-soft); border-color: var(--ok); }
+  .result.denied { background: var(--warn-soft); border-color: var(--warn); }
+  .result b { font-family: var(--mono); }
+
+  .db { margin-top: 14px; }
+  .db table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px; }
+  .db th, .db td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); }
+  .db th { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--fg-muted); }
+  .db tr.leaked td { background: var(--crit-soft); color: var(--crit); }
+
+  .edu { margin-top: 32px; }
+  .edu h2 { font-size: 20px; margin: 0 0 14px; letter-spacing: -0.01em; }
+  .defense-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .def { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; min-width: 0; }
+  .def h3 { font-size: 15px; margin: 0 0 6px; }
+  .def p { margin: 0; font-size: 13.5px; color: var(--fg-muted); }
+  .note { margin-top: 20px; font-size: 12.5px; color: var(--fg-muted); border-left: 3px solid var(--border); padding: 4px 0 4px 14px; }
+
+  @media (max-width: 560px) { .defense-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="wrap">
+  <header class="page">
+    <p class="eyebrow">Laboratorio de concientización · Netblue</p>
+    <h1>SQL Injection</h1>
+    <p>Cuando una aplicación mete lo que escribes directamente dentro de una consulta a la base de datos, puedes <strong>cambiar el significado de esa consulta</strong>. Es la inyección SQL. Prueba el login en modo vulnerable y observa cómo <code>' OR '1'='1</code> entra sin contraseña — luego activa las consultas parametrizadas y mira cómo deja de funcionar.</p>
+  </header>
+
+  <section class="panel">
+    <div class="mode-toggle" id="mode">
+      <button data-mode="vuln" class="active">⚠ Código vulnerable (concatena)</button>
+      <button data-mode="safe">✓ Consultas parametrizadas</button>
+    </div>
+
+    <div class="login">
+      <div><label for="u">Usuario</label><input id="u" type="text" value="admin" autocomplete="off" spellcheck="false" /></div>
+      <div><label for="p">Contraseña</label><input id="p" type="text" value="' OR '1'='1" autocomplete="off" spellcheck="false" /></div>
+      <button id="go">Iniciar sesión</button>
+    </div>
+
+    <div class="payloads">
+      <span style="font-size:12px;color:var(--fg-muted);align-self:center;">Payloads de prueba:</span>
+      <button data-u="admin" data-p="' OR '1'='1">' OR '1'='1</button>
+      <button data-u="' OR 1=1 --" data-p="x">' OR 1=1 --</button>
+      <button data-u="admin" data-p="1234">credencial normal</button>
+    </div>
+
+    <div class="sql"><span class="lab">Consulta enviada a la base de datos</span><span id="query"></span></div>
+
+    <div class="result" id="result"></div>
+
+    <div class="db">
+      <h2 style="font-size:12px;font-family:var(--mono);letter-spacing:0.08em;text-transform:uppercase;color:var(--fg-muted);margin:16px 0 8px;">Tabla usuarios</h2>
+      <table id="db-table">
+        <thead><tr><th>id</th><th>usuario</th><th>rol</th><th>password_hash</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="edu">
+    <h2>Cómo defenderse</h2>
+    <div class="defense-grid">
+      <div class="def"><h3>Consultas parametrizadas</h3><p>La defensa principal: la entrada viaja como <i>dato</i>, nunca como parte del código SQL. El motor la trata como texto literal.</p></div>
+      <div class="def"><h3>ORM y prepared statements</h3><p>Las librerías modernas parametrizan por defecto. Evita construir SQL concatenando strings a mano.</p></div>
+      <div class="def"><h3>Mínimo privilegio</h3><p>La cuenta de la app solo debe poder hacer lo imprescindible, para limitar el daño si algo falla.</p></div>
+      <div class="def"><h3>Validación + WAF</h3><p>Valida tipos y longitudes, y usa un WAF que bloquee patrones de inyección conocidos como defensa en capas.</p></div>
+    </div>
+    <p class="note">Base de datos y login simulados en el navegador. No hay un motor SQL real detrás; la lógica reconoce el patrón clásico de inyección con fines didácticos.</p>
+
+  <nav class="lab-nav" aria-label="Otros simuladores del laboratorio">
+    <style>
+      .lab-nav{margin-top:34px;padding-top:22px;border-top:1px solid #D5DEE9}
+      .lab-nav .nav-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+      .lab-nav .nav-top a.portal{font-family:'Archivo','Segoe UI',sans-serif;font-size:14px;font-weight:700;text-decoration:none;color:#fff;background:#1657C7;padding:9px 16px;border-radius:6px}
+      .lab-nav .nav-top a.portal:hover{background:#0F2742}
+      .lab-nav .nav-top .lbl{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#44566C}
+      .lab-nav .chips{display:flex;flex-wrap:wrap;gap:8px}
+      .lab-nav .chips a{font-size:12.5px;text-decoration:none;color:#0F2742;background:#E8EEF6;border:1px solid #C3CFDD;padding:6px 11px;border-radius:999px}
+      .lab-nav .chips a:hover{border-color:#1657C7;color:#1657C7}
+    </style>
+    <div class="nav-top">
+      <a class="portal" href="/laboratorio/">⬡ Portal del laboratorio</a>
+      <span class="lbl">Otros simuladores</span>
+    </div>
+    <div class="chips">
+      <a href="/laboratorio/detecta-el-phishing/">Phishing</a>
+      <a href="/laboratorio/spear-phishing-bec/">Spear Phishing / BEC</a>
+      <a href="/laboratorio/smishing-vishing/">Smishing / Vishing</a>
+      <a href="/laboratorio/ataque-diccionario/">Diccionario</a>
+      <a href="/laboratorio/fuerza-bruta-calculadora/">Fuerza Bruta</a>
+      <a href="/laboratorio/credential-stuffing/">Credential Stuffing</a>
+      <a href="/laboratorio/rainbow-tables-salt/">Rainbow Tables</a>
+      <a href="/laboratorio/sql-injection/">SQL Injection</a>
+      <a href="/laboratorio/cross-site-scripting/">XSS</a>
+      <a href="/laboratorio/man-in-the-middle/">Man-in-the-Middle</a>
+      <a href="/laboratorio/dos-ddos/">DoS / DDoS</a>
+      <a href="/laboratorio/ransomware/">Ransomware</a>
+      <a href="/laboratorio/keylogger-troyanos/">Keylogger</a>
+    </div>
+  </nav>
+  </section>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var mode = "vuln";
+
+  var users = [
+    { id: 1, user: "admin", rol: "administrador", hash: "9f3a…c21b" },
+    { id: 2, user: "edgar", rol: "usuario", hash: "4b7e…a09d" },
+    { id: 3, user: "ana", rol: "usuario", hash: "e12c…77f0" }
+  ];
+
+  function renderDb(leakAll) {
+    $("db-table").querySelector("tbody").innerHTML = users.map(function (u) {
+      return '<tr class="' + (leakAll ? "leaked" : "") + '"><td>' + u.id + '</td><td>' + u.user + '</td><td>' + u.rol + '</td><td>' + u.hash + '</td></tr>';
+    }).join("");
+  }
+
+  function esc(s) { return s.replace(/[<>&]/g, function (c) { return ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c]; }); }
+
+  function detectInjection(s) {
+    return /('|--|\bOR\b\s+['"]?1['"]?\s*=\s*['"]?1|\bOR\b\s+1\s*=\s*1)/i.test(s);
+  }
+
+  function renderQuery(u, p) {
+    if (mode === "vuln") {
+      // concatenación directa
+      var injU = detectInjection(u), injP = detectInjection(p);
+      var uPart = '<span class="' + (injU ? "inj" : "str") + '">' + esc(u) + '</span>';
+      var pPart = '<span class="' + (injP ? "inj" : "str") + '">' + esc(p) + '</span>';
+      return '<span class="kw">SELECT</span> * <span class="kw">FROM</span> usuarios\n' +
+             '<span class="kw">WHERE</span> usuario = \'' + uPart + '\'\n' +
+             '  <span class="kw">AND</span> password = \'' + pPart + '\';';
+    } else {
+      return '<span class="kw">SELECT</span> * <span class="kw">FROM</span> usuarios\n' +
+             '<span class="kw">WHERE</span> usuario = <span class="kw">?</span>\n' +
+             '  <span class="kw">AND</span> password = <span class="kw">?</span>;\n\n' +
+             '<span style="color:var(--fg-muted)">params = [<span class="str">"' + esc(u) + '"</span>, <span class="str">"' + esc(p) + '"</span>]</span>';
+    }
+  }
+
+  function attempt() {
+    var u = $("u").value, p = $("p").value;
+    $("query").innerHTML = renderQuery(u, p);
+    var r = $("result");
+
+    var injected = detectInjection(u) || detectInjection(p);
+
+    if (mode === "vuln" && injected) {
+      r.className = "result show breach";
+      r.innerHTML = '✗ <b>¡Login burlado!</b> La condición <b>OR \'1\'=\'1\'</b> siempre es verdadera, así que la consulta devuelve <b>todas las filas</b> y la app te autentica — sin contraseña válida. Acabas de volcar toda la tabla de usuarios.';
+      renderDb(true);
+    } else if (mode === "vuln" && (u === "admin" && p === "1234")) {
+      r.className = "result show ok";
+      r.innerHTML = '✓ Login normal correcto como <b>admin</b>.';
+      renderDb(false);
+    } else if (mode === "safe" && injected) {
+      r.className = "result show ok";
+      r.innerHTML = '✓ <b>Inyección neutralizada.</b> La entrada se trató como texto literal: el motor buscó un usuario llamado exactamente <b>"' + esc(u) + '"</b> y no existe. Acceso denegado, como debe ser.';
+      renderDb(false);
+    } else {
+      r.className = "result show denied";
+      r.innerHTML = '⚠ Credenciales incorrectas. Acceso denegado.';
+      renderDb(false);
+    }
+  }
+
+  $("mode").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-mode]"); if (!b) return;
+    mode = b.dataset.mode;
+    [].forEach.call(this.querySelectorAll("button"), function (x) { x.classList.toggle("active", x === b); });
+    $("query").innerHTML = renderQuery($("u").value, $("p").value);
+    $("result").className = "result"; renderDb(false);
+  });
+  $("go").addEventListener("click", attempt);
+  $("u").addEventListener("input", function () { $("query").innerHTML = renderQuery($("u").value, $("p").value); });
+  $("p").addEventListener("input", function () { $("query").innerHTML = renderQuery($("u").value, $("p").value); });
+  document.querySelector(".payloads").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-u]"); if (!b) return;
+    $("u").value = b.dataset.u; $("p").value = b.dataset.p;
+    $("query").innerHTML = renderQuery($("u").value, $("p").value);
+  });
+
+  renderDb(false);
+  $("query").innerHTML = renderQuery($("u").value, $("p").value);
+})();
+</script>
+
+<script id="nb-track">(function(){try{if(localStorage.getItem('nb-notrack'))return;}catch(_){}try{var q=new URLSearchParams(location.search),d=JSON.stringify({p:location.pathname,r:document.referrer,s:q.get('utm_source')||''});if(navigator.sendBeacon)navigator.sendBeacon('/api/track',d);else fetch('/api/track',{method:'POST',body:d,keepalive:true});}catch(_){}})();</script>
+</body></html>

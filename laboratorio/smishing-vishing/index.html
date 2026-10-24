@@ -1,0 +1,276 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Smishing y Vishing | Laboratorio Netblue</title><meta name="description" content="El phishing por SMS y por llamada de voz, con sus tácticas de manipulación. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><link rel="canonical" href="https://netbluepr.com/laboratorio/smishing-vishing/"><link rel="icon" type="image/png" href="/favicon.png"><meta property="og:title" content="Smishing y Vishing | Laboratorio Netblue"><meta property="og:description" content="El phishing por SMS y por llamada de voz, con sus tácticas de manipulación. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><meta property="og:url" content="https://netbluepr.com/laboratorio/smishing-vishing/"><meta property="og:image" content="https://netbluepr.com/og-image.png"><meta property="og:locale" content="es_PR"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Smishing y Vishing</title>
+<style>
+  /* Layout: mockup de teléfono — pestañas SMS (smishing) y Llamada (vishing); clasificar mensajes y desglosar tácticas de voz */
+  :root {
+    --bg: #f4f6f8; --surface: #ffffff; --surface-2: #eef1f5; --border: #d4dae2;
+    --fg: #1a2330; --fg-muted: #5b6878; --accent: #0b6e99; --accent-soft: #d6ebf4;
+    --ok: #1a7f4b; --ok-soft: #d6f0e1; --warn: #b4690e; --warn-soft: #f7e7cc;
+    --crit: #c0392b; --crit-soft: #f7dcd8; --bubble: #e4e8ee;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1620; --surface: #161f2b; --surface-2: #1d2835; --border: #2b3a4a;
+      --fg: #e6edf4; --fg-muted: #93a1b2; --accent: #3fb6e0; --accent-soft: #10303d;
+      --ok: #4ecb8a; --ok-soft: #10311f; --warn: #e0a84a; --warn-soft: #3a2c12;
+      --crit: #f07567; --crit-soft: #3a1b17; --bubble: #26313f; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1620; --surface: #161f2b; --surface-2: #1d2835; --border: #2b3a4a;
+    --fg: #e6edf4; --fg-muted: #93a1b2; --accent: #3fb6e0; --accent-soft: #10303d;
+    --ok: #4ecb8a; --ok-soft: #10311f; --warn: #e0a84a; --warn-soft: #3a2c12;
+    --crit: #f07567; --crit-soft: #3a1b17; --bubble: #26313f; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--sans); line-height: 1.5; }
+  .wrap { max-width: 820px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 48px; }
+  header.page { margin-bottom: 20px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
+  h1 { font-size: clamp(28px, 6vw, 38px); line-height: 1.05; margin: 0 0 10px; text-wrap: balance; letter-spacing: -0.02em; }
+  header.page p { margin: 0; max-width: 64ch; color: var(--fg-muted); font-size: 15px; }
+
+  .tabs { display: flex; gap: 6px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 4px; margin: 20px 0; max-width: 360px; }
+  .tabs button { flex: 1; font-family: var(--sans); font-size: 14px; font-weight: 700; padding: 10px; border-radius: 8px; border: none; background: transparent; color: var(--fg-muted); cursor: pointer; }
+  .tabs button.active { background: var(--accent); color: #fff; }
+
+  .stage { display: grid; grid-template-columns: 300px 1fr; gap: 20px; align-items: start; }
+
+  /* teléfono */
+  .phone { background: var(--surface); border: 1px solid var(--border); border-radius: 28px; padding: 14px; box-shadow: 0 6px 24px rgba(0,0,0,0.08); }
+  .phone-screen { background: var(--surface-2); border-radius: 18px; padding: 14px; min-height: 420px; display: flex; flex-direction: column; }
+  .phone-bar { display: flex; justify-content: space-between; font-size: 11px; color: var(--fg-muted); font-family: var(--mono); margin-bottom: 12px; }
+  .sms-from { font-size: 13px; font-weight: 700; text-align: center; padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 14px; color: var(--fg-muted); }
+  .bubble { background: var(--bubble); border-radius: 16px 16px 16px 4px; padding: 11px 13px; font-size: 13.5px; margin-bottom: 4px; max-width: 92%; word-break: break-word; }
+  .bubble .link { color: var(--accent); text-decoration: underline; word-break: break-all; }
+  .bubble-time { font-size: 10px; color: var(--fg-muted); margin-bottom: 14px; font-family: var(--mono); }
+
+  /* panel llamada */
+  .call-screen { text-align: center; padding-top: 30px; }
+  .call-avatar { width: 84px; height: 84px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-size: 34px; margin: 0 auto 14px; }
+  .call-name { font-size: 20px; font-weight: 700; }
+  .call-sub { font-size: 13px; color: var(--fg-muted); font-family: var(--mono); margin-top: 4px; }
+  .call-status { margin-top: 20px; font-size: 13px; color: var(--ok); font-family: var(--mono); }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; min-width: 0; }
+  .panel h2 { font-size: 12px; font-family: var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); margin: 0 0 14px; font-weight: 600; }
+
+  .actions { display: flex; gap: 10px; }
+  .actions button { flex: 1; font-size: 14px; font-weight: 700; padding: 12px; border-radius: 10px; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--fg); }
+  .actions button.legit:hover { border-color: var(--ok); color: var(--ok); }
+  .actions button.scam:hover { border-color: var(--crit); color: var(--crit); }
+  .actions button:disabled { opacity: 0.5; cursor: default; }
+
+  .feedback { margin-top: 14px; border-radius: 12px; padding: 15px; display: none; border: 1px solid transparent; }
+  .feedback.show { display: block; }
+  .feedback.correct { background: var(--ok-soft); border-color: var(--ok); }
+  .feedback.wrong { background: var(--crit-soft); border-color: var(--crit); }
+  .feedback h3 { margin: 0 0 8px; font-size: 15px; }
+  .feedback ul { margin: 8px 0 0; padding-left: 20px; }
+  .feedback li { font-size: 13px; margin-bottom: 5px; }
+  .feedback li .flag { color: var(--crit); font-weight: 700; }
+  .feedback li .safe { color: var(--ok); font-weight: 700; }
+  .next { margin-top: 12px; width: 100%; font-size: 14px; font-weight: 700; padding: 12px; border-radius: 10px; cursor: pointer; border: none; background: var(--accent); color: #fff; display: none; }
+  .next.show { display: block; }
+
+  /* vishing transcript */
+  .transcript { display: flex; flex-direction: column; gap: 12px; }
+  .line { display: flex; gap: 10px; align-items: flex-start; }
+  .line .who { font-family: var(--mono); font-size: 11px; font-weight: 700; padding: 3px 7px; border-radius: 6px; flex-shrink: 0; width: 72px; text-align: center; }
+  .line .who.att { background: var(--crit-soft); color: var(--crit); }
+  .line .who.you { background: var(--accent-soft); color: var(--accent); }
+  .line .say { font-size: 13.5px; }
+  .line .say .tactic { display: block; margin-top: 4px; font-size: 11.5px; color: var(--crit); font-weight: 600; }
+
+  .edu { margin-top: 32px; }
+  .edu h2 { font-size: 20px; margin: 0 0 14px; letter-spacing: -0.01em; }
+  .defense-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .def { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; min-width: 0; }
+  .def h3 { font-size: 15px; margin: 0 0 6px; }
+  .def p { margin: 0; font-size: 13.5px; color: var(--fg-muted); }
+  .note { margin-top: 20px; font-size: 12.5px; color: var(--fg-muted); border-left: 3px solid var(--border); padding: 4px 0 4px 14px; }
+
+  @media (max-width: 720px) { .stage { grid-template-columns: 1fr; } .phone { max-width: 320px; margin: 0 auto; } .defense-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="wrap">
+  <header class="page">
+    <p class="eyebrow">Laboratorio de concientización · Netblue</p>
+    <h1>Smishing y Vishing</h1>
+    <p>El phishing también llega por <strong>SMS</strong> (smishing) y por <strong>llamada de voz</strong> (vishing). El canal cambia, las tácticas no: urgencia, autoridad falsa y miedo. Clasifica los mensajes de texto y repasa una llamada de vishing línea por línea.</p>
+  </header>
+
+  <div class="tabs">
+    <button data-tab="sms" class="active">📱 Smishing (SMS)</button>
+    <button data-tab="call">📞 Vishing (llamada)</button>
+  </div>
+
+  <!-- SMS -->
+  <div class="stage" id="tab-sms">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="phone-bar"><span>9:41</span><span>📶 🔋</span></div>
+        <div class="sms-from" id="sms-from"></div>
+        <div id="sms-thread"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2 id="sms-counter">Mensaje 1</h2>
+      <div class="actions">
+        <button class="legit" id="sms-legit">✓ Legítimo</button>
+        <button class="scam" id="sms-scam">⚠ Smishing</button>
+      </div>
+      <div class="feedback" id="sms-fb"></div>
+      <button class="next" id="sms-next">Siguiente →</button>
+    </div>
+  </div>
+
+  <!-- CALL -->
+  <div class="stage" id="tab-call" hidden>
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="phone-bar"><span>9:41</span><span>📶 🔋</span></div>
+        <div class="call-screen">
+          <div class="call-avatar">👤</div>
+          <div class="call-name">Soporte Técnico</div>
+          <div class="call-sub">+1 (787) 000-0000</div>
+          <div class="call-status">● Llamada en curso 02:14</div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Transcripción — tácticas de manipulación</h2>
+      <div class="transcript">
+        <div class="line"><div class="who att">Llamante</div><div class="say">"Hola, le llamo del <b>departamento de fraudes de su banco</b>. Detectamos un cargo sospechoso."<span class="tactic">⚠ Autoridad falsa + miedo inmediato</span></div></div>
+        <div class="line"><div class="who att">Llamante</div><div class="say">"Esto es <b>muy urgente</b>, si no actuamos ahora perderá su dinero."<span class="tactic">⚠ Urgencia para bloquear el pensamiento crítico</span></div></div>
+        <div class="line"><div class="who att">Llamante</div><div class="say">"Para verificar su identidad necesito su <b>número de tarjeta y el código de seguridad</b>."<span class="tactic">⚠ Un banco real NUNCA pide esos datos por teléfono</span></div></div>
+        <div class="line"><div class="who att">Llamante</div><div class="say">"Le enviaré un <b>código SMS</b>, dígamelo para confirmar que es usted."<span class="tactic">⚠ Ese código es tu MFA: lo quieren para entrar a tu cuenta</span></div></div>
+        <div class="line"><div class="who you">Tú</div><div class="say">"Voy a colgar y llamar al número oficial que está detrás de mi tarjeta."<span class="tactic" style="color:var(--ok)">✓ Respuesta correcta: cuelga y verifica por el canal oficial</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="edu">
+    <h2>Cómo defenderse</h2>
+    <div class="defense-grid">
+      <div class="def"><h3>Cuelga y vuelve a llamar</h3><p>Usa el número oficial de la web o del reverso de tu tarjeta. Nunca el que te da quien llama.</p></div>
+      <div class="def"><h3>Nadie legítimo pide tu código MFA</h3><p>Códigos SMS, contraseñas y CVV no se comparten por teléfono ni por mensaje. Jamás.</p></div>
+      <div class="def"><h3>No hagas clic en enlaces de SMS</h3><p>Entra tú mismo al sitio oficial escribiendo la dirección. Los acortadores ocultan el destino real.</p></div>
+      <div class="def"><h3>La urgencia es la señal</h3><p>Si te presionan para actuar "ya mismo", es justo el momento de frenar y verificar.</p></div>
+    </div>
+    <p class="note">Mensajes y llamada ficticios con fines de entrenamiento. Ningún enlace ni número de esta página es funcional.</p>
+
+  <nav class="lab-nav" aria-label="Otros simuladores del laboratorio">
+    <style>
+      .lab-nav{margin-top:34px;padding-top:22px;border-top:1px solid #D5DEE9}
+      .lab-nav .nav-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+      .lab-nav .nav-top a.portal{font-family:'Archivo','Segoe UI',sans-serif;font-size:14px;font-weight:700;text-decoration:none;color:#fff;background:#1657C7;padding:9px 16px;border-radius:6px}
+      .lab-nav .nav-top a.portal:hover{background:#0F2742}
+      .lab-nav .nav-top .lbl{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#44566C}
+      .lab-nav .chips{display:flex;flex-wrap:wrap;gap:8px}
+      .lab-nav .chips a{font-size:12.5px;text-decoration:none;color:#0F2742;background:#E8EEF6;border:1px solid #C3CFDD;padding:6px 11px;border-radius:999px}
+      .lab-nav .chips a:hover{border-color:#1657C7;color:#1657C7}
+    </style>
+    <div class="nav-top">
+      <a class="portal" href="/laboratorio/">⬡ Portal del laboratorio</a>
+      <span class="lbl">Otros simuladores</span>
+    </div>
+    <div class="chips">
+      <a href="/laboratorio/detecta-el-phishing/">Phishing</a>
+      <a href="/laboratorio/spear-phishing-bec/">Spear Phishing / BEC</a>
+      <a href="/laboratorio/smishing-vishing/">Smishing / Vishing</a>
+      <a href="/laboratorio/ataque-diccionario/">Diccionario</a>
+      <a href="/laboratorio/fuerza-bruta-calculadora/">Fuerza Bruta</a>
+      <a href="/laboratorio/credential-stuffing/">Credential Stuffing</a>
+      <a href="/laboratorio/rainbow-tables-salt/">Rainbow Tables</a>
+      <a href="/laboratorio/sql-injection/">SQL Injection</a>
+      <a href="/laboratorio/cross-site-scripting/">XSS</a>
+      <a href="/laboratorio/man-in-the-middle/">Man-in-the-Middle</a>
+      <a href="/laboratorio/dos-ddos/">DoS / DDoS</a>
+      <a href="/laboratorio/ransomware/">Ransomware</a>
+      <a href="/laboratorio/keylogger-troyanos/">Keylogger</a>
+    </div>
+  </nav>
+  </section>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+
+  // --- tabs ---
+  document.querySelector(".tabs").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-tab]"); if (!b) return;
+    [].forEach.call(this.querySelectorAll("button"), function (x) { x.classList.toggle("active", x === b); });
+    $("tab-sms").hidden = b.dataset.tab !== "sms";
+    $("tab-call").hidden = b.dataset.tab !== "call";
+  });
+
+  // --- smishing ---
+  var msgs = [
+    { scam: true, from: "+1 787-555-0199", time: "ahora",
+      text: 'Su paquete está retenido en aduana. Pague $2.95 para liberarlo: <span class="link">http://correos-pr.delivery-pay.co/x9</span>',
+      flags: [
+        { bad: true, t: "Dominio raro que imita a una paquetería." },
+        { bad: true, t: "Pide un micro-pago con tarjeta por SMS." },
+        { bad: true, t: "¿Esperabas un paquete? Si no, es anzuelo." }
+      ] },
+    { scam: false, from: "VERIFICA", time: "ahora",
+      text: 'Tu código de verificación es 448120. No lo compartas con nadie. Caduca en 10 minutos.',
+      flags: [
+        { bad: false, t: "Te entrega un código que TÚ solicitaste." },
+        { bad: false, t: "Advierte explícitamente que no lo compartas." },
+        { bad: false, t: "Solo es peligroso si alguien te lo pide: nunca lo dictes." }
+      ] },
+    { scam: true, from: "+58 412-555-0143", time: "ahora",
+      text: '¡Felicidades! Fuiste seleccionado para un bono de $500. Reclama con tus datos aquí: <span class="link">bit.ly/bono-rapido</span>',
+      flags: [
+        { bad: true, t: "Premio que no solicitaste: demasiado bueno para ser verdad." },
+        { bad: true, t: "Enlace acortado que oculta el destino real." },
+        { bad: true, t: "Número internacional desconocido." }
+      ] },
+    { scam: false, from: "Mi Banco", time: "ayer",
+      text: 'Compra aprobada de $42.30 en Supermercado Central. Si no reconoces el cargo, llama al número oficial detrás de tu tarjeta.',
+      flags: [
+        { bad: false, t: "Notificación informativa, no pide datos." },
+        { bad: false, t: "Te remite al número OFICIAL, no a uno nuevo." },
+        { bad: false, t: "No incluye enlaces para hacer clic." }
+      ] }
+  ];
+  for (var i = msgs.length - 1; i > 0; i--) { var j = (Math.random() * (i + 1)) | 0; var t = msgs[i]; msgs[i] = msgs[j]; msgs[j] = t; }
+
+  var idx = 0, answered = false;
+  function renderSms() {
+    var m = msgs[idx]; answered = false;
+    $("sms-from").textContent = m.from;
+    $("sms-thread").innerHTML = '<div class="bubble">' + m.text + '</div><div class="bubble-time">' + m.time + '</div>';
+    $("sms-counter").textContent = "Mensaje " + (idx + 1) + " / " + msgs.length;
+    $("sms-fb").className = "feedback"; $("sms-fb").innerHTML = "";
+    $("sms-next").className = "next";
+    $("sms-legit").disabled = false; $("sms-scam").disabled = false;
+  }
+  function answerSms(saidScam) {
+    if (answered) return; answered = true;
+    var m = msgs[idx]; var correct = (saidScam === m.scam);
+    $("sms-legit").disabled = true; $("sms-scam").disabled = true;
+    var fb = $("sms-fb");
+    fb.className = "feedback show " + (correct ? "correct" : "wrong");
+    var label = m.scam ? "era SMISHING" : "era LEGÍTIMO";
+    var items = m.flags.map(function (f) { return '<li><span class="' + (f.bad ? "flag" : "safe") + '">' + (f.bad ? "⚠" : "✓") + '</span> ' + f.t + '</li>'; }).join("");
+    fb.innerHTML = '<h3>' + (correct ? "✓ Correcto" : "✗ No del todo") + ' — ' + label + '</h3><ul>' + items + '</ul>';
+    $("sms-next").className = "next show";
+    if (idx + 1 >= msgs.length) $("sms-next").textContent = "Reiniciar ↺";
+  }
+  $("sms-legit").addEventListener("click", function () { answerSms(false); });
+  $("sms-scam").addEventListener("click", function () { answerSms(true); });
+  $("sms-next").addEventListener("click", function () {
+    idx = (idx + 1) % msgs.length; $("sms-next").textContent = "Siguiente →"; renderSms();
+  });
+  renderSms();
+})();
+</script>
+
+<script id="nb-track">(function(){try{if(localStorage.getItem('nb-notrack'))return;}catch(_){}try{var q=new URLSearchParams(location.search),d=JSON.stringify({p:location.pathname,r:document.referrer,s:q.get('utm_source')||''});if(navigator.sendBeacon)navigator.sendBeacon('/api/track',d);else fetch('/api/track',{method:'POST',body:d,keepalive:true});}catch(_){}})();</script>
+</body></html>

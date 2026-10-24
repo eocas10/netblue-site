@@ -1,0 +1,338 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Ataque Man-in-the-Middle | Laboratorio Netblue</title><meta name="description" content="Cómo un atacante se interpone e intercepta las comunicaciones. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><link rel="canonical" href="https://netbluepr.com/laboratorio/ataque-man-in-the-middle/"><link rel="icon" type="image/png" href="/favicon.png"><meta property="og:title" content="Ataque Man-in-the-Middle | Laboratorio Netblue"><meta property="og:description" content="Cómo un atacante se interpone e intercepta las comunicaciones. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><meta property="og:url" content="https://netbluepr.com/laboratorio/ataque-man-in-the-middle/"><meta property="og:image" content="https://netbluepr.com/og-image.png"><meta property="og:locale" content="es_PR"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Ataque Man-in-the-Middle</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Archivo:wght@700&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout: a single player frame (diagram + side panel that changes per step, controls below), then a static step list. */
+:root{
+  --bg:#EDF0F4; --surface:#FFFFFF; --sunken:#E3E8EF; --ink:#101B2D; --muted:#55657C; --line:#C9D2DE;
+  --legit:#0B6FB8; --threat:#C8323A; --safe:#0F8A5F; --relay:#B26A00;
+  --threat-soft:#FBE9EA; --safe-soft:#E3F4EC; --on-color:#FFFFFF;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Barlow","Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0A1426; --surface:#14233D; --sunken:#0E1B31; --ink:#E8EEF7; --muted:#8CA0BD; --line:#2C4064;
+  --legit:#38BDF8; --threat:#F2555A; --safe:#34D399; --relay:#FBBF24;
+  --threat-soft:#2A121C; --safe-soft:#0E2A26; --on-color:#0A1426; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0A1426; --surface:#14233D; --sunken:#0E1B31; --ink:#E8EEF7; --muted:#8CA0BD; --line:#2C4064;
+  --legit:#38BDF8; --threat:#F2555A; --safe:#34D399; --relay:#FBBF24;
+  --threat-soft:#2A121C; --safe-soft:#0E2A26; --on-color:#0A1426; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;padding-inline:16px;padding-block:28px 48px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.eyebrow{font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0}
+h1,h2,h3,p,ol,ul{margin:0}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(34px,6vw,54px);line-height:1;text-transform:uppercase;letter-spacing:.01em;text-wrap:balance}
+.lede{color:var(--muted);max-width:62ch;font-size:17px}
+header{display:flex;flex-direction:column;gap:10px}
+
+.player{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.main{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+.stage{display:flex;flex-direction:column;gap:10px;padding:18px 18px 14px;min-width:0}
+.stephead{display:flex;flex-direction:column;gap:2px}
+.stephead .n{font-family:var(--display);font-weight:600;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--legit)}
+.stephead h2{font-family:var(--display);font-weight:700;font-size:clamp(24px,3.4vw,32px);line-height:1.1;text-transform:uppercase;letter-spacing:.01em}
+canvas{display:block;width:100%;background:var(--sunken);border-radius:10px}
+.caption{min-height:3em;font-size:16.5px;font-weight:500;max-width:60ch}
+
+.side{border-left:1px solid var(--line);padding:18px;min-width:0;display:flex;flex-direction:column}
+.panel{display:flex;flex-direction:column;gap:10px}
+.panel[hidden]{display:none}
+.panel h3{font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.rv{opacity:0;transform:translateY(6px);transition:opacity .35s,transform .35s}
+.rv.on{opacity:1;transform:none}
+.note{color:var(--muted);font-size:15px}
+
+.hop{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--sunken);border-radius:8px;font-weight:500}
+.hop b{font-family:var(--display);font-size:18px;color:var(--legit);width:1.2em}
+
+.net{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--sunken);border-radius:8px;border:2px solid transparent;flex-wrap:wrap}
+.net .ssid{font-family:var(--mono);font-size:13.5px;min-width:0;overflow-wrap:anywhere;flex:1 1 auto}
+.net:has(.conn.on){border-color:var(--threat);background:var(--threat-soft)}
+.bars{display:inline-flex;align-items:flex-end;gap:2px;height:16px}
+.bars i{width:4px;background:var(--line);border-radius:1px}
+.bars i:nth-child(1){height:5px}.bars i:nth-child(2){height:8px}.bars i:nth-child(3){height:12px}.bars i:nth-child(4){height:16px}
+.bars.s2 i:nth-child(-n+2){background:var(--legit)}
+.bars.s4 i{background:var(--threat)}
+.tag{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.1em;padding:1px 8px;border-radius:99px;background:var(--threat);color:var(--on-color)}
+.conn{font-size:13px;font-weight:600;color:var(--threat);flex-basis:100%}
+
+.cap{background:var(--threat-soft);border:1px solid var(--threat);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.cap div{font-family:var(--mono);font-size:13px;overflow-wrap:anywhere}
+.cap div span{color:var(--muted)}
+
+.can{padding:10px 12px;background:var(--sunken);border-radius:8px}
+.can strong{font-family:var(--display);font-size:20px;text-transform:uppercase;letter-spacing:.03em;display:block;line-height:1.2}
+.can.a strong{color:var(--legit)}.can.b strong{color:var(--relay)}.can.c strong{color:var(--threat)}
+.can span{font-size:15px;color:var(--muted)}
+
+.checks{list-style:none;padding:0;display:flex;flex-direction:column;gap:7px}
+.checks li{display:flex;gap:9px;align-items:flex-start;font-size:15px;font-weight:500;line-height:1.35}
+.checks li::before{content:"";flex:none;width:16px;height:16px;margin-top:2px;border-radius:50%;background:var(--safe)}
+.checks li{position:relative}
+.checks li::after{content:"";position:absolute;left:5px;top:5px;width:5px;height:8px;border:solid var(--on-color);border-width:0 2px 2px 0;transform:rotate(45deg) scale(.8)}
+.vpn{background:var(--safe-soft);border:1px solid var(--safe);border-radius:10px;padding:10px 12px;font-size:14px}
+.vpn code{font-family:var(--mono);color:var(--threat);font-size:13px}
+
+.controls{border-top:1px solid var(--line);padding:12px 18px;display:flex;flex-direction:column;gap:10px}
+.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--legit);outline-offset:2px}
+#play{background:var(--ink);color:var(--bg);border:0;border-radius:8px;padding:7px 16px;font-weight:600;min-width:108px}
+#seek{flex:1 1 180px;min-width:0;accent-color:var(--legit)}
+.time{font-family:var(--mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{background:transparent;border:1px solid var(--line);border-radius:99px;padding:3px 12px;font-size:14px;color:var(--muted)}
+.chips button[aria-current="true"]{background:var(--legit);border-color:var(--legit);color:var(--on-color);font-weight:600}
+
+.summary h2{font-family:var(--display);font-weight:700;font-size:26px;text-transform:uppercase;letter-spacing:.01em;margin-bottom:12px}
+.summary ol{padding-left:1.3em;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px 40px}
+.summary li{padding-left:4px}
+.summary li::marker{font-family:var(--display);font-weight:700;color:var(--legit);font-size:18px}
+.summary li strong{display:block}
+.summary li span{color:var(--muted);font-size:15.5px}
+
+.lab-nav{margin-top:8px;padding-top:22px;border-top:1px solid #D5DEE9}
+.lab-nav .nav-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.lab-nav .nav-top a.portal{font-family:"Archivo","Barlow Condensed",sans-serif;font-size:15px;font-weight:700;letter-spacing:.03em;text-decoration:none;color:#fff;background:#1657C7;padding:9px 16px;border-radius:6px}
+.lab-nav .nav-top a.portal:hover{background:#0F2742}
+.lab-nav .nav-top .lbl{font-family:"Source Sans 3",sans-serif;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#44566C}
+.lab-nav .chips2{display:flex;flex-wrap:wrap;gap:8px}
+.lab-nav .chips2 a{font-family:"Source Sans 3",sans-serif;font-size:13px;text-decoration:none;color:#0F2742;background:#E8EEF6;border:1px solid #C3CFDD;padding:6px 11px;border-radius:999px}
+.lab-nav .chips2 a:hover{border-color:#1657C7;color:#1657C7}
+
+@media (max-width:820px){
+  .main{grid-template-columns:minmax(0,1fr)}
+  .side{border-left:0;border-top:1px solid var(--line);min-height:250px}
+  .stage{padding:14px 14px 10px}.side,.controls{padding-inline:14px}
+}
+@media (prefers-reduced-motion:reduce){.rv{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Seguridad en WiFi público</p>
+    <h1>Ataque Man-in-the-Middle</h1>
+    <p class="lede">Cómo un atacante se coloca entre tu equipo e internet cuando te conectas al WiFi gratis de un aeropuerto, y qué hacer para que no te afecte.</p>
+  </header>
+
+  <section class="player" aria-label="Animación del ataque">
+    <div class="main">
+      <div class="stage">
+        <div class="stephead"><span class="n" id="stepn">Paso 1 de 6</span><h2 id="stept">Conexión normal</h2></div>
+        <canvas id="cv" role="img" aria-label="Diagrama animado: el viajero, el WiFi del aeropuerto, el atacante e internet"></canvas>
+        <p class="caption" id="cap"></p>
+      </div>
+      <aside class="side">
+        <div class="panel" data-steps="0">
+          <h3>Ruta de tus datos</h3>
+          <div class="hop rv" data-at="1"><b>1</b> Tu laptop o celular</div>
+          <div class="hop rv" data-at="2.5"><b>2</b> Router del aeropuerto</div>
+          <div class="hop rv" data-at="4"><b>3</b> Internet: banco, correo, trabajo</div>
+          <p class="note rv" data-at="5.5">Nadie más interviene en el camino.</p>
+        </div>
+        <div class="panel" data-steps="1,2" hidden>
+          <h3>Redes WiFi disponibles</h3>
+          <div class="net"><span class="ssid">Aeropuerto_WiFi_Gratis</span><span class="bars s2"><i></i><i></i><i></i><i></i></span></div>
+          <div class="net rv" data-at="12"><span class="ssid">Aeropuerto_WiFi_Gratis</span><span class="tag rv" data-at="14.5">FALSA</span><span class="bars s4"><i></i><i></i><i></i><i></i></span><span class="conn rv" data-at="22">Conectado</span></div>
+          <p class="note rv" data-at="15.5">Mismo nombre, señal más fuerte. En tu pantalla no hay forma de distinguirlas, y tu equipo suele preferir la de mejor señal.</p>
+        </div>
+        <div class="panel" data-steps="3" hidden>
+          <h3>Lo que puede capturar</h3>
+          <div class="cap">
+            <div class="rv" data-at="29.5"><span>sitios:</span> banco.com, correo…</div>
+            <div class="rv" data-at="31"><span>usuario:</span> maria@correo.com</div>
+            <div class="rv" data-at="32.5"><span>contraseña:</span> ••••••••••</div>
+            <div class="rv" data-at="34"><span>cookies de sesión:</span> acceso a tu cuenta</div>
+          </div>
+          <p class="note rv" data-at="35.5">Esto aplica a todo lo que no viaje cifrado.</p>
+        </div>
+        <div class="panel" data-steps="4" hidden>
+          <h3>Qué puede hacer</h3>
+          <div class="can a rv" data-at="39.5"><strong>Espiar</strong><span>Leer lo que envías y recibes cuando no viaja cifrado.</span></div>
+          <div class="can b rv" data-at="41"><strong>Modificar</strong><span>Alterar páginas o descargas antes de que lleguen a ti.</span></div>
+          <div class="can c rv" data-at="42.5"><strong>Suplantar</strong><span>Mostrarte un portal o login falso para robar tus credenciales.</span></div>
+        </div>
+        <div class="panel" data-steps="5" hidden>
+          <h3>Cómo protegerte</h3>
+          <ul class="checks">
+            <li class="rv" data-at="47.5">Confirma el nombre exacto de la red con el personal</li>
+            <li class="rv" data-at="48.3">Usa una VPN siempre que estés en WiFi público</li>
+            <li class="rv" data-at="49.1">Busca HTTPS y nunca ignores alertas de certificado</li>
+            <li class="rv" data-at="49.9">Desactiva la conexión automática a redes WiFi</li>
+            <li class="rv" data-at="50.7">Para banca o trabajo, usa los datos de tu celular</li>
+            <li class="rv" data-at="51.5">Activa la autenticación multifactor (MFA)</li>
+          </ul>
+          <div class="vpn rv" data-at="53">Con VPN, el atacante solo ve: <code>x9$Kq#7f…Zp2@Lw…</code></div>
+        </div>
+      </aside>
+    </div>
+    <div class="controls">
+      <div class="row">
+        <button id="play" type="button">Pausar</button>
+        <input id="seek" type="range" min="0" max="59" step="0.1" value="0" aria-label="Posición de la animación">
+        <span class="time" id="time">0:00 / 0:59</span>
+      </div>
+      <div class="chips" id="chips"></div>
+    </div>
+  </section>
+
+  <section class="summary">
+    <h2>Los seis pasos</h2>
+    <ol>
+      <li><strong>Conexión normal</strong><span>Tus datos van de tu equipo al router del aeropuerto y de ahí a internet.</span></li>
+      <li><strong>La red gemela</strong><span>Un atacante cercano crea una red con el mismo nombre que la oficial y con señal más fuerte.</span></li>
+      <li><strong>La trampa</strong><span>Tu equipo se conecta a la red falsa. Todo se ve igual y el internet funciona.</span></li>
+      <li><strong>El intermediario</strong><span>El atacante reenvía tu tráfico a internet y ve todo lo que no viaja cifrado.</span></li>
+      <li><strong>El daño</strong><span>Puede espiar, modificar lo que recibes o mostrarte páginas falsas.</span></li>
+      <li><strong>La defensa</strong><span>Verifica la red, usa VPN, exige HTTPS, desactiva la conexión automática, usa datos móviles para lo sensible y activa MFA.</span></li>
+    </ol>
+  </section>
+
+  <nav class="lab-nav">
+    <div class="nav-top">
+      <a class="portal" href="/laboratorio/">⬡ Laboratorio Netblue</a>
+      <span class="lbl">Otros simuladores</span>
+    </div>
+    <div class="chips2">
+      <a href="/laboratorio/detecta-el-phishing/">Phishing</a>
+      <a href="/laboratorio/spear-phishing-bec/">Spear phishing</a>
+      <a href="/laboratorio/smishing-vishing/">Smishing y vishing</a>
+      <a href="/laboratorio/ingenieria-social/">Ingeniería social</a>
+      <a href="/laboratorio/clic-enlace-phishing/">Enlace de phishing</a>
+      <a href="/laboratorio/ataque-diccionario/">Ataque de diccionario</a>
+      <a href="/laboratorio/fuerza-bruta-calculadora/">Fuerza bruta</a>
+      <a href="/laboratorio/credential-stuffing/">Credential stuffing</a>
+      <a href="/laboratorio/password-spraying/">Password spraying</a>
+      <a href="/laboratorio/rainbow-tables-salt/">Rainbow tables</a>
+      <a href="/laboratorio/tabla-arcoiris/">Tabla arcoíris</a>
+      <a href="/laboratorio/ataque-cumpleanos/">Ataque de cumpleaños</a>
+      <a href="/laboratorio/volcado-de-memoria/">Volcado de memoria</a>
+      <a href="/laboratorio/sql-injection/">SQL injection</a>
+      <a href="/laboratorio/cross-site-scripting/">XSS</a>
+      <a href="/laboratorio/man-in-the-middle/">Man-in-the-middle</a>
+      <a href="/laboratorio/dos-ddos/">DoS y DDoS</a>
+      <a href="/laboratorio/wardriving/">Wardriving</a>
+      <a href="/laboratorio/bluesnarfing/">Bluesnarfing</a>
+      <a href="/laboratorio/ransomware/">Ransomware</a>
+      <a href="/laboratorio/keylogger-troyanos/">Keylogger</a>
+      <a href="/laboratorio/troyano-rat/">Troyano RAT</a>
+      <a href="/laboratorio/reverse-shell/">Reverse shell</a>
+    </div>
+  </nav>
+</div>
+
+<script>
+(function(){
+const S=[0,9,19,27,39,47,59], END=59;
+const STEPS=[
+ {t:"Conexión normal",c:[[0,"Normalmente tus datos viajan de tu equipo al router del aeropuerto, y de ahí a internet."]]},
+ {t:"El atacante crea una red gemela",c:[[9,"Un atacante cercano crea una red WiFi con el mismo nombre que la oficial: un “gemelo malvado” con señal más fuerte."]]},
+ {t:"La víctima cae en la red falsa",c:[[19,"Tu equipo se conecta a la red falsa. Para ti todo se ve igual: mismo nombre, internet funcionando."]]},
+ {t:"Todo pasa por el atacante",c:[[27,"El atacante reenvía tu tráfico a internet, pero queda en el medio y puede ver todo lo que no viaje cifrado."]]},
+ {t:"Qué puede hacer el atacante",c:[[39,"Como controla la conexión, el atacante decide qué ves y qué llega a su destino."]]},
+ {t:"Cómo protegerte",c:[[47,"No puedes evitar que exista una red falsa, pero sí puedes evitar que te sirva de trampa."],[53,"Con una VPN tu tráfico viaja cifrado: aunque alguien esté en el medio, no puede leerlo."]]}
+];
+const $=id=>document.getElementById(id);
+const cv=$("cv"),ctx=cv.getContext("2d"),playB=$("play"),seek=$("seek"),timeEl=$("time"),capEl=$("cap"),chips=$("chips");
+const panels=[...document.querySelectorAll(".panel")],timed=[...document.querySelectorAll("[data-at]")];
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+let t=reduce?33:0,playing=!reduce,last=0,cw=0,ch=0,dpr=1,C={},curStep=-1,curCap="",dragging=false;
+
+STEPS.forEach((s,i)=>{const b=document.createElement("button");b.type="button";b.textContent=(i+1)+" · "+s.t;b.addEventListener("click",()=>{t=S[i];playing=!reduce;sync()});chips.appendChild(b)});
+
+function theme(){const cs=getComputedStyle(document.documentElement);
+  for(const k of ["surface","sunken","ink","muted","line","legit","threat","safe","relay"])C[k]=cs.getPropertyValue("--"+k).trim()}
+theme();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",theme);
+new MutationObserver(theme).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+
+function resize(){const w=cv.clientWidth;if(!w)return;cw=w;ch=Math.round(Math.min(470,Math.max(300,w*0.62)));dpr=window.devicePixelRatio||1;
+  cv.style.height=ch+"px";cv.width=Math.round(cw*dpr);cv.height=Math.round(ch*dpr)}
+new ResizeObserver(resize).observe(cv);resize();
+
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const ease=x=>{x=clamp(x);return x*x*(3-2*x)};
+const pr=(x,a,b)=>ease((x-a)/(b-a));
+const lerp=(a,b,u)=>[a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u];
+const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+function pathPt(p,u){const seg=[];let tot=0;for(let i=0;i<p.length-1;i++){seg.push(dist(p[i],p[i+1]));tot+=seg[i]}
+  let x=clamp(u)*tot;for(let i=0;i<seg.length;i++){if(x<=seg[i])return lerp(p[i],p[i+1],x/seg[i]);x-=seg[i]}return p[p.length-1]}
+const al=a=>{ctx.globalAlpha=clamp(a)};
+function seg(a,b,col,w,a_,dash){al(a_);ctx.strokeStyle=col;ctx.lineWidth=w;ctx.lineCap="round";ctx.setLineDash(dash||[]);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();ctx.setLineDash([])}
+function disc(x,y,r,fill,stroke,w){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=w;ctx.stroke()}}
+function rrect(x,y,w,h,r,fill,stroke,lw){ctx.beginPath();ctx.roundRect(x,y,w,h,r);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw;ctx.stroke()}}
+function poly(pts,fill){ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fillStyle=fill;ctx.fill()}
+function text(s,x,y,font,col,align){ctx.font=font;ctx.fillStyle=col;ctx.textAlign=align||"center";ctx.textBaseline="top";ctx.fillText(s,x,y)}
+
+function waves(c,col,a,n,span,speed,r,k){for(let i=0;i<n;i++){const f=((t*speed+i*span/n)%span)/span;al(a*(1-f)*0.5);disc(c[0],c[1],r+f*span*k,null,col,1.5)}}
+function laptop(c,k){const[x,y]=c;rrect(x-26*k,y-24*k,52*k,36*k,4*k,C.sunken,C.ink,3*k);poly([[x-36*k,y+16*k],[x+36*k,y+16*k],[x+30*k,y+24*k],[x-30*k,y+24*k]],C.ink)}
+function router(c,k){const[x,y]=c;ctx.lineCap="round";ctx.strokeStyle=C.legit;ctx.lineWidth=3*k;ctx.beginPath();ctx.moveTo(x-18*k,y+4*k);ctx.lineTo(x-25*k,y-24*k);ctx.moveTo(x+18*k,y+4*k);ctx.lineTo(x+25*k,y-24*k);ctx.stroke();
+  rrect(x-30*k,y+2*k,60*k,22*k,6*k,C.legit);for(let i=0;i<3;i++)disc(x+(-16+i*10)*k,y+13*k,2.6*k,C.surface)}
+function cloud(c,k){const[x,y]=c;[[-18,6,15],[0,-6,19],[19,6,14]].forEach(([dx,dy,r])=>disc(x+dx*k,y+dy*k,r*k,C.ink));rrect(x-20*k,y+4*k,40*k,17*k,3*k,C.ink)}
+function hacker(c,k){const[x,y]=c;poly([[x-38*k,y+36*k],[x-28*k,y+4*k],[x,y-6*k],[x+28*k,y+4*k],[x+38*k,y+36*k]],"#7A1F2B");
+  ctx.beginPath();ctx.ellipse(x,y-15*k,23*k,25*k,0,0,Math.PI*2);ctx.fillStyle="#A32A38";ctx.fill();
+  ctx.beginPath();ctx.ellipse(x,y-12*k,14*k,16*k,0,0,Math.PI*2);ctx.fillStyle="#160A10";ctx.fill();
+  for(const dx of[-6,6]){ctx.beginPath();ctx.ellipse(x+dx*k,y-13*k,3.2*k,2*k,0,0,Math.PI*2);ctx.fillStyle="#FF7878";ctx.fill()}
+  rrect(x-20*k,y+16*k,40*k,22*k,3*k,"#26324E");disc(x,y+27*k,3*k,"#F2555A")}
+function lock(x,y,s,col){ctx.strokeStyle=col;ctx.lineWidth=2.4*s;ctx.beginPath();ctx.arc(x,y-6*s,6*s,Math.PI,0);ctx.stroke();rrect(x-9*s,y-6*s,18*s,14*s,3*s,col)}
+function packet(p,col,a,k){al(a*0.2);disc(p[0],p[1],13*k,col);al(a);rrect(p[0]-9*k,p[1]-6*k,18*k,12*k,3*k,col);
+  ctx.strokeStyle=C.sunken;ctx.lineWidth=1.4*k;ctx.beginPath();ctx.moveTo(p[0]-9*k,p[1]-6*k);ctx.lineTo(p[0],p[1]+1*k);ctx.lineTo(p[0]+9*k,p[1]-6*k);ctx.stroke()}
+function label(c,r,a,title,sub,col){al(a);text(title,c[0],c[1]+r+7,"600 13.5px Barlow, Arial, sans-serif",C.ink);text(sub,c[0],c[1]+r+24,"500 12px Barlow, Arial, sans-serif",col)}
+
+function draw(){
+  if(!cw)return;
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,cw,ch);
+  const w=cw,h=ch,r=clamp(w*0.065,26,44),k=r/58,pk=Math.max(0.75,k);
+  const V=[w*.13,h*.40],R=[w*.5,h*.19],A=[w*.5,h*.70],I=[w*.87,h*.40];
+  const aa=pr(t,9.5,10.5),hij=pr(t,21,22.3),vpn=pr(t,47.5,49);
+  waves(R,C.legit,1-0.6*hij,2,60,26,r,k);
+  if(t>10.5)waves(A,C.threat,aa,4,120,46,r,k);
+  const dim=1-0.72*hij;
+  if(hij<.5)seg(V,R,C.legit,3,dim);else seg(V,R,C.muted,2,.6,[8,7]);
+  seg(R,I,C.legit,3,dim*(1-.3*hij));
+  const p1=pr(t,20,21.8),p2=pr(t,27.3,28.7);
+  if(p1>0)seg(V,lerp(V,A,p1),C.threat,4,1);
+  if(p2>0)seg(A,lerp(A,I,p2),C.threat,4,1);
+  if(vpn>0){al(.3*vpn);ctx.strokeStyle=C.safe;ctx.lineWidth=20*pk;ctx.lineCap="round";ctx.lineJoin="round";ctx.beginPath();ctx.moveTo(V[0],V[1]);ctx.lineTo(A[0],A[1]);ctx.lineTo(I[0],I[1]);ctx.stroke()}
+  const pa=Math.min(pr(t,1,1.6),1-pr(t,19,20));
+  if(pa>0)for(let i=0;i<4;i++){const u=(((t-1)*.22+i*.25)%1+1)%1;packet(pathPt(i%2?[I,R,V]:[V,R,I],u),C.legit,pa*Math.min(1,u*8,(1-u)*8),pk)}
+  const ma=pr(t,28.7,29.3)*(1-pr(t,47,47.8));
+  if(ma>0)for(let i=0;i<4;i++){const u=(((t-28.7)*.2+i*.25)%1+1)%1;packet(pathPt(i%2?[I,A,V]:[V,A,I],u),C.relay,ma*Math.min(1,u*8,(1-u)*8),pk);
+    if(u>=.5&&u<.68){const f=(u-.5)/.18;al(ma*(1-f));rrect(A[0]+r*.75-6*pk,A[1]-r*.75-f*34*pk-4*pk,12*pk,9*pk,2,C.threat)}}
+  if(vpn>0)for(let i=0;i<4;i++){const u=(((t-47)*.2+i*.25)%1+1)%1,p=pathPt(i%2?[I,A,V]:[V,A,I],u);al(vpn*Math.min(1,u*8,(1-u)*8));lock(p[0],p[1]+2*pk,.8*pk,C.safe)}
+  al(1);disc(V[0],V[1],r,C.surface,C.ink,2.5);laptop(V,k);label(V,r,1,"Viajero","Tu equipo",C.muted);
+  al(1-.45*hij);disc(R[0],R[1],r,C.surface,C.legit,2.5);router(R,k);label(R,r,1-.4*hij,"WiFi del aeropuerto","Red legítima",C.legit);
+  al(1);disc(I[0],I[1],r,C.surface,C.ink,2.5);cloud(I,k);label(I,r,1,"Internet","Banco, correo",C.muted);
+  if(aa>0){al(aa);disc(A[0],A[1],r,C.surface,C.threat,2.5);hacker(A,k);label(A,r,aa,"Atacante","Red falsa, mismo nombre",C.threat)}
+  al(1);
+}
+
+function fmt(x){x=Math.floor(x);return Math.floor(x/60)+":"+String(x%60).padStart(2,"0")}
+function sync(){
+  let s=0;while(s<5&&t>=S[s+1])s++;
+  if(s!==curStep){curStep=s;$("stepn").textContent="Paso "+(s+1)+" de 6";$("stept").textContent=STEPS[s].t;
+    panels.forEach(p=>{p.hidden=!p.dataset.steps.split(",").includes(String(s))});
+    [...chips.children].forEach((b,i)=>b.setAttribute("aria-current",i===s?"true":"false"))}
+  let c="";for(const[at,tx]of STEPS[s].c)if(t>=at)c=tx;
+  if(c!==curCap){curCap=c;capEl.textContent=c}
+  for(const el of timed)el.classList.toggle("on",t>=+el.dataset.at);
+  if(!dragging)seek.value=t.toFixed(1);
+  timeEl.textContent=fmt(t)+" / "+fmt(END);
+  playB.textContent=playing?"Pausar":(t>=END?"Repetir":"Reproducir");
+}
+playB.addEventListener("click",()=>{if(t>=END){t=0;playing=true}else playing=!playing;sync()});
+seek.addEventListener("input",()=>{dragging=true;t=+seek.value;sync()});
+seek.addEventListener("change",()=>{dragging=false});
+function frame(now){const dt=Math.min(.1,(now-last)/1000||0);last=now;
+  if(playing){t+=dt;if(t>=END){t=END;playing=false}}
+  sync();draw();requestAnimationFrame(frame)}
+sync();requestAnimationFrame(frame);
+})();
+</script>
+
+<script id="nb-track">(function(){try{if(localStorage.getItem('nb-notrack'))return;}catch(_){}try{var q=new URLSearchParams(location.search),d=JSON.stringify({p:location.pathname,r:document.referrer,s:q.get('utm_source')||''});if(navigator.sendBeacon)navigator.sendBeacon('/api/track',d);else fetch('/api/track',{method:'POST',body:d,keepalive:true});}catch(_){}})();</script>
+</body></html>

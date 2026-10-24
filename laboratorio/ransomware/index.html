@@ -1,0 +1,308 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Ransomware | Laboratorio Netblue</title><meta name="description" content="Cifra archivos ficticios y demuestra el valor de los backups 3-2-1. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><link rel="canonical" href="https://netbluepr.com/laboratorio/ransomware/"><link rel="icon" type="image/png" href="/favicon.png"><meta property="og:title" content="Ransomware | Laboratorio Netblue"><meta property="og:description" content="Cifra archivos ficticios y demuestra el valor de los backups 3-2-1. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><meta property="og:url" content="https://netbluepr.com/laboratorio/ransomware/"><meta property="og:image" content="https://netbluepr.com/og-image.png"><meta property="og:locale" content="es_PR"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Ransomware</title>
+<style>
+  /* Layout: explorador de archivos simulado — los archivos se cifran en cadena, aparece la nota de rescate; los backups permiten restaurar */
+  :root {
+    --bg: #f4f6f8; --surface: #ffffff; --surface-2: #eef1f5; --border: #d4dae2;
+    --fg: #1a2330; --fg-muted: #5b6878; --accent: #0b6e99; --accent-soft: #d6ebf4;
+    --ok: #1a7f4b; --ok-soft: #d6f0e1; --warn: #b4690e; --warn-soft: #f7e7cc;
+    --crit: #c0392b; --crit-soft: #f7dcd8;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1620; --surface: #161f2b; --surface-2: #1d2835; --border: #2b3a4a;
+      --fg: #e6edf4; --fg-muted: #93a1b2; --accent: #3fb6e0; --accent-soft: #10303d;
+      --ok: #4ecb8a; --ok-soft: #10311f; --warn: #e0a84a; --warn-soft: #3a2c12;
+      --crit: #f07567; --crit-soft: #3a1b17; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1620; --surface: #161f2b; --surface-2: #1d2835; --border: #2b3a4a;
+    --fg: #e6edf4; --fg-muted: #93a1b2; --accent: #3fb6e0; --accent-soft: #10303d;
+    --ok: #4ecb8a; --ok-soft: #10311f; --warn: #e0a84a; --warn-soft: #3a2c12;
+    --crit: #f07567; --crit-soft: #3a1b17; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--sans); line-height: 1.5; }
+  .wrap { max-width: 820px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 48px; }
+  header.page { margin-bottom: 20px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
+  h1 { font-size: clamp(28px, 6vw, 38px); line-height: 1.05; margin: 0 0 10px; text-wrap: balance; letter-spacing: -0.02em; }
+  header.page p { margin: 0; max-width: 64ch; color: var(--fg-muted); font-size: 15px; }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-top: 18px; }
+
+  .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+  .toolbar button { font-size: 14px; font-weight: 700; padding: 10px 16px; border-radius: 9px; cursor: pointer; border: 1px solid transparent; }
+  .toolbar button.danger { background: var(--crit); color: #fff; }
+  .toolbar button.danger:hover { filter: brightness(1.08); }
+  .toolbar button.restore { background: var(--ok); color: #fff; }
+  .toolbar button.ghost { background: transparent; border-color: var(--border); color: var(--fg); }
+  .toolbar button:disabled { opacity: 0.45; cursor: default; }
+
+  .switch-row { display: flex; align-items: center; gap: 10px; margin-left: auto; font-size: 13px; }
+  .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle .track { position: absolute; inset: 0; background: var(--border); border-radius: 999px; transition: background 0.15s; }
+  .toggle .track::before { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.15s; }
+  .toggle input:checked + .track { background: var(--ok); }
+  .toggle input:checked + .track::before { transform: translateX(20px); }
+
+  .files { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 12px; }
+  .file { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 8px; text-align: center; transition: background 0.2s, border-color 0.2s; }
+  .file .ic { font-size: 30px; line-height: 1; }
+  .file .nm { font-size: 11px; margin-top: 7px; font-family: var(--mono); word-break: break-all; color: var(--fg-muted); }
+  .file.locked { background: var(--crit-soft); border-color: var(--crit); }
+  .file.locked .ic { filter: grayscale(0.2); }
+  .file.locked .nm { color: var(--crit); }
+  .file.encrypting { border-color: var(--warn); background: var(--warn-soft); }
+
+  .ransom { margin-top: 16px; background: #1a0d0d; color: #ffdede; border: 2px solid var(--crit); border-radius: 12px; padding: 20px; display: none; }
+  .ransom.show { display: block; }
+  .ransom h3 { margin: 0 0 10px; font-size: 20px; color: #ff6b5e; font-family: var(--mono); }
+  .ransom p { margin: 0 0 8px; font-size: 13.5px; }
+  .ransom .timer { font-family: var(--mono); font-size: 24px; font-weight: 800; margin: 12px 0; }
+  .ransom .addr { font-family: var(--mono); font-size: 12px; background: rgba(255,255,255,0.08); padding: 8px 10px; border-radius: 6px; word-break: break-all; }
+
+  .outcome { margin-top: 16px; padding: 15px 17px; border-radius: 12px; font-size: 14px; display: none; border: 1px solid transparent; }
+  .outcome.show { display: block; }
+  .outcome.bad { background: var(--crit-soft); border-color: var(--crit); }
+  .outcome.good { background: var(--ok-soft); border-color: var(--ok); }
+
+  .timeline { margin-top: 16px; }
+  .timeline h2 { font-size: 12px; font-family: var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); margin: 0 0 12px; font-weight: 600; }
+  .tl-step { display: flex; gap: 12px; align-items: flex-start; padding: 8px 0; opacity: 0.4; transition: opacity 0.3s; }
+  .tl-step.on { opacity: 1; }
+  .tl-step .num { width: 24px; height: 24px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border); display: grid; place-items: center; font-size: 12px; font-family: var(--mono); flex-shrink: 0; }
+  .tl-step.on .num { background: var(--crit); color: #fff; border-color: var(--crit); }
+  .tl-step .tx { font-size: 13.5px; }
+  .tl-step .tx b { display: block; }
+  .tl-step .tx small { color: var(--fg-muted); }
+
+  .edu { margin-top: 32px; }
+  .edu h2 { font-size: 20px; margin: 0 0 14px; letter-spacing: -0.01em; }
+  .b321 { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+  .b321 h3 { margin: 0 0 6px; font-size: 16px; color: var(--accent); }
+  .b321 p { margin: 0; font-size: 13.5px; }
+  .defense-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .def { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; min-width: 0; }
+  .def h3 { font-size: 15px; margin: 0 0 6px; }
+  .def p { margin: 0; font-size: 13.5px; color: var(--fg-muted); }
+  .note { margin-top: 20px; font-size: 12.5px; color: var(--fg-muted); border-left: 3px solid var(--border); padding: 4px 0 4px 14px; }
+
+  @media (max-width: 560px) { .defense-grid { grid-template-columns: 1fr; } .switch-row { margin-left: 0; width: 100%; } }
+</style>
+
+<div class="wrap">
+  <header class="page">
+    <p class="eyebrow">Laboratorio de concientización · Netblue</p>
+    <h1>Ransomware</h1>
+    <p>El ransomware entra —casi siempre por un adjunto o un enlace— y <strong>cifra tus archivos</strong>, pidiendo un rescate para devolvértelos. Pagar no garantiza nada. La única defensa fiable es tener <strong>copias de seguridad</strong>. Simula un contagio y comprueba la diferencia entre tener backups o no.</p>
+  </header>
+
+  <section class="panel">
+    <div class="toolbar">
+      <button class="danger" id="infect">📎 Abrir adjunto infectado</button>
+      <button class="restore" id="restore" disabled>↺ Restaurar desde backup</button>
+      <button class="ghost" id="reset">Reiniciar</button>
+      <label class="switch-row">
+        <span>Tengo backups (3-2-1)</span>
+        <span class="toggle"><input type="checkbox" id="hasbk" checked /><span class="track"></span></span>
+      </label>
+    </div>
+
+    <div class="files" id="files"></div>
+
+    <div class="ransom" id="ransom">
+      <h3>🔒 TUS ARCHIVOS HAN SIDO CIFRADOS</h3>
+      <p>Todos tus documentos, fotos y bases de datos están bloqueados con cifrado militar.</p>
+      <p>Para recuperarlos, paga en las próximas:</p>
+      <div class="timer" id="timer">71:59:58</div>
+      <p>Envía 0.5 BTC a la siguiente dirección:</p>
+      <div class="addr">bc1q...ESTO-ES-UNA-SIMULACION-NO-PAGUES...x9f2</div>
+    </div>
+
+    <div class="outcome" id="outcome"></div>
+
+    <div class="timeline">
+      <h2>Cómo ocurre el ataque</h2>
+      <div class="tl-step" data-s="1"><div class="num">1</div><div class="tx"><b>Entrega</b><small>Correo con adjunto malicioso o enlace falso</small></div></div>
+      <div class="tl-step" data-s="2"><div class="num">2</div><div class="tx"><b>Ejecución</b><small>El usuario abre el archivo y el malware corre</small></div></div>
+      <div class="tl-step" data-s="3"><div class="num">3</div><div class="tx"><b>Propagación</b><small>Se mueve por la red y carpetas compartidas</small></div></div>
+      <div class="tl-step" data-s="4"><div class="num">4</div><div class="tx"><b>Cifrado</b><small>Bloquea los archivos uno a uno</small></div></div>
+      <div class="tl-step" data-s="5"><div class="num">5</div><div class="tx"><b>Extorsión</b><small>Aparece la nota de rescate</small></div></div>
+    </div>
+  </section>
+
+  <section class="edu">
+    <h2>Cómo defenderse</h2>
+    <div class="b321">
+      <h3>La regla 3-2-1</h3>
+      <p><b>3</b> copias de tus datos · en <b>2</b> tipos de medio distintos · con <b>1</b> copia fuera del sitio (offline o en la nube). Así, aunque el ransomware cifre tu equipo y la red, siempre queda una copia intacta para restaurar.</p>
+    </div>
+    <div class="defense-grid">
+      <div class="def"><h3>No abras adjuntos inesperados</h3><p>La mayoría de infecciones empiezan por phishing. Ante la duda, no abras ni habilites macros.</p></div>
+      <div class="def"><h3>Backups offline y probados</h3><p>Una copia desconectada que el malware no alcanza, y que verificas que realmente restaura.</p></div>
+      <div class="def"><h3>Parches al día</h3><p>El ransomware explota vulnerabilidades conocidas. Actualizar cierra esas puertas.</p></div>
+      <div class="def"><h3>EDR y segmentación</h3><p>Detección en endpoints y una red segmentada frenan la propagación lateral.</p></div>
+    </div>
+    <p class="note">Simulación con archivos ficticios. Nada se cifra de verdad; la dirección y el temporizador son ilustrativos. Nunca se recomienda pagar un rescate.</p>
+
+  <nav class="lab-nav" aria-label="Otros simuladores del laboratorio">
+    <style>
+      .lab-nav{margin-top:34px;padding-top:22px;border-top:1px solid #D5DEE9}
+      .lab-nav .nav-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+      .lab-nav .nav-top a.portal{font-family:'Archivo','Segoe UI',sans-serif;font-size:14px;font-weight:700;text-decoration:none;color:#fff;background:#1657C7;padding:9px 16px;border-radius:6px}
+      .lab-nav .nav-top a.portal:hover{background:#0F2742}
+      .lab-nav .nav-top .lbl{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#44566C}
+      .lab-nav .chips{display:flex;flex-wrap:wrap;gap:8px}
+      .lab-nav .chips a{font-size:12.5px;text-decoration:none;color:#0F2742;background:#E8EEF6;border:1px solid #C3CFDD;padding:6px 11px;border-radius:999px}
+      .lab-nav .chips a:hover{border-color:#1657C7;color:#1657C7}
+    </style>
+    <div class="nav-top">
+      <a class="portal" href="/laboratorio/">⬡ Portal del laboratorio</a>
+      <span class="lbl">Otros simuladores</span>
+    </div>
+    <div class="chips">
+      <a href="/laboratorio/detecta-el-phishing/">Phishing</a>
+      <a href="/laboratorio/spear-phishing-bec/">Spear Phishing / BEC</a>
+      <a href="/laboratorio/smishing-vishing/">Smishing / Vishing</a>
+      <a href="/laboratorio/ataque-diccionario/">Diccionario</a>
+      <a href="/laboratorio/fuerza-bruta-calculadora/">Fuerza Bruta</a>
+      <a href="/laboratorio/credential-stuffing/">Credential Stuffing</a>
+      <a href="/laboratorio/rainbow-tables-salt/">Rainbow Tables</a>
+      <a href="/laboratorio/sql-injection/">SQL Injection</a>
+      <a href="/laboratorio/cross-site-scripting/">XSS</a>
+      <a href="/laboratorio/man-in-the-middle/">Man-in-the-Middle</a>
+      <a href="/laboratorio/dos-ddos/">DoS / DDoS</a>
+      <a href="/laboratorio/ransomware/">Ransomware</a>
+      <a href="/laboratorio/keylogger-troyanos/">Keylogger</a>
+    </div>
+  </nav>
+  </section>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+
+  var base = [
+    { ic: "📄", nm: "informe.docx" }, { ic: "📊", nm: "ventas.xlsx" },
+    { ic: "🖼️", nm: "logo.png" }, { ic: "📁", nm: "clientes" },
+    { ic: "📄", nm: "contrato.pdf" }, { ic: "🗄️", nm: "respaldo.db" },
+    { ic: "🖼️", nm: "foto1.jpg" }, { ic: "📄", nm: "notas.txt" }
+  ];
+  var busy = false, timerInt = null;
+
+  function render(locked) {
+    $("files").innerHTML = base.map(function (f, i) {
+      var lk = locked && locked.indexOf(i) >= 0;
+      return '<div class="file ' + (lk ? "locked" : "") + '" data-i="' + i + '">' +
+        '<div class="ic">' + (lk ? "🔒" : f.ic) + '</div>' +
+        '<div class="nm">' + f.nm + (lk ? ".locked" : "") + '</div></div>';
+    }).join("");
+  }
+
+  function setTimeline(step) {
+    [].forEach.call(document.querySelectorAll(".tl-step"), function (s) {
+      s.classList.toggle("on", Number(s.dataset.s) <= step);
+    });
+  }
+
+  function infect() {
+    if (busy) return;
+    busy = true;
+    $("infect").disabled = true; $("restore").disabled = true;
+    $("outcome").className = "outcome";
+    $("ransom").className = "ransom";
+    var locked = [];
+    render(locked);
+
+    // timeline pasos 1-3 rápido
+    setTimeline(1);
+    setTimeout(function () { setTimeline(2); }, 400);
+    setTimeout(function () { setTimeline(3); }, 800);
+
+    var cells = [].slice.call(document.querySelectorAll(".file"));
+    var i = 0;
+    setTimeout(function () {
+      setTimeline(4);
+      var enc = setInterval(function () {
+        if (i >= base.length) {
+          clearInterval(enc);
+          setTimeline(5);
+          showRansom();
+          busy = false;
+          $("infect").disabled = true;
+          $("restore").disabled = !$("hasbk").checked ? false : false; // habilitado siempre para intentar
+          $("restore").disabled = false;
+          return;
+        }
+        var c = cells[i];
+        c.classList.add("encrypting");
+        (function (idx, cell) {
+          setTimeout(function () {
+            cell.classList.remove("encrypting");
+            locked.push(idx);
+            cell.className = "file locked";
+            cell.querySelector(".ic").textContent = "🔒";
+            cell.querySelector(".nm").textContent = base[idx].nm + ".locked";
+          }, 220);
+        })(i, c);
+        i++;
+      }, 300);
+    }, 1000);
+  }
+
+  function showRansom() {
+    $("ransom").className = "ransom show";
+    var total = 72 * 3600 - 2;
+    if (timerInt) clearInterval(timerInt);
+    timerInt = setInterval(function () {
+      total--;
+      if (total < 0) { clearInterval(timerInt); return; }
+      var h = Math.floor(total / 3600), m = Math.floor((total % 3600) / 60), s = total % 60;
+      $("timer").textContent = String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+    }, 1000);
+  }
+
+  function restore() {
+    var hasBk = $("hasbk").checked;
+    if (timerInt) { clearInterval(timerInt); timerInt = null; }
+    $("ransom").className = "ransom";
+    var out = $("outcome");
+    if (hasBk) {
+      render([]);
+      out.className = "outcome show good";
+      out.innerHTML = '✓ <b>Archivos restaurados desde el backup.</b> Como tenías una copia offline que el ransomware no alcanzó, recuperaste todo sin pagar un centavo. El equipo se reinstala limpio y la copia se restaura. Esto es por lo que los backups 3-2-1 son la defensa número uno.';
+      $("restore").disabled = true;
+    } else {
+      out.className = "outcome show bad";
+      out.innerHTML = '✗ <b>No hay backups que restaurar.</b> Sin copias, las únicas opciones son perder los datos o pagar un rescate — que no garantiza recuperarlos y financia al atacante. Este es el escenario que los backups evitan.';
+    }
+  }
+
+  function reset() {
+    if (timerInt) { clearInterval(timerInt); timerInt = null; }
+    busy = false;
+    render([]);
+    setTimeline(0);
+    $("ransom").className = "ransom";
+    $("outcome").className = "outcome";
+    $("infect").disabled = false;
+    $("restore").disabled = true;
+    $("timer").textContent = "71:59:58";
+  }
+
+  $("infect").addEventListener("click", infect);
+  $("restore").addEventListener("click", restore);
+  $("reset").addEventListener("click", reset);
+
+  render([]);
+})();
+</script>
+
+<script id="nb-track">(function(){try{if(localStorage.getItem('nb-notrack'))return;}catch(_){}try{var q=new URLSearchParams(location.search),d=JSON.stringify({p:location.pathname,r:document.referrer,s:q.get('utm_source')||''});if(navigator.sendBeacon)navigator.sendBeacon('/api/track',d);else fetch('/api/track',{method:'POST',body:d,keepalive:true});}catch(_){}})();</script>
+</body></html>

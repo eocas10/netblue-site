@@ -1,0 +1,454 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Ataque de Cumpleaños | Laboratorio Netblue</title><meta name="description" content="Colisiones de hash aprovechando la paradoja del cumpleaños. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><link rel="canonical" href="https://netbluepr.com/laboratorio/ataque-cumpleanos/"><link rel="icon" type="image/png" href="/favicon.png"><meta property="og:title" content="Ataque de Cumpleaños | Laboratorio Netblue"><meta property="og:description" content="Colisiones de hash aprovechando la paradoja del cumpleaños. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><meta property="og:url" content="https://netbluepr.com/laboratorio/ataque-cumpleanos/"><meta property="og:image" content="https://netbluepr.com/og-image.png"><meta property="og:locale" content="es_PR"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Ataque de Cumpleaños</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single player frame (diagram + side panel that changes per step, controls below), then a static step list. */
+:root{
+  --bg:#EDF0F4; --surface:#FFFFFF; --sunken:#E3E8EF; --ink:#101B2D; --muted:#55657C; --line:#C9D2DE;
+  --legit:#0B6FB8; --threat:#C8323A; --safe:#0F8A5F; --relay:#B26A00;
+  --threat-soft:#FBE9EA; --safe-soft:#E3F4EC; --on-color:#FFFFFF;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Barlow","Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0A1426; --surface:#14233D; --sunken:#0E1B31; --ink:#E8EEF7; --muted:#8CA0BD; --line:#2C4064;
+  --legit:#38BDF8; --threat:#F2555A; --safe:#34D399; --relay:#FBBF24;
+  --threat-soft:#2A121C; --safe-soft:#0E2A26; --on-color:#0A1426; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0A1426; --surface:#14233D; --sunken:#0E1B31; --ink:#E8EEF7; --muted:#8CA0BD; --line:#2C4064;
+  --legit:#38BDF8; --threat:#F2555A; --safe:#34D399; --relay:#FBBF24;
+  --threat-soft:#2A121C; --safe-soft:#0E2A26; --on-color:#0A1426; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;padding-inline:16px;padding-block:28px 48px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.eyebrow{font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0}
+h1,h2,h3,p,ol,ul{margin:0}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(34px,6vw,54px);line-height:1;text-transform:uppercase;letter-spacing:.01em;text-wrap:balance}
+.lede{color:var(--muted);max-width:62ch;font-size:17px}
+header{display:flex;flex-direction:column;gap:10px}
+
+.player{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.main{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+.stage{display:flex;flex-direction:column;gap:10px;padding:18px 18px 14px;min-width:0}
+.stephead{display:flex;flex-direction:column;gap:2px}
+.stephead .n{font-family:var(--display);font-weight:600;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--legit)}
+.stephead h2{font-family:var(--display);font-weight:700;font-size:clamp(24px,3.4vw,32px);line-height:1.1;text-transform:uppercase;letter-spacing:.01em}
+canvas{display:block;width:100%;background:var(--sunken);border-radius:10px}
+.caption{min-height:3em;font-size:16.5px;font-weight:500;max-width:60ch}
+
+.side{border-left:1px solid var(--line);padding:18px;min-width:0;display:flex;flex-direction:column}
+.panel{display:flex;flex-direction:column;gap:10px}
+.panel[hidden]{display:none}
+.panel h3{font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.rv{opacity:0;transform:translateY(6px);transition:opacity .35s,transform .35s}
+.rv.on{opacity:1;transform:none}
+.note{color:var(--muted);font-size:15px}
+
+.hop{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--sunken);border-radius:8px;font-weight:500}
+.hop b{font-family:var(--display);font-size:18px;color:var(--legit);width:1.2em}
+
+.net{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--sunken);border-radius:8px;border:2px solid transparent;flex-wrap:wrap}
+.net .ssid{font-family:var(--mono);font-size:13.5px;min-width:0;overflow-wrap:anywhere;flex:1 1 auto}
+.net:has(.conn.on){border-color:var(--threat);background:var(--threat-soft)}
+.bars{display:inline-flex;align-items:flex-end;gap:2px;height:16px}
+.bars i{width:4px;background:var(--line);border-radius:1px}
+.bars i:nth-child(1){height:5px}.bars i:nth-child(2){height:8px}.bars i:nth-child(3){height:12px}.bars i:nth-child(4){height:16px}
+.bars.s2 i:nth-child(-n+2){background:var(--legit)}
+.bars.s4 i{background:var(--threat)}
+.tag{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.1em;padding:1px 8px;border-radius:99px;background:var(--threat);color:var(--on-color)}
+.conn{font-size:13px;font-weight:600;color:var(--threat);flex-basis:100%}
+
+.cap{background:var(--threat-soft);border:1px solid var(--threat);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.cap div{font-family:var(--mono);font-size:13px;overflow-wrap:anywhere}
+.cap div span{color:var(--muted)}
+
+.can{padding:10px 12px;background:var(--sunken);border-radius:8px}
+.can strong{font-family:var(--display);font-size:20px;text-transform:uppercase;letter-spacing:.03em;display:block;line-height:1.2}
+.can.a strong{color:var(--legit)}.can.b strong{color:var(--relay)}.can.c strong{color:var(--threat)}
+.can span{font-size:15px;color:var(--muted)}
+
+.checks{list-style:none;padding:0;display:flex;flex-direction:column;gap:7px}
+.checks li{display:flex;gap:9px;align-items:flex-start;font-size:15px;font-weight:500;line-height:1.35}
+.checks li{position:relative}
+.checks li::before{content:"";flex:none;width:16px;height:16px;margin-top:2px;border-radius:50%;background:var(--safe)}
+.checks li::after{content:"";position:absolute;left:5px;top:5px;width:5px;height:8px;border:solid var(--on-color);border-width:0 2px 2px 0;transform:rotate(45deg) scale(.8)}
+.vpn{background:var(--safe-soft);border:1px solid var(--safe);border-radius:10px;padding:10px 12px;font-size:14px}
+.vpn code{font-family:var(--mono);color:var(--threat);font-size:13px}
+
+.controls{border-top:1px solid var(--line);padding:12px 18px;display:flex;flex-direction:column;gap:10px}
+.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--legit);outline-offset:2px}
+#play{background:var(--ink);color:var(--bg);border:0;border-radius:8px;padding:7px 16px;font-weight:600;min-width:108px}
+#seek{flex:1 1 180px;min-width:0;accent-color:var(--legit)}
+.time{font-family:var(--mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{background:transparent;border:1px solid var(--line);border-radius:99px;padding:3px 12px;font-size:14px;color:var(--muted)}
+.chips button[aria-current="true"]{background:var(--legit);border-color:var(--legit);color:var(--on-color);font-weight:600}
+
+.summary h2{font-family:var(--display);font-weight:700;font-size:26px;text-transform:uppercase;letter-spacing:.01em;margin-bottom:12px}
+.summary ol{padding-left:1.3em;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px 40px}
+.summary li{padding-left:4px}
+.summary li::marker{font-family:var(--display);font-weight:700;color:var(--legit);font-size:18px}
+.summary li strong{display:block}
+.summary li span{color:var(--muted);font-size:15.5px}
+
+@media (max-width:820px){
+  .main{grid-template-columns:minmax(0,1fr)}
+  .side{border-left:0;border-top:1px solid var(--line);min-height:250px}
+  .stage{padding:14px 14px 10px}.side,.controls{padding-inline:14px}
+}
+@media (prefers-reduced-motion:reduce){.rv{transition:none}}
+
+.kv{display:flex;gap:10px;padding:8px 12px;background:var(--sunken);border-radius:8px;font-size:15px;align-items:baseline}
+.kv span{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);flex:0 0 5.2em}
+.kv b{font-weight:500;min-width:0;overflow-wrap:anywhere}
+.idcard{border:1px dashed var(--legit);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.idcard strong{font-family:var(--display);font-size:22px;text-transform:uppercase;letter-spacing:.03em;color:var(--legit);line-height:1.15}
+.idcard span{font-size:14px;color:var(--muted)}
+.bubble{align-self:flex-start;max-width:92%;background:var(--sunken);border-radius:4px 14px 14px 14px;padding:8px 12px;font-size:15px}
+.bubble.ask{background:var(--threat-soft);border:1px solid var(--threat);font-weight:600}
+.lever{padding:8px 12px;background:var(--sunken);border-radius:8px}
+.lever strong{font-family:var(--display);font-size:18px;text-transform:uppercase;letter-spacing:.04em;color:var(--relay);margin-right:8px}
+.lever span{font-size:15px;color:var(--muted)}
+
+.mail{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.mail div{display:flex;gap:10px;padding:8px 12px;font-size:14.5px;border-bottom:1px solid var(--line);align-items:baseline}
+.mail div:last-child{border-bottom:0;background:var(--threat-soft)}
+.mail span{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);flex:0 0 4.6em}
+.mail b{font-weight:500;min-width:0;overflow-wrap:anywhere}
+.mail code{font-family:var(--mono);font-size:13px;color:var(--threat)}
+.ransom{background:var(--threat-soft);border:1px solid var(--threat);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.ransom strong{font-family:var(--display);font-size:21px;text-transform:uppercase;letter-spacing:.03em;color:var(--threat);line-height:1.15}
+.ransom code{font-family:var(--mono);font-size:13px;overflow-wrap:anywhere}
+.ransom .cd{font-family:var(--mono);font-size:20px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--threat)}
+.ransom small{font-size:13px;color:var(--muted)}
+
+.count{font-family:var(--mono);font-size:26px;font-weight:500;font-variant-numeric:tabular-nums;line-height:1.1}
+.count small{display:block;font-family:var(--body);font-size:13px;color:var(--muted);font-weight:400}
+.cap .hit{color:var(--threat);font-weight:500}
+
+.cap b{font-weight:400}
+.cap b.hit{color:var(--threat);font-weight:500}
+
+/* Barra de navegación del laboratorio (identidad Netblue) */
+.lab-nav{margin-top:8px;padding-top:22px;border-top:1px solid #D5DEE9}
+.lab-nav .nav-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.lab-nav .nav-top a.portal{font-family:"Barlow Condensed",sans-serif;font-size:15px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;text-decoration:none;color:#fff;background:#1657C7;padding:9px 16px;border-radius:6px}
+.lab-nav .nav-top a.portal:hover{background:#0F2742}
+.lab-nav .nav-top .lbl{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#44566C}
+.lab-nav .chips2{display:flex;flex-wrap:wrap;gap:8px}
+.lab-nav .chips2 a{font-size:13px;text-decoration:none;color:#0F2742;background:#E8EEF6;border:1px solid #C3CFDD;padding:6px 11px;border-radius:999px}
+.lab-nav .chips2 a:hover{border-color:#1657C7;color:#1657C7}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Concienciación en ciberseguridad</p>
+    <h1>Ataque de Cumpleaños</h1>
+    <p class="lede">Cómo un atacante aprovecha que las coincidencias son más probables de lo que parece para lograr que una firma digital legítima termine validando un documento falso.</p>
+  </header>
+
+  <section class="player" aria-label="Animación del ataque">
+    <div class="main">
+      <div class="stage">
+        <div class="stephead"><span class="n" id="stepn">Paso 1 de 6</span><h2 id="stept">La paradoja</h2></div>
+        <canvas id="cv" role="img" aria-label="Diagrama animado: un grupo de 23 personas y luego el atacante, dos contratos, la función hash y el firmante"></canvas>
+        <p class="caption" id="cap"></p>
+      </div>
+      <aside class="side">
+        <div class="panel" data-steps="0">
+          <h3>La paradoja del cumpleaños</h3>
+          <div class="count"><span id="cnt">0.0</span> %<small>probabilidad de que dos personas del grupo cumplan el mismo día</small></div>
+          <div class="kv"><span>Personas</span><b id="np">0</b></div>
+          <p class="note rv" data-at="6.6">No buscas a alguien que cumpla tu mismo día. Buscas cualquier pareja que coincida, y hay muchas parejas posibles.</p>
+        </div>
+        <div class="panel" data-steps="1" hidden>
+          <h3>Qué se firma en realidad</h3>
+          <div class="hop rv" data-at="9.8"><b>1</b> El documento pasa por una función hash</div>
+          <div class="hop rv" data-at="11.5"><b>2</b> Sale una huella corta de tamaño fijo</div>
+          <div class="hop rv" data-at="13.2"><b>3</b> La firma se aplica a esa huella, no al documento</div>
+          <p class="note rv" data-at="15">Si dos documentos distintos tuvieran la misma huella, una sola firma serviría para los dos.</p>
+        </div>
+        <div class="panel" data-steps="2" hidden>
+          <h3>Buscando una coincidencia</h3>
+          <div class="count"><span id="tries">0</span><small>versiones generadas de cada contrato</small></div>
+          <div class="kv rv" data-at="19.5"><span>Real</span><b>Pagar $1,000 al suplidor</b></div>
+          <div class="kv rv" data-at="21"><span>Falso</span><b>Pagar $100,000 al atacante</b></div>
+          <p class="note rv" data-at="23">Cambia espacios, comas y sinónimos que no alteran el sentido, hasta que una versión de cada uno comparte el mismo hash. Ejemplo con una huella de 64 bits.</p>
+        </div>
+        <div class="panel" data-steps="3" hidden>
+          <h3>La víctima firma</h3>
+          <div class="kv rv" data-at="30.5"><span>Revisa</span><b>El contrato real, sin nada extraño</b></div>
+          <div class="kv rv" data-at="32.3"><span>Firma</span><b>La huella a3f9…c21e</b></div>
+          <div class="kv rv" data-at="34.2"><span>Resultado</span><b>Una firma legítima</b></div>
+          <p class="note rv" data-at="35.5">El firmante hizo todo bien. La falla está en la función hash débil.</p>
+        </div>
+        <div class="panel" data-steps="4" hidden>
+          <h3>El cambiazo</h3>
+          <div class="hop rv" data-at="38.6"><b>1</b> Separa la firma del contrato real</div>
+          <div class="hop rv" data-at="40.5"><b>2</b> La adjunta al contrato falso</div>
+          <div class="hop rv" data-at="42.3"><b>3</b> La verificación calcula el hash, coincide y la acepta</div>
+          <p class="note rv" data-at="44.2">La firma es auténtica. El documento no es el que se firmó.</p>
+        </div>
+        <div class="panel" data-steps="5" hidden>
+          <h3>Cómo protegerse</h3>
+          <ul class="checks">
+            <li class="rv" data-at="48.5">Usa funciones hash modernas y largas: SHA-256 o SHA-3</li>
+            <li class="rv" data-at="49.4">Retira MD5 y SHA-1 de firmas y certificados</li>
+            <li class="rv" data-at="50.3">Mantén actualizados los sistemas y programas de firma</li>
+            <li class="rv" data-at="51.2">Antes de firmar un documento ajeno, hazle un cambio propio</li>
+            <li class="rv" data-at="52.1">Guarda copia exacta de lo que firmaste</li>
+            <li class="rv" data-at="53">Revisa qué algoritmo usan tus certificados</li>
+          </ul>
+          <div class="vpn rv" data-at="55">Cada bit extra en la huella duplica el esfuerzo. Con 256 bits, hallar una coincidencia no es viable con ninguna computadora actual.</div>
+        </div>
+      </aside>
+    </div>
+    <div class="controls">
+      <div class="row">
+        <button id="play" type="button">Pausar</button>
+        <input id="seek" type="range" min="0" max="60" step="0.1" value="0" aria-label="Posición de la animación">
+        <span class="time" id="time">0:00 / 1:00</span>
+      </div>
+      <div class="chips" id="chips"></div>
+    </div>
+  </section>
+
+  <section class="summary">
+    <h2>Los seis pasos</h2>
+    <ol>
+      <li><strong>La paradoja</strong><span>Con 23 personas ya es más probable que dos compartan cumpleaños que lo contrario.</span></li>
+      <li><strong>La firma digital</strong><span>Lo que se firma es el hash del documento, no el documento.</span></li>
+      <li><strong>La colisión</strong><span>El atacante genera versiones de un contrato real y uno falso hasta que comparten hash.</span></li>
+      <li><strong>La firma</strong><span>La víctima revisa y firma el contrato real.</span></li>
+      <li><strong>El cambiazo</strong><span>La misma firma valida el contrato falso porque su hash es idéntico.</span></li>
+      <li><strong>La defensa</strong><span>Funciones hash largas y modernas, retirar MD5 y SHA-1, y modificar lo que otro te pide firmar.</span></li>
+    </ol>
+  </section>
+
+  <nav class="lab-nav" aria-label="Otros simuladores del laboratorio">
+    <div class="nav-top">
+      <a class="portal" href="/laboratorio/">⬡ Laboratorio Netblue</a>
+      <span class="lbl">Otros simuladores</span>
+    </div>
+    <div class="chips2">
+      <a href="/laboratorio/detecta-el-phishing/">Phishing</a>
+      <a href="/laboratorio/spear-phishing-bec/">Spear Phishing / BEC</a>
+      <a href="/laboratorio/smishing-vishing/">Smishing / Vishing</a>
+      <a href="/laboratorio/ingenieria-social/">Ingeniería Social</a>
+      <a href="/laboratorio/clic-enlace-phishing/">Enlace de phishing</a>
+      <a href="/laboratorio/ataque-diccionario/">Diccionario</a>
+      <a href="/laboratorio/fuerza-bruta-calculadora/">Fuerza Bruta</a>
+      <a href="/laboratorio/credential-stuffing/">Credential Stuffing</a>
+      <a href="/laboratorio/password-spraying/">Password Spraying</a>
+      <a href="/laboratorio/rainbow-tables-salt/">Rainbow Tables</a>
+      <a href="/laboratorio/tabla-arcoiris/">Tabla Arcoíris</a>
+      <a href="/laboratorio/volcado-de-memoria/">Volcado de Memoria</a>
+      <a href="/laboratorio/sql-injection/">SQL Injection</a>
+      <a href="/laboratorio/cross-site-scripting/">XSS</a>
+      <a href="/laboratorio/man-in-the-middle/">Man-in-the-Middle</a>
+      <a href="/laboratorio/dos-ddos/">DoS / DDoS</a>
+      <a href="/laboratorio/wardriving/">Wardriving</a>
+      <a href="/laboratorio/bluesnarfing/">Bluesnarfing</a>
+      <a href="/laboratorio/ransomware/">Ransomware</a>
+      <a href="/laboratorio/keylogger-troyanos/">Keylogger</a>
+      <a href="/laboratorio/troyano-rat/">Troyano RAT</a>
+      <a href="/laboratorio/reverse-shell/">Reverse Shell</a>
+    </div>
+  </nav>
+</div>
+
+<script>
+(function(){
+const S=[0,9,18,30,38,48,60], END=60;
+const STEPS=[
+ {t:"La paradoja",s:"Paradoja",c:[[0,"En un grupo de solo 23 personas, lo más probable es que dos cumplan años el mismo día. Las coincidencias llegan mucho antes de lo que uno espera."]]},
+ {t:"La firma digital",s:"Firma digital",c:[[9,"Una firma digital no firma el documento completo, sino su hash: una huella corta calculada a partir de él."]]},
+ {t:"La colisión",s:"Colisión",c:[[18,"El atacante genera millones de versiones de un contrato real y de uno falso, hasta que una de cada grupo produce el mismo hash."]]},
+ {t:"La firma",s:"Firma",c:[[30,"Le envía el contrato real a la víctima, que lo revisa y lo firma sin ver nada sospechoso."]]},
+ {t:"El cambiazo",s:"Cambiazo",c:[[38,"Luego pasa esa firma al contrato falso. Como el hash es idéntico, la verificación la da por válida."]]},
+ {t:"Cómo protegerse",s:"Defensa",c:[[48,"La defensa es usar funciones hash con huellas tan largas que hallar una coincidencia sea inviable."],[54,"Con SHA-256 los dos contratos ya no comparten huella y la firma copiada se rechaza."]]}
+];
+const $=id=>document.getElementById(id);
+const cv=$("cv"),ctx=cv.getContext("2d"),playB=$("play"),seek=$("seek"),timeEl=$("time"),capEl=$("cap"),chips=$("chips");
+const panels=[...document.querySelectorAll(".panel")],timed=[...document.querySelectorAll("[data-at]")];
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+let t=reduce?24:0,playing=!reduce,last=0,cw=0,ch=0,dpr=1,C={},curStep=-1,curCap="",dragging=false;
+
+STEPS.forEach((s,i)=>{const b=document.createElement("button");b.type="button";b.textContent=(i+1)+" · "+s.s;b.addEventListener("click",()=>{t=S[i];playing=!reduce;sync()});chips.appendChild(b)});
+
+function theme(){const cs=getComputedStyle(document.documentElement);
+  for(const k of ["surface","sunken","ink","muted","line","legit","threat","safe","relay"])C[k]=cs.getPropertyValue("--"+k).trim()}
+theme();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",theme);
+new MutationObserver(theme).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+
+function resize(){const w=cv.clientWidth;if(!w)return;cw=w;ch=Math.round(Math.min(470,Math.max(300,w*0.62)));dpr=window.devicePixelRatio||1;
+  cv.style.height=ch+"px";cv.width=Math.round(cw*dpr);cv.height=Math.round(ch*dpr)}
+new ResizeObserver(resize).observe(cv);resize();
+
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const ease=x=>{x=clamp(x);return x*x*(3-2*x)};
+const pr=(x,a,b)=>ease((x-a)/(b-a));
+const lerp=(a,b,u)=>[a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u];
+const fr=x=>((x%1)+1)%1, edge=u=>Math.min(1,u*8,(1-u)*8);
+let G=1;const al=a=>{ctx.globalAlpha=clamp(a)*G};
+function seg(a,b,col,w,a_,dash){al(a_);ctx.strokeStyle=col;ctx.lineWidth=w;ctx.lineCap="round";ctx.setLineDash(dash||[]);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();ctx.setLineDash([])}
+function disc(x,y,r,fill,stroke,w,dash){ctx.setLineDash(dash||[]);ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=w;ctx.stroke()}ctx.setLineDash([])}
+function rrect(x,y,w,h,r,fill){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fillStyle=fill;ctx.fill()}
+function poly(pts,fill){ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fillStyle=fill;ctx.fill()}
+function text(s,x,y,font,col){ctx.font=font;ctx.fillStyle=col;ctx.textAlign="center";ctx.textBaseline="top";ctx.fillText(s,x,y)}
+function waves(c,col,a,n,span,speed,r,k){for(let i=0;i<n;i++){const f=((t*speed+i*span/n)%span)/span;al(a*(1-f)*0.55);disc(c[0],c[1],r+f*span*k,null,col,1.5)}}
+
+function hacker(c,k){const[x,y]=c;poly([[x-38*k,y+36*k],[x-28*k,y+4*k],[x,y-6*k],[x+28*k,y+4*k],[x+38*k,y+36*k]],"#7A1F2B");
+  ctx.beginPath();ctx.ellipse(x,y-15*k,23*k,25*k,0,0,Math.PI*2);ctx.fillStyle="#A32A38";ctx.fill();
+  ctx.beginPath();ctx.ellipse(x,y-12*k,14*k,16*k,0,0,Math.PI*2);ctx.fillStyle="#160A10";ctx.fill();
+  for(const dx of[-6,6]){ctx.beginPath();ctx.ellipse(x+dx*k,y-13*k,3.2*k,2*k,0,0,Math.PI*2);ctx.fillStyle="#FF7878";ctx.fill()}
+  rrect(x-20*k,y+16*k,40*k,22*k,3*k,"#26324E");disc(x,y+27*k,3*k,"#F2555A")}
+function lock(x,y,s,col){ctx.strokeStyle=col;ctx.lineWidth=2.4*s;ctx.beginPath();ctx.arc(x,y-6*s,6*s,Math.PI,0);ctx.stroke();rrect(x-9*s,y-6*s,18*s,14*s,3*s,col)}
+function dot(p,col,a,k){al(a*0.2);disc(p[0],p[1],11*k,col);al(a);disc(p[0],p[1],5*k,col)}
+function msg(p,col,a,k){al(a*0.2);disc(p[0],p[1],14*k,col);al(a);rrect(p[0]-10*k,p[1]-7*k,20*k,13*k,4*k,col);poly([[p[0]-4*k,p[1]+5*k],[p[0]+3*k,p[1]+5*k],[p[0]-5*k,p[1]+11*k]],col)}
+function cred(p,a,k){al(a*0.2);disc(p[0],p[1],16*k,C.threat);al(a);rrect(p[0]-14*k,p[1]-7*k,28*k,14*k,4*k,C.threat);for(let i=-1;i<2;i++)disc(p[0]+i*7*k,p[1],2.2*k,C.surface)}
+function label(c,r,a,title,sub,col){al(a);text(title,c[0],c[1]+r+7,"600 13.5px Barlow, Arial, sans-serif",C.ink);text(sub,c[0],c[1]+r+24,"500 12px Barlow, Arial, sans-serif",col)}
+
+
+function pathPt(p,u){const sg=[];let tot=0;for(let i=0;i<p.length-1;i++){sg.push(Math.hypot(p[i][0]-p[i+1][0],p[i][1]-p[i+1][1]));tot+=sg[i]}
+  let x=clamp(u)*tot;for(let i=0;i<sg.length;i++){if(x<=sg[i])return lerp(p[i],p[i+1],x/sg[i]);x-=sg[i]}return p[p.length-1]}
+function laptop(c,k){const[x,y]=c;rrect(x-27*k,y-25*k,54*k,38*k,4*k,C.ink);rrect(x-23*k,y-21*k,46*k,30*k,2*k,C.surface);poly([[x-36*k,y+16*k],[x+36*k,y+16*k],[x+30*k,y+24*k],[x-30*k,y+24*k]],C.ink)}
+function server(c,k){const[x,y]=c;for(let i=0;i<3;i++){rrect(x-24*k,y+(-26+i*18)*k,48*k,14*k,3*k,C.ink);disc(x-16*k,y+(-19+i*18)*k,2.4*k,C.surface)}}
+function mon(x,y,k){rrect(x-14*k,y-11*k,28*k,20*k,2*k,C.ink);rrect(x-10.5*k,y-8*k,21*k,14*k,1,C.surface);rrect(x-7*k,y+11*k,14*k,3*k,1,C.ink)}
+function pcs(c,k){mon(c[0]-11*k,c[1]-9*k,k);mon(c[0]+11*k,c[1]+11*k,k)}
+function drum(c,k){const[x,y]=c;rrect(x-20*k,y-17*k,40*k,34*k,0,C.ink);for(const dy of[-17,17]){ctx.beginPath();ctx.ellipse(x,y+dy*k,20*k,7*k,0,0,Math.PI*2);ctx.fillStyle=C.ink;ctx.fill()}
+  ctx.strokeStyle=C.surface;ctx.lineWidth=2*k;for(const dy of[-17,-4,8]){ctx.beginPath();ctx.ellipse(x,y+dy*k,20*k,7*k,0,0,Math.PI);ctx.stroke()}}
+function doc(p,a,k){al(a*0.2);disc(p[0],p[1],14*k,C.relay);al(a);rrect(p[0]-7*k,p[1]-9*k,14*k,18*k,2*k,C.relay);ctx.strokeStyle=C.sunken;ctx.lineWidth=1.4*k;for(const dy of[-3,1,5]){ctx.beginPath();ctx.moveTo(p[0]-4*k,p[1]+dy*k);ctx.lineTo(p[0]+4*k,p[1]+dy*k);ctx.stroke()}}
+function badge(c,r,a,pk){if(a<=0)return;const x=c[0]+r*.72,y=c[1]-r*.72;al(a);disc(x,y,11*pk,C.threat,C.surface,2);lock(x,y+2*pk,.5*pk,C.surface)}
+function node(c,r,k,icon,inf,lk,title,sub,col){al(1);disc(c[0],c[1],r,C.surface,C.ink,2.5);if(inf>0){al(inf);disc(c[0],c[1],r,null,C.threat,3.5)}
+  al(1-.65*lk);icon(c,k);label(c,r,1,title,sub,col)}
+function pathPt(p,u){const sg=[];let tot=0;for(let i=0;i<p.length-1;i++){sg.push(Math.hypot(p[i][0]-p[i+1][0],p[i][1]-p[i+1][1]));tot+=sg[i]}
+  let x=clamp(u)*tot;for(let i=0;i<sg.length;i++){if(x<=sg[i])return lerp(p[i],p[i+1],x/sg[i]);x-=sg[i]}return p[p.length-1]}
+function laptop(c,k){const[x,y]=c;rrect(x-27*k,y-25*k,54*k,38*k,4*k,C.ink);rrect(x-23*k,y-21*k,46*k,30*k,2*k,C.surface);poly([[x-36*k,y+16*k],[x+36*k,y+16*k],[x+30*k,y+24*k],[x-30*k,y+24*k]],C.ink)}
+function doc(p,a,k){al(a*0.2);disc(p[0],p[1],14*k,C.relay);al(a);rrect(p[0]-7*k,p[1]-9*k,14*k,18*k,2*k,C.relay);ctx.strokeStyle=C.sunken;ctx.lineWidth=1.4*k;for(const dy of[-3,1,5]){ctx.beginPath();ctx.moveTo(p[0]-4*k,p[1]+dy*k);ctx.lineTo(p[0]+4*k,p[1]+dy*k);ctx.stroke()}}
+function person(c,k){const[x,y]=c;disc(x,y-14*k,12*k,C.ink);ctx.beginPath();ctx.ellipse(x,y+28*k,24*k,24*k,0,Math.PI,0);ctx.fillStyle=C.ink;ctx.fill()}
+
+function phone(c,k){const[x,y]=c;rrect(x-15*k,y-27*k,30*k,54*k,6*k,C.ink);rrect(x-11*k,y-21*k,22*k,37*k,2*k,C.surface);disc(x,y+21.5*k,2.2*k,C.surface)}
+function rune(x,y,s,col,w){ctx.strokeStyle=col;ctx.lineWidth=w;ctx.lineJoin="round";ctx.lineCap="round";ctx.beginPath();ctx.moveTo(x-s*.5,y-s*.5);ctx.lineTo(x+s*.5,y+s*.5);ctx.lineTo(x,y+s);ctx.lineTo(x,y-s);ctx.lineTo(x+s*.5,y-s*.5);ctx.lineTo(x-s*.5,y+s*.5);ctx.stroke()}
+function bt(c,r,col,off,pk){const x=c[0]+r*.72,y=c[1]-r*.72;al(1);disc(x,y,11*pk,col,C.surface,2);rune(x,y,6*pk,C.surface,1.8);
+  if(off){ctx.strokeStyle=C.surface;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x-8*pk,y+8*pk);ctx.lineTo(x+8*pk,y-8*pk);ctx.stroke();ctx.strokeStyle=C.threat;ctx.lineWidth=2;ctx.stroke()}}
+function xmark(mid,a,col,pk){if(a<=0)return;const q=9*pk;al(a);disc(mid[0],mid[1],q*1.6,C.surface,col,2.5);
+  ctx.strokeStyle=col;ctx.lineWidth=3;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(mid[0]-q*.6,mid[1]-q*.6);ctx.lineTo(mid[0]+q*.6,mid[1]+q*.6);ctx.moveTo(mid[0]+q*.6,mid[1]-q*.6);ctx.lineTo(mid[0]-q*.6,mid[1]+q*.6);ctx.stroke()}
+function pathPt(p,u){const sg=[];let tot=0;for(let i=0;i<p.length-1;i++){sg.push(Math.hypot(p[i][0]-p[i+1][0],p[i][1]-p[i+1][1]));tot+=sg[i]}
+  let x=clamp(u)*tot;for(let i=0;i<sg.length;i++){if(x<=sg[i])return lerp(p[i],p[i+1],x/sg[i]);x-=sg[i]}return p[p.length-1]}
+function laptop(c,k){const[x,y]=c;rrect(x-27*k,y-25*k,54*k,38*k,4*k,C.ink);rrect(x-23*k,y-21*k,46*k,30*k,2*k,C.surface);poly([[x-36*k,y+16*k],[x+36*k,y+16*k],[x+30*k,y+24*k],[x-30*k,y+24*k]],C.ink)}
+function server(c,k){const[x,y]=c;for(let i=0;i<3;i++){rrect(x-24*k,y+(-26+i*18)*k,48*k,14*k,3*k,C.ink);disc(x-16*k,y+(-19+i*18)*k,2.4*k,C.surface)}}
+function mon(x,y,k){rrect(x-14*k,y-11*k,28*k,20*k,2*k,C.ink);rrect(x-10.5*k,y-8*k,21*k,14*k,1,C.surface);rrect(x-7*k,y+11*k,14*k,3*k,1,C.ink)}
+function pcs(c,k){mon(c[0]-11*k,c[1]-9*k,k);mon(c[0]+11*k,c[1]+11*k,k)}
+function drum(c,k){const[x,y]=c;rrect(x-20*k,y-17*k,40*k,34*k,0,C.ink);for(const dy of[-17,17]){ctx.beginPath();ctx.ellipse(x,y+dy*k,20*k,7*k,0,0,Math.PI*2);ctx.fillStyle=C.ink;ctx.fill()}
+  ctx.strokeStyle=C.surface;ctx.lineWidth=2*k;for(const dy of[-17,-4,8]){ctx.beginPath();ctx.ellipse(x,y+dy*k,20*k,7*k,0,0,Math.PI);ctx.stroke()}}
+function doc(p,a,k){al(a*0.2);disc(p[0],p[1],14*k,C.relay);al(a);rrect(p[0]-7*k,p[1]-9*k,14*k,18*k,2*k,C.relay);ctx.strokeStyle=C.sunken;ctx.lineWidth=1.4*k;for(const dy of[-3,1,5]){ctx.beginPath();ctx.moveTo(p[0]-4*k,p[1]+dy*k);ctx.lineTo(p[0]+4*k,p[1]+dy*k);ctx.stroke()}}
+function badge(c,r,a,pk){if(a<=0)return;const x=c[0]+r*.72,y=c[1]-r*.72;al(a);disc(x,y,11*pk,C.threat,C.surface,2);lock(x,y+2*pk,.5*pk,C.surface)}
+function node(c,r,k,icon,inf,lk,title,sub,col){al(1);disc(c[0],c[1],r,C.surface,C.ink,2.5);if(inf>0){al(inf);disc(c[0],c[1],r,null,C.threat,3.5)}
+  al(1-.65*lk);icon(c,k);label(c,r,1,title,sub,col)}
+function pathPt(p,u){const sg=[];let tot=0;for(let i=0;i<p.length-1;i++){sg.push(Math.hypot(p[i][0]-p[i+1][0],p[i][1]-p[i+1][1]));tot+=sg[i]}
+  let x=clamp(u)*tot;for(let i=0;i<sg.length;i++){if(x<=sg[i])return lerp(p[i],p[i+1],x/sg[i]);x-=sg[i]}return p[p.length-1]}
+function laptop(c,k){const[x,y]=c;rrect(x-27*k,y-25*k,54*k,38*k,4*k,C.ink);rrect(x-23*k,y-21*k,46*k,30*k,2*k,C.surface);poly([[x-36*k,y+16*k],[x+36*k,y+16*k],[x+30*k,y+24*k],[x-30*k,y+24*k]],C.ink)}
+function doc(p,a,k){al(a*0.2);disc(p[0],p[1],14*k,C.relay);al(a);rrect(p[0]-7*k,p[1]-9*k,14*k,18*k,2*k,C.relay);ctx.strokeStyle=C.sunken;ctx.lineWidth=1.4*k;for(const dy of[-3,1,5]){ctx.beginPath();ctx.moveTo(p[0]-4*k,p[1]+dy*k);ctx.lineTo(p[0]+4*k,p[1]+dy*k);ctx.stroke()}}
+function person(c,k){const[x,y]=c;disc(x,y-14*k,12*k,C.ink);ctx.beginPath();ctx.ellipse(x,y+28*k,24*k,24*k,0,Math.PI,0);ctx.fillStyle=C.ink;ctx.fill()}
+
+function globe(c,k){const[x,y]=c;ctx.strokeStyle=C.ink;ctx.lineWidth=3*k;ctx.beginPath();ctx.arc(x,y,24*k,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.ellipse(x,y,10*k,24*k,0,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(x-24*k,y);ctx.lineTo(x+24*k,y);ctx.stroke()}
+function xmark(mid,a,col,pk){if(a<=0)return;const q=9*pk;al(a);disc(mid[0],mid[1],q*1.6,C.surface,col,2.5);
+  ctx.strokeStyle=col;ctx.lineWidth=3;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(mid[0]-q*.6,mid[1]-q*.6);ctx.lineTo(mid[0]+q*.6,mid[1]+q*.6);ctx.moveTo(mid[0]+q*.6,mid[1]-q*.6);ctx.lineTo(mid[0]-q*.6,mid[1]+q*.6);ctx.stroke()}
+
+function server(c,k){const[x,y]=c;for(let i=0;i<3;i++){rrect(x-24*k,y+(-26+i*18)*k,48*k,14*k,3*k,C.ink);disc(x-16*k,y+(-19+i*18)*k,2.4*k,C.surface)}}
+function mon(x,y,k){rrect(x-14*k,y-11*k,28*k,20*k,2*k,C.ink);rrect(x-10.5*k,y-8*k,21*k,14*k,1,C.surface);rrect(x-7*k,y+11*k,14*k,3*k,1,C.ink)}
+function pcs(c,k){mon(c[0]-11*k,c[1]-9*k,k);mon(c[0]+11*k,c[1]+11*k,k)}
+
+function drum(c,k){const[x,y]=c;rrect(x-20*k,y-17*k,40*k,34*k,0,C.ink);for(const dy of[-17,17]){ctx.beginPath();ctx.ellipse(x,y+dy*k,20*k,7*k,0,0,Math.PI*2);ctx.fillStyle=C.ink;ctx.fill()}
+  ctx.strokeStyle=C.surface;ctx.lineWidth=2*k;for(const dy of[-17,-4,8]){ctx.beginPath();ctx.ellipse(x,y+dy*k,20*k,7*k,0,0,Math.PI);ctx.stroke()}}
+
+function form(c,k){const[x,y]=c;rrect(x-24*k,y-27*k,48*k,54*k,5*k,C.ink);rrect(x-17*k,y-18*k,34*k,9*k,2,C.surface);rrect(x-17*k,y-4*k,34*k,9*k,2,C.surface);rrect(x-10*k,y+11*k,20*k,9*k,3,C.legit)}
+
+
+
+function page(c,k){const[x,y]=c;rrect(x-18*k,y-25*k,36*k,50*k,3*k,C.ink);for(let i=0;i<4;i++)rrect(x-11*k,y+(-15+i*9)*k,(i===3?13:22)*k,3.2*k,1,C.surface)}
+function hashI(c,k){text("#",c[0],c[1]-23*k,"700 "+Math.round(40*k)+"px Barlow, Arial, sans-serif",C.ink)}
+function hx(n){return((Math.imul(n,2654435761)>>>0).toString(16).padStart(8,"0")).slice(0,4)}
+function prob(n){let q=1;for(let i=0;i<n;i++)q*=(365-i)/365;return(1-q)*100}
+function mini(x,y,s,col){disc(x,y-s*.45,s*.42,col);ctx.beginPath();ctx.ellipse(x,y+s*.95,s*.8,s*.8,0,Math.PI,0);ctx.fillStyle=col;ctx.fill()}
+function sceneA(w,h){
+  const n=Math.max(0,Math.min(23,Math.floor((t-.8)/.26)+1)),sx=Math.min(w*.105,62),sy=sx*1.15,x0=w/2-sx*3.5,y0=h*.36,m=pr(t,7,7.6);
+  al(1);text(n+(n===1?" persona":" personas"),w/2,h*.07,"600 17px Barlow, Arial, sans-serif",C.ink);
+  text("Probabilidad de coincidencia: "+prob(n).toFixed(1)+" %",w/2,h*.07+24,"500 13px Barlow, Arial, sans-serif",n>=23?C.relay:C.muted);
+  const pos=i=>[x0+(i%8)*sx+(i>=16?sx*.5:0),y0+Math.floor(i/8)*sy];
+  if(m>0){const a=pos(4),b=pos(17);seg(a,b,C.relay,2.5,m,[5,5])}
+  for(let i=0;i<n;i++){const p=pos(i),hi=(i===4||i===17)&&m>.5;al(pr(t,.8+i*.26,1.05+i*.26));mini(p[0],p[1],sx*.3,hi?C.relay:C.ink)}
+  if(m>0){al(m);text("Mismo cumpleaños",w/2,y0+sy*2+sx*.55,"600 13px Barlow, Arial, sans-serif",C.relay)}
+}
+function sceneB(w,h){
+  const r=clamp(w*0.065,26,44),k=r/58,pk=Math.max(0.75,k);
+  const A=[w*.12,h*.45],DA=[w*.42,h*.2],DB=[w*.42,h*.72],H=[w*.64,h*.45],V=[w*.89,h*.45];
+  const fix=pr(t,49,50.2),bApp=pr(t,18.5,19.3),col=pr(t,28,28.8)*(1-fix),signed=pr(t,34,34.6),mv=pr(t,39,41),ver=pr(t,41.8,42.5)*(1-fix);
+  seg(A,DA,C.muted,1.5,.5,[4,6]);seg(A,DB,C.muted,1.5,.5*bApp,[4,6]);seg(DA,H,C.muted,1.5,.6,[4,6]);seg(DB,H,C.muted,1.5,.6*bApp,[4,6]);seg(H,V,C.legit,2.5,.85);
+  if(col>0){seg(DA,H,C.relay,3,col);seg(DB,H,C.relay,3,col)}
+  const f2=pr(t,9.6,10.2)*(1-pr(t,18,18.6));
+  if(f2>0)for(let i=0;i<2;i++){const u=fr((t-9.6)*.25+i/2);doc(lerp(DA,H,u),f2*edge(u),pk);const u2=fr((t-9.6)*.25+i/2+.5);dot(lerp(H,V,u2),C.legit,f2*edge(u2),pk)}
+  const sr=pr(t,18.6,19.2)*(1-pr(t,28,28.4));
+  if(sr>0)for(let i=0;i<3;i++){const u=fr((t-18.6)*.9+i/3);dot(lerp(A,DA,u),C.relay,sr*edge(u),pk*.8);dot(lerp(A,DB,u),C.relay,sr*edge(u),pk*.8);const u2=fr((t-18.6)*.9+i/3+.4);dot(lerp(DA,H,u2),C.muted,sr*edge(u2),pk*.7);dot(lerp(DB,H,u2),C.muted,sr*edge(u2),pk*.7)}
+  const sg=pr(t,30.5,31)*(1-pr(t,34,34.5));
+  if(sg>0)for(let i=0;i<2;i++){const u=fr((t-30.5)*.28+i/2);doc(pathPt([DA,H,V],u),sg*edge(u),pk)}
+  const vf=pr(t,41,41.5)*(1-pr(t,47.5,48));
+  if(vf>0)for(let i=0;i<2;i++){const u=fr((t-41)*.28+i/2);doc(pathPt([DB,H,V],u),vf*edge(u),pk)}
+  const cyc=t>=18.6&&t<28,seed=Math.floor(t*9);
+  const ha=fix>.5?"5c7a…f310":cyc?hx(seed)+"…"+hx(seed+7):t<18.6?"7d20…5b9a":"a3f9…c21e",hb=fix>.5?"e61b…08d4":cyc?hx(seed+3)+"…"+hx(seed+11):"a3f9…c21e";
+  const hc=fix>.5?C.safe:col>.5?C.relay:C.muted,mono="500 11px JetBrains Mono, ui-monospace, monospace";
+  al(1);disc(DA[0],DA[1],r,C.surface,C.ink,2.5);page(DA,k);rrect(DA[0]-52,DA[1]+r+4,104,36,4,C.sunken);text("Contrato real",DA[0],DA[1]+r+7,"600 13.5px Barlow, Arial, sans-serif",C.ink);text(ha,DA[0],DA[1]+r+25,mono,hc);
+  if(bApp>0){al(bApp);disc(DB[0],DB[1],r,C.surface,C.threat,2.5);page(DB,k);text("Contrato falso",DB[0],DB[1]+r+7,"600 13.5px Barlow, Arial, sans-serif",C.ink);text(hb,DB[0],DB[1]+r+25,mono,hc)}
+  al(1);disc(H[0],H[1],r,C.surface,C.ink,2.5);if(fix>0){al(fix);disc(H[0],H[1],r+7,null,C.safe,3)}al(1);hashI(H,k);label(H,r,1,"Función hash",fix>.5?"SHA-256":"Huella corta",fix>.5?C.safe:C.muted);
+  al(1);disc(V[0],V[1],r,C.surface,C.ink,2.5);if(ver>0){al(ver);disc(V[0],V[1],r,null,C.threat,3.5)}al(1);person(V,k);
+  label(V,r,1,"Firmante",fix>.5?"Rechazada":t<34?"Revisa y firma":t<42.2?"Firmó el real":"Firma válida",fix>.5?C.safe:t<42.2?C.muted:C.threat);
+  al(1);disc(A[0],A[1],r,C.surface,C.threat,2.5);hacker(A,k);
+  label(A,r,1,"Atacante",t<18.6?"Observa":t<28?"Busca colisión":t<34?"Envía el real":t<39?"Espera la firma":t<49.5?"Hace el cambio":"Sin efecto",C.threat);
+  if(signed>0){const p=lerp([DA[0]+r*.72,DA[1]-r*.72],[DB[0]+r*.72,DB[1]-r*.72],mv),bad=fix>.5;al(signed);disc(p[0],p[1],11*pk,bad?C.threat:C.safe,C.surface,2);
+    ctx.strokeStyle=C.surface;ctx.lineWidth=2.4*pk;ctx.lineCap="round";ctx.lineJoin="round";ctx.beginPath();
+    if(bad){ctx.moveTo(p[0]-4*pk,p[1]-4*pk);ctx.lineTo(p[0]+4*pk,p[1]+4*pk);ctx.moveTo(p[0]+4*pk,p[1]-4*pk);ctx.lineTo(p[0]-4*pk,p[1]+4*pk)}else{ctx.moveTo(p[0]-5*pk,p[1]);ctx.lineTo(p[0]-1.5*pk,p[1]+3.5*pk);ctx.lineTo(p[0]+5*pk,p[1]-3.5*pk)}ctx.stroke()}
+}
+function draw(){
+  if(!cw)return;
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,cw,ch);
+  const ga=1-pr(t,8.4,9),gb=pr(t,9,9.6);
+  if(ga>0){G=ga;sceneA(cw,ch)}
+  if(gb>0){G=gb;sceneB(cw,ch)}
+  G=1;al(1);
+  const n=Math.max(0,Math.min(23,Math.floor((t-.8)/.26)+1)),ps=prob(n).toFixed(1),cnt=$("cnt"),np=$("np");
+  if(cnt.textContent!==ps)cnt.textContent=ps;if(np.textContent!==String(n))np.textContent=String(n);
+  const tr=Math.floor(Math.pow((clamp(t,18.5,28)-18.5)/9.5,2)*4294967296).toLocaleString("en-US"),te=$("tries");if(te.textContent!==tr)te.textContent=tr;
+}
+
+function fmt(x){x=Math.floor(x);return Math.floor(x/60)+":"+String(x%60).padStart(2,"0")}
+function sync(){
+  let s=0;while(s<5&&t>=S[s+1])s++;
+  if(s!==curStep){curStep=s;$("stepn").textContent="Paso "+(s+1)+" de 6";$("stept").textContent=STEPS[s].t;
+    panels.forEach(p=>{p.hidden=!p.dataset.steps.split(",").includes(String(s))});
+    [...chips.children].forEach((b,i)=>b.setAttribute("aria-current",i===s?"true":"false"))}
+  let c="";for(const[at,tx]of STEPS[s].c)if(t>=at)c=tx;
+  if(c!==curCap){curCap=c;capEl.textContent=c}
+  for(const el of timed)el.classList.toggle("on",t>=+el.dataset.at);
+  if(!dragging)seek.value=t.toFixed(1);
+  timeEl.textContent=fmt(t)+" / "+fmt(END);
+  playB.textContent=playing?"Pausar":(t>=END?"Repetir":"Reproducir");
+}
+playB.addEventListener("click",()=>{if(t>=END){t=0;playing=true}else playing=!playing;sync()});
+seek.addEventListener("input",()=>{dragging=true;t=+seek.value;sync()});
+seek.addEventListener("change",()=>{dragging=false});
+function frame(now){const dt=Math.min(.1,(now-last)/1000||0);last=now;
+  if(playing){t+=dt;if(t>=END){t=END;playing=false}}
+  sync();draw();requestAnimationFrame(frame)}
+sync();requestAnimationFrame(frame);
+})();
+</script>
+
+<script id="nb-track">(function(){try{if(localStorage.getItem('nb-notrack'))return;}catch(_){}try{var q=new URLSearchParams(location.search),d=JSON.stringify({p:location.pathname,r:document.referrer,s:q.get('utm_source')||''});if(navigator.sendBeacon)navigator.sendBeacon('/api/track',d);else fetch('/api/track',{method:'POST',body:d,keepalive:true});}catch(_){}})();</script>
+</body></html>

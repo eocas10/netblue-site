@@ -1,0 +1,335 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Detecta el Phishing | Laboratorio Netblue</title><meta name="description" content="Clasifica correos como legítimos o fraudulentos y aprende las señales. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><link rel="canonical" href="https://netbluepr.com/laboratorio/detecta-el-phishing/"><link rel="icon" type="image/png" href="/favicon.png"><meta property="og:title" content="Detecta el Phishing | Laboratorio Netblue"><meta property="og:description" content="Clasifica correos como legítimos o fraudulentos y aprende las señales. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><meta property="og:url" content="https://netbluepr.com/laboratorio/detecta-el-phishing/"><meta property="og:image" content="https://netbluepr.com/og-image.png"><meta property="og:locale" content="es_PR"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Detecta el Phishing</title>
+<style>
+  /* Layout: bandeja de entrada simulada — tarjeta de correo centrada, el usuario decide legítimo o phishing y recibe feedback */
+  :root {
+    --bg: #f4f6f8; --surface: #ffffff; --surface-2: #eef1f5; --border: #d4dae2;
+    --fg: #1a2330; --fg-muted: #5b6878; --accent: #0b6e99; --accent-soft: #d6ebf4;
+    --ok: #1a7f4b; --ok-soft: #d6f0e1; --warn: #b4690e; --warn-soft: #f7e7cc;
+    --crit: #c0392b; --crit-soft: #f7dcd8;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1620; --surface: #161f2b; --surface-2: #1d2835; --border: #2b3a4a;
+      --fg: #e6edf4; --fg-muted: #93a1b2; --accent: #3fb6e0; --accent-soft: #10303d;
+      --ok: #4ecb8a; --ok-soft: #10311f; --warn: #e0a84a; --warn-soft: #3a2c12;
+      --crit: #f07567; --crit-soft: #3a1b17; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1620; --surface: #161f2b; --surface-2: #1d2835; --border: #2b3a4a;
+    --fg: #e6edf4; --fg-muted: #93a1b2; --accent: #3fb6e0; --accent-soft: #10303d;
+    --ok: #4ecb8a; --ok-soft: #10311f; --warn: #e0a84a; --warn-soft: #3a2c12;
+    --crit: #f07567; --crit-soft: #3a1b17; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--sans); line-height: 1.5; }
+  .wrap { max-width: 760px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 48px; }
+  header.page { margin-bottom: 20px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
+  h1 { font-size: clamp(28px, 6vw, 38px); line-height: 1.05; margin: 0 0 10px; text-wrap: balance; letter-spacing: -0.02em; }
+  header.page p { margin: 0; max-width: 62ch; color: var(--fg-muted); font-size: 15px; }
+
+  .scorebar { display: flex; gap: 10px; margin: 18px 0; flex-wrap: wrap; }
+  .score { flex: 1; min-width: 120px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .score .k { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); font-family: var(--mono); }
+  .score .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 2px; }
+
+  .mail { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .mail-head { padding: 16px 18px; border-bottom: 1px solid var(--border); }
+  .mail-subject { font-size: 17px; font-weight: 700; margin: 0 0 10px; }
+  .mail-meta { font-size: 13px; color: var(--fg-muted); display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; font-family: var(--mono); word-break: break-all; }
+  .mail-meta b { color: var(--fg); font-weight: 600; }
+  .mail-body { padding: 18px; font-size: 14.5px; }
+  .mail-body p { margin: 0 0 12px; }
+  .mail-body .btn-fake { display: inline-block; background: var(--accent); color: #fff; padding: 9px 16px; border-radius: 7px; font-weight: 600; font-size: 13px; text-decoration: none; pointer-events: none; }
+  .mail-body .link-fake { color: var(--accent); text-decoration: underline; word-break: break-all; }
+
+  .actions { display: flex; gap: 10px; margin-top: 16px; }
+  .actions button { flex: 1; font-family: var(--sans); font-size: 15px; font-weight: 700; padding: 14px; border-radius: 10px; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--fg); }
+  .actions button.legit:hover { border-color: var(--ok); color: var(--ok); }
+  .actions button.phish:hover { border-color: var(--crit); color: var(--crit); }
+  .actions button:disabled { opacity: 0.5; cursor: default; }
+
+  .feedback { margin-top: 16px; border-radius: 12px; padding: 16px; display: none; border: 1px solid transparent; }
+  .feedback.show { display: block; }
+  .feedback.correct { background: var(--ok-soft); border-color: var(--ok); }
+  .feedback.wrong { background: var(--crit-soft); border-color: var(--crit); }
+  .feedback h3 { margin: 0 0 8px; font-size: 16px; }
+  .feedback .verdict-tag { font-family: var(--mono); font-size: 11px; padding: 2px 8px; border-radius: 5px; letter-spacing: 0.04em; }
+  .feedback ul { margin: 10px 0 0; padding-left: 20px; }
+  .feedback li { font-size: 13.5px; margin-bottom: 5px; }
+  .feedback li .flag { color: var(--crit); font-weight: 600; }
+  .feedback li .safe { color: var(--ok); font-weight: 600; }
+  .next { margin-top: 14px; width: 100%; font-family: var(--sans); font-size: 15px; font-weight: 700; padding: 13px; border-radius: 10px; cursor: pointer; border: none; background: var(--accent); color: #fff; display: none; }
+  .next.show { display: block; }
+
+  .final { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; text-align: center; display: none; }
+  .final.show { display: block; }
+  .final h2 { margin: 0 0 8px; font-size: 24px; }
+  .final .big { font-size: 48px; font-weight: 800; font-variant-numeric: tabular-nums; margin: 10px 0; }
+  .final p { color: var(--fg-muted); margin: 0 auto 18px; max-width: 48ch; }
+  .final button { font-family: var(--sans); font-size: 15px; font-weight: 700; padding: 12px 24px; border-radius: 10px; cursor: pointer; border: none; background: var(--accent); color: #fff; }
+
+  .checklist { margin-top: 32px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+  .checklist h2 { font-size: 18px; margin: 0 0 12px; }
+  .checklist ol { margin: 0; padding-left: 22px; }
+  .checklist li { font-size: 14px; margin-bottom: 8px; }
+  .checklist li b { color: var(--accent); }
+  .note { margin-top: 18px; font-size: 12.5px; color: var(--fg-muted); border-left: 3px solid var(--border); padding: 4px 0 4px 14px; }
+</style>
+
+<div class="wrap">
+  <header class="page">
+    <p class="eyebrow">Laboratorio de concientización · Netblue</p>
+    <h1>Detecta el Phishing</h1>
+    <p>Llegan correos a tu bandeja. Para cada uno, decide si es <strong>legítimo</strong> o <strong>phishing</strong>. Tras responder verás las señales que delataban la respuesta. Fíjate en el remitente, los enlaces y el tono de urgencia.</p>
+  </header>
+
+  <div class="scorebar">
+    <div class="score"><div class="k">Correo</div><div class="v" id="s-idx">1 / 6</div></div>
+    <div class="score"><div class="k">Aciertos</div><div class="v" id="s-ok" style="color:var(--ok)">0</div></div>
+    <div class="score"><div class="k">Errores</div><div class="v" id="s-bad" style="color:var(--crit)">0</div></div>
+  </div>
+
+  <div id="game">
+    <div class="mail" id="mail"></div>
+    <div class="actions">
+      <button class="legit" id="btn-legit">✓ Es legítimo</button>
+      <button class="phish" id="btn-phish">⚠ Es phishing</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next" id="next">Siguiente correo →</button>
+  </div>
+
+  <div class="final" id="final">
+    <h2>Resultado final</h2>
+    <div class="big" id="final-score">0 / 6</div>
+    <p id="final-msg"></p>
+    <button id="restart">Repetir</button>
+  </div>
+
+  <section class="checklist">
+    <h2>Checklist rápido antes de hacer clic</h2>
+    <ol>
+      <li><b>Remitente:</b> ¿el dominio es el real? Cuidado con letras cambiadas (paypa1.com, micr0soft.com).</li>
+      <li><b>Urgencia:</b> "tu cuenta será suspendida en 24h" busca que actúes sin pensar.</li>
+      <li><b>Enlaces:</b> pasa el cursor y mira a dónde llevan de verdad antes de hacer clic.</li>
+      <li><b>Saludo genérico:</b> "Estimado cliente" en vez de tu nombre es una señal.</li>
+      <li><b>Pide datos sensibles:</b> ninguna empresa seria pide tu contraseña por correo.</li>
+      <li><b>Ante la duda:</b> no respondas al correo; entra al sitio oficial escribiendo tú la dirección.</li>
+    </ol>
+  </section>
+
+  <p class="note">Correos de práctica con marcas y datos ficticios, solo para entrenamiento. Ningún enlace de esta página es funcional.</p>
+
+  <nav class="lab-nav" aria-label="Otros simuladores del laboratorio">
+    <style>
+      .lab-nav{margin-top:34px;padding-top:22px;border-top:1px solid #D5DEE9}
+      .lab-nav .nav-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+      .lab-nav .nav-top a.portal{font-family:'Archivo','Segoe UI',sans-serif;font-size:14px;font-weight:700;text-decoration:none;color:#fff;background:#1657C7;padding:9px 16px;border-radius:6px}
+      .lab-nav .nav-top a.portal:hover{background:#0F2742}
+      .lab-nav .nav-top .lbl{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#44566C}
+      .lab-nav .chips{display:flex;flex-wrap:wrap;gap:8px}
+      .lab-nav .chips a{font-size:12.5px;text-decoration:none;color:#0F2742;background:#E8EEF6;border:1px solid #C3CFDD;padding:6px 11px;border-radius:999px}
+      .lab-nav .chips a:hover{border-color:#1657C7;color:#1657C7}
+    </style>
+    <div class="nav-top">
+      <a class="portal" href="/laboratorio/">⬡ Portal del laboratorio</a>
+      <span class="lbl">Otros simuladores</span>
+    </div>
+    <div class="chips">
+      <a href="/laboratorio/detecta-el-phishing/">Phishing</a>
+      <a href="/laboratorio/spear-phishing-bec/">Spear Phishing / BEC</a>
+      <a href="/laboratorio/smishing-vishing/">Smishing / Vishing</a>
+      <a href="/laboratorio/ataque-diccionario/">Diccionario</a>
+      <a href="/laboratorio/fuerza-bruta-calculadora/">Fuerza Bruta</a>
+      <a href="/laboratorio/credential-stuffing/">Credential Stuffing</a>
+      <a href="/laboratorio/rainbow-tables-salt/">Rainbow Tables</a>
+      <a href="/laboratorio/sql-injection/">SQL Injection</a>
+      <a href="/laboratorio/cross-site-scripting/">XSS</a>
+      <a href="/laboratorio/man-in-the-middle/">Man-in-the-Middle</a>
+      <a href="/laboratorio/dos-ddos/">DoS / DDoS</a>
+      <a href="/laboratorio/ransomware/">Ransomware</a>
+      <a href="/laboratorio/keylogger-troyanos/">Keylogger</a>
+    </div>
+  </nav>
+</div>
+
+<script>
+(function () {
+  var emails = [
+    {
+      phish: true,
+      subject: "Acción requerida: verifica tu cuenta en 24 horas",
+      from: "Soporte BanortePR <seguridad@banorte-pr-verificacion.com>",
+      to: "tú <usuario@empresa.com>",
+      date: "Hoy, 03:14",
+      body: '<p>Estimado cliente,</p><p>Hemos detectado actividad inusual en su cuenta. Por su seguridad, su acceso será <b>suspendido en 24 horas</b> si no verifica sus datos de inmediato.</p><p><a class="btn-fake">Verificar mi cuenta ahora</a></p><p>Enlace: <span class="link-fake">http://banorte-pr-verificacion.com/login</span></p>',
+      flags: [
+        { t: "Dominio falso: <code>banorte-pr-verificacion.com</code> no es el banco real.", bad: true },
+        { t: "Urgencia extrema (24 horas) para que actúes sin pensar.", bad: true },
+        { t: "Saludo genérico \"Estimado cliente\".", bad: true },
+        { t: "Enlace en HTTP (sin cifrar) hacia un dominio sospechoso.", bad: true }
+      ]
+    },
+    {
+      phish: false,
+      subject: "Tu recibo de octubre — Netflix",
+      from: "Netflix <info@account.netflix.com>",
+      to: "tú <usuario@empresa.com>",
+      date: "Ayer, 18:02",
+      body: '<p>Hola,</p><p>Gracias por ser miembro. Tu pago mensual se procesó correctamente. Puedes ver el detalle de tu recibo iniciando sesión en tu cuenta desde la app o el sitio oficial.</p><p>No se solicitan datos en este correo.</p>',
+      flags: [
+        { t: "Dominio legítimo de Netflix.", bad: false },
+        { t: "No pide contraseña ni datos sensibles.", bad: false },
+        { t: "Tono informativo, sin urgencia ni amenazas.", bad: false },
+        { t: "Te invita a entrar por la app/sitio oficial, no por un enlace forzado.", bad: false }
+      ]
+    },
+    {
+      phish: true,
+      subject: "RE: Factura pendiente - transferencia urgente",
+      from: "Carlos Director <carlos.director@gmail.com>",
+      to: "tú <usuario@empresa.com>",
+      date: "Hoy, 09:40",
+      body: '<p>Hola, estoy en una reunión y no puedo hablar. Necesito que proceses una transferencia urgente de $8,500 a un proveedor nuevo. Te paso los datos bancarios. Hazlo ahora y confírmame. Gracias.</p>',
+      flags: [
+        { t: "El \"director\" escribe desde un <code>@gmail.com</code>, no del correo corporativo.", bad: true },
+        { t: "Presión y urgencia + \"no puedo hablar\" para evitar que verifiques.", bad: true },
+        { t: "Pide transferencia a una cuenta nueva: patrón clásico de fraude del CEO (BEC).", bad: true },
+        { t: "Verifica siempre por otro canal (llamada directa) antes de pagar.", bad: true }
+      ]
+    },
+    {
+      phish: false,
+      subject: "Restablecimiento de contraseña solicitado",
+      from: "Microsoft 365 <no-reply@microsoft.com>",
+      to: "tú <usuario@empresa.com>",
+      date: "Hoy, 11:20",
+      body: '<p>Recibimos una solicitud para restablecer tu contraseña. Si fuiste tú, usa el código: <b>739204</b>. Si no fuiste tú, ignora este mensaje y tu contraseña seguirá igual.</p>',
+      flags: [
+        { t: "Dominio oficial de Microsoft.", bad: false },
+        { t: "Entrega un código, no te pide tu contraseña actual.", bad: false },
+        { t: "Ofrece la opción segura de ignorar si no fuiste tú.", bad: false },
+        { t: "Aun así: confirma que TÚ iniciaste la solicitud antes de usar el código.", bad: false }
+      ]
+    },
+    {
+      phish: true,
+      subject: "🎁 ¡Felicidades! Ganaste un iPhone 15",
+      from: "Premios <promociones@win-prize-today.net>",
+      to: "Destinatarios no revelados",
+      date: "Hoy, 02:55",
+      body: '<p>¡ERES EL GANADOR #1,000,000! Haz clic para reclamar tu iPhone 15 gratis. Solo paga $4.99 de envío con tu tarjeta.</p><p><a class="btn-fake">RECLAMAR PREMIO</a></p>',
+      flags: [
+        { t: "Premio que no participaste en ganar: demasiado bueno para ser verdad.", bad: true },
+        { t: "Dominio sospechoso <code>win-prize-today.net</code>.", bad: true },
+        { t: "Campo \"Para\" oculto (envío masivo).", bad: true },
+        { t: "Pide datos de tarjeta por un \"envío\": busca robar tu tarjeta.", bad: true }
+      ]
+    },
+    {
+      phish: false,
+      subject: "Agenda de la reunión de equipo del lunes",
+      from: "Ana Rivera <ana.rivera@empresa.com>",
+      to: "equipo <equipo@empresa.com>",
+      date: "Viernes, 16:10",
+      body: '<p>Hola a todos,</p><p>Adjunto la agenda para la reunión del lunes a las 10am. Si tienen puntos que agregar, respóndanme antes del domingo.</p><p>Saludos, Ana</p>',
+      flags: [
+        { t: "Remitente del dominio corporativo real.", bad: false },
+        { t: "Contexto coherente y esperado (reunión de equipo).", bad: false },
+        { t: "No pide credenciales ni dinero ni genera urgencia artificial.", bad: false },
+        { t: "Aun con correos internos: desconfía si un adjunto inesperado pide habilitar macros.", bad: false }
+      ]
+    }
+  ];
+
+  // barajar
+  for (var i = emails.length - 1; i > 0; i--) { var j = (Math.random() * (i + 1)) | 0; var t = emails[i]; emails[i] = emails[j]; emails[j] = t; }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var idx = 0, ok = 0, bad = 0, answered = false;
+
+  function esc(s) { return s.replace(/[<>&]/g, function (c) { return ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c]; }); }
+
+  function render() {
+    var e = emails[idx];
+    answered = false;
+    $("s-idx").textContent = (idx + 1) + " / " + emails.length;
+    $("mail").innerHTML =
+      '<div class="mail-head">' +
+        '<p class="mail-subject">' + esc(e.subject) + '</p>' +
+        '<div class="mail-meta">' +
+          '<b>De:</b><span>' + esc(e.from) + '</span>' +
+          '<b>Para:</b><span>' + esc(e.to) + '</span>' +
+          '<b>Fecha:</b><span>' + esc(e.date) + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="mail-body">' + e.body + '</div>';
+    $("feedback").className = "feedback";
+    $("feedback").innerHTML = "";
+    $("next").className = "next";
+    $("btn-legit").disabled = false;
+    $("btn-phish").disabled = false;
+  }
+
+  function answer(saidPhish) {
+    if (answered) return;
+    answered = true;
+    var e = emails[idx];
+    var correct = (saidPhish === e.phish);
+    if (correct) { ok++; $("s-ok").textContent = ok; } else { bad++; $("s-bad").textContent = bad; }
+    $("btn-legit").disabled = true;
+    $("btn-phish").disabled = true;
+
+    var fb = $("feedback");
+    fb.className = "feedback show " + (correct ? "correct" : "wrong");
+    var realLabel = e.phish ? '<span class="verdict-tag" style="background:var(--crit-soft);color:var(--crit)">PHISHING</span>'
+                            : '<span class="verdict-tag" style="background:var(--ok-soft);color:var(--ok)">LEGÍTIMO</span>';
+    var items = e.flags.map(function (f) {
+      return '<li><span class="' + (f.bad ? "flag" : "safe") + '">' + (f.bad ? "⚠" : "✓") + '</span> ' + f.t + '</li>';
+    }).join("");
+    fb.innerHTML = '<h3>' + (correct ? "✓ ¡Correcto!" : "✗ No del todo") + ' &nbsp; ' + realLabel + '</h3>' +
+      '<p style="margin:0;font-size:13.5px;color:var(--fg-muted)">Señales de este correo:</p>' +
+      '<ul>' + items + '</ul>';
+
+    if (idx + 1 < emails.length) { $("next").className = "next show"; }
+    else { $("next").className = "next show"; $("next").textContent = "Ver resultado →"; }
+  }
+
+  function next() {
+    if (idx + 1 < emails.length) { idx++; render(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+    else { showFinal(); }
+  }
+
+  function showFinal() {
+    $("game").style.display = "none";
+    $("final").className = "final show";
+    $("final-score").textContent = ok + " / " + emails.length;
+    var pct = ok / emails.length;
+    var msg = pct === 1 ? "¡Perfecto! Tienes buen ojo para detectar fraudes." :
+              pct >= 0.66 ? "Buen trabajo. Repasa el checklist para afinar los casos difíciles." :
+              "Conviene reforzar: revisa siempre remitente, enlaces y urgencia antes de actuar.";
+    $("final-msg").textContent = msg;
+  }
+
+  $("btn-legit").addEventListener("click", function () { answer(false); });
+  $("btn-phish").addEventListener("click", function () { answer(true); });
+  $("next").addEventListener("click", next);
+  $("restart").addEventListener("click", function () {
+    idx = 0; ok = 0; bad = 0;
+    $("s-ok").textContent = "0"; $("s-bad").textContent = "0";
+    $("final").className = "final"; $("game").style.display = "";
+    $("next").textContent = "Siguiente correo →";
+    render();
+  });
+
+  render();
+})();
+</script>
+
+<script id="nb-track">(function(){try{if(localStorage.getItem('nb-notrack'))return;}catch(_){}try{var q=new URLSearchParams(location.search),d=JSON.stringify({p:location.pathname,r:document.referrer,s:q.get('utm_source')||''});if(navigator.sendBeacon)navigator.sendBeacon('/api/track',d);else fetch('/api/track',{method:'POST',body:d,keepalive:true});}catch(_){}})();</script>
+</body></html>

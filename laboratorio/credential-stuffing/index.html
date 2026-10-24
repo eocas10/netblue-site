@@ -1,0 +1,251 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Credential Stuffing | Laboratorio Netblue</title><meta name="description" content="El efecto dominó de reutilizar la misma contraseña en varios sitios. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><link rel="canonical" href="https://netbluepr.com/laboratorio/credential-stuffing/"><link rel="icon" type="image/png" href="/favicon.png"><meta property="og:title" content="Credential Stuffing | Laboratorio Netblue"><meta property="og:description" content="El efecto dominó de reutilizar la misma contraseña en varios sitios. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><meta property="og:url" content="https://netbluepr.com/laboratorio/credential-stuffing/"><meta property="og:image" content="https://netbluepr.com/og-image.png"><meta property="og:locale" content="es_PR"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Credential Stuffing</title>
+<style>
+  /* Layout: tablero de sitios — una credencial filtrada se prueba en varios servicios; el radio de daño depende de si reutilizas contraseña */
+  :root {
+    --bg: #f4f6f8; --surface: #ffffff; --surface-2: #eef1f5; --border: #d4dae2;
+    --fg: #1a2330; --fg-muted: #5b6878; --accent: #0b6e99; --accent-soft: #d6ebf4;
+    --ok: #1a7f4b; --ok-soft: #d6f0e1; --warn: #b4690e; --warn-soft: #f7e7cc;
+    --crit: #c0392b; --crit-soft: #f7dcd8;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1620; --surface: #161f2b; --surface-2: #1d2835; --border: #2b3a4a;
+      --fg: #e6edf4; --fg-muted: #93a1b2; --accent: #3fb6e0; --accent-soft: #10303d;
+      --ok: #4ecb8a; --ok-soft: #10311f; --warn: #e0a84a; --warn-soft: #3a2c12;
+      --crit: #f07567; --crit-soft: #3a1b17; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1620; --surface: #161f2b; --surface-2: #1d2835; --border: #2b3a4a;
+    --fg: #e6edf4; --fg-muted: #93a1b2; --accent: #3fb6e0; --accent-soft: #10303d;
+    --ok: #4ecb8a; --ok-soft: #10311f; --warn: #e0a84a; --warn-soft: #3a2c12;
+    --crit: #f07567; --crit-soft: #3a1b17; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--sans); line-height: 1.5; }
+  .wrap { max-width: 840px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 48px; }
+  header.page { margin-bottom: 20px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
+  h1 { font-size: clamp(28px, 6vw, 38px); line-height: 1.05; margin: 0 0 10px; text-wrap: balance; letter-spacing: -0.02em; }
+  header.page p { margin: 0; max-width: 64ch; color: var(--fg-muted); font-size: 15px; }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-top: 18px; }
+  .panel h2 { font-size: 12px; font-family: var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); margin: 0 0 14px; font-weight: 600; }
+
+  .leak { background: var(--crit-soft); border: 1px solid var(--crit); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .leak .icon { font-size: 26px; }
+  .leak .cred { font-family: var(--mono); font-size: 14px; }
+  .leak .cred b { color: var(--crit); }
+  .leak .tagline { font-size: 12px; color: var(--fg-muted); margin-left: auto; }
+
+  .mode-toggle { display: flex; gap: 6px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 4px; margin: 16px 0; }
+  .mode-toggle button { flex: 1; font-size: 13.5px; font-weight: 700; padding: 11px 8px; border-radius: 8px; border: none; background: transparent; color: var(--fg-muted); cursor: pointer; }
+  .mode-toggle button.active { background: var(--accent); color: #fff; }
+
+  .controls { display: flex; gap: 10px; align-items: center; }
+  .controls button.go { font-size: 15px; font-weight: 700; padding: 11px 20px; border-radius: 9px; border: none; background: var(--accent); color: #fff; cursor: pointer; }
+  .controls button.go:disabled { opacity: 0.5; }
+  .controls .summary { margin-left: auto; font-family: var(--mono); font-size: 13px; }
+
+  .sites { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-top: 16px; }
+  .site { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; transition: border-color 0.2s, background 0.2s; }
+  .site .top { display: flex; align-items: center; gap: 9px; }
+  .site .dot { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; font-size: 16px; background: var(--surface); border: 1px solid var(--border); }
+  .site .name { font-weight: 700; font-size: 14px; }
+  .site .pw { font-family: var(--mono); font-size: 11px; color: var(--fg-muted); margin-top: 10px; word-break: break-all; }
+  .site .status { margin-top: 8px; font-family: var(--mono); font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+  .site.testing { border-color: var(--accent); }
+  .site.breached { border-color: var(--crit); background: var(--crit-soft); }
+  .site.breached .status { color: var(--crit); }
+  .site.safe { border-color: var(--ok); background: var(--ok-soft); }
+  .site.safe .status { color: var(--ok); }
+  .site .status.idle { color: var(--fg-muted); font-weight: 400; }
+
+  .result { margin-top: 16px; padding: 15px 17px; border-radius: 12px; font-size: 14px; display: none; }
+  .result.show { display: block; }
+  .result.bad { background: var(--crit-soft); border: 1px solid var(--crit); }
+  .result.good { background: var(--ok-soft); border: 1px solid var(--ok); }
+  .result b { font-family: var(--mono); }
+
+  .edu { margin-top: 32px; }
+  .edu h2 { font-size: 20px; margin: 0 0 14px; letter-spacing: -0.01em; }
+  .defense-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .def { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; min-width: 0; }
+  .def h3 { font-size: 15px; margin: 0 0 6px; }
+  .def p { margin: 0; font-size: 13.5px; color: var(--fg-muted); }
+  .note { margin-top: 20px; font-size: 12.5px; color: var(--fg-muted); border-left: 3px solid var(--border); padding: 4px 0 4px 14px; }
+
+  @media (max-width: 560px) { .leak .tagline { margin-left: 0; width: 100%; } }
+</style>
+
+<div class="wrap">
+  <header class="page">
+    <p class="eyebrow">Laboratorio de concientización · Netblue</p>
+    <h1>Credential Stuffing</h1>
+    <p>Cuando un sitio sufre una filtración, tu correo y contraseña acaban en listas que circulan por internet. En el <strong>credential stuffing</strong>, los atacantes prueban esa misma combinación — de forma automatizada — en decenas de servicios. Si reutilizas la contraseña, una sola fuga los abre todos.</p>
+  </header>
+
+  <section class="panel">
+    <h2>Credencial filtrada</h2>
+    <div class="leak">
+      <span class="icon">🔓</span>
+      <span class="cred">edgar@correo.com : <b>Verano2024!</b></span>
+      <span class="tagline">Expuesta en la filtración de "TiendaOnline" (2023)</span>
+    </div>
+
+    <div class="mode-toggle" id="mode">
+      <button data-mode="reuse" class="active">Reutilizo la misma contraseña</button>
+      <button data-mode="unique">Contraseña única por sitio + gestor</button>
+    </div>
+
+    <div class="controls">
+      <button class="go" id="run">▶ Lanzar ataque automatizado</button>
+      <span class="summary" id="summary"></span>
+    </div>
+
+    <div class="sites" id="sites"></div>
+
+    <div class="result" id="result"></div>
+  </section>
+
+  <section class="edu">
+    <h2>Cómo defenderse</h2>
+    <div class="defense-grid">
+      <div class="def"><h3>Una contraseña distinta por sitio</h3><p>Es la defensa raíz. Una fuga queda contenida en ese único servicio y no contagia a los demás.</p></div>
+      <div class="def"><h3>Gestor de contraseñas</h3><p>Genera y recuerda claves únicas y largas por ti. No tienes que memorizar nada.</p></div>
+      <div class="def"><h3>MFA en todo lo importante</h3><p>Aunque la contraseña esté filtrada, el segundo factor bloquea el acceso.</p></div>
+      <div class="def"><h3>Monitorea filtraciones</h3><p>Servicios como "Have I Been Pwned" te avisan si tu correo aparece en una fuga para que cambies esa clave.</p></div>
+    </div>
+    <p class="note">Servicios y credenciales ficticios con fines de entrenamiento. La página no prueba credenciales contra ningún sitio real.</p>
+
+  <nav class="lab-nav" aria-label="Otros simuladores del laboratorio">
+    <style>
+      .lab-nav{margin-top:34px;padding-top:22px;border-top:1px solid #D5DEE9}
+      .lab-nav .nav-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+      .lab-nav .nav-top a.portal{font-family:'Archivo','Segoe UI',sans-serif;font-size:14px;font-weight:700;text-decoration:none;color:#fff;background:#1657C7;padding:9px 16px;border-radius:6px}
+      .lab-nav .nav-top a.portal:hover{background:#0F2742}
+      .lab-nav .nav-top .lbl{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#44566C}
+      .lab-nav .chips{display:flex;flex-wrap:wrap;gap:8px}
+      .lab-nav .chips a{font-size:12.5px;text-decoration:none;color:#0F2742;background:#E8EEF6;border:1px solid #C3CFDD;padding:6px 11px;border-radius:999px}
+      .lab-nav .chips a:hover{border-color:#1657C7;color:#1657C7}
+    </style>
+    <div class="nav-top">
+      <a class="portal" href="/laboratorio/">⬡ Portal del laboratorio</a>
+      <span class="lbl">Otros simuladores</span>
+    </div>
+    <div class="chips">
+      <a href="/laboratorio/detecta-el-phishing/">Phishing</a>
+      <a href="/laboratorio/spear-phishing-bec/">Spear Phishing / BEC</a>
+      <a href="/laboratorio/smishing-vishing/">Smishing / Vishing</a>
+      <a href="/laboratorio/ataque-diccionario/">Diccionario</a>
+      <a href="/laboratorio/fuerza-bruta-calculadora/">Fuerza Bruta</a>
+      <a href="/laboratorio/credential-stuffing/">Credential Stuffing</a>
+      <a href="/laboratorio/rainbow-tables-salt/">Rainbow Tables</a>
+      <a href="/laboratorio/sql-injection/">SQL Injection</a>
+      <a href="/laboratorio/cross-site-scripting/">XSS</a>
+      <a href="/laboratorio/man-in-the-middle/">Man-in-the-Middle</a>
+      <a href="/laboratorio/dos-ddos/">DoS / DDoS</a>
+      <a href="/laboratorio/ransomware/">Ransomware</a>
+      <a href="/laboratorio/keylogger-troyanos/">Keylogger</a>
+    </div>
+  </nav>
+  </section>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+
+  var sites = [
+    { name: "Correo", icon: "✉️" },
+    { name: "Banco", icon: "🏦" },
+    { name: "Redes", icon: "📷" },
+    { name: "Tienda", icon: "🛒" },
+    { name: "Trabajo", icon: "💼" },
+    { name: "Streaming", icon: "🎬" }
+  ];
+
+  var mode = "reuse";
+  var running = false;
+
+  function render() {
+    $("sites").innerHTML = sites.map(function (s, i) {
+      var pw = mode === "reuse" ? "Verano2024!" : randPw(i);
+      return '<div class="site" data-i="' + i + '">' +
+        '<div class="top"><div class="dot">' + s.icon + '</div><div class="name">' + s.name + '</div></div>' +
+        '<div class="pw">🔑 ' + pw + '</div>' +
+        '<div class="status idle">· en espera</div></div>';
+    }).join("");
+    $("result").className = "result";
+    $("summary").textContent = "";
+  }
+
+  function randPw(i) {
+    var samples = ["x7$Kp2nQ", "9fLm#vR4", "Tz8!qWe3", "bN5@hJ6k", "P3wq$8Zt", "r9Km#2Lx"];
+    return samples[i % samples.length];
+  }
+
+  function run() {
+    if (running) return;
+    running = true; $("run").disabled = true;
+    $("result").className = "result";
+    var cells = [].slice.call(document.querySelectorAll(".site"));
+    cells.forEach(function (c) { c.className = "site"; c.querySelector(".status").className = "status idle"; c.querySelector(".status").textContent = "· en espera"; });
+
+    var breached = 0, i = 0;
+    function step() {
+      if (i >= cells.length) { finish(breached); return; }
+      var c = cells[i];
+      c.classList.add("testing");
+      c.querySelector(".status").className = "status idle";
+      c.querySelector(".status").textContent = "⟳ probando…";
+      setTimeout(function () {
+        c.classList.remove("testing");
+        var hit = (mode === "reuse"); // si reutiliza, la clave filtrada funciona en todos
+        if (hit) {
+          c.classList.add("breached");
+          c.querySelector(".status").className = "status";
+          c.querySelector(".status").textContent = "✗ ACCESO LOGRADO";
+          breached++;
+        } else {
+          c.classList.add("safe");
+          c.querySelector(".status").className = "status";
+          c.querySelector(".status").textContent = "✓ rechazado";
+        }
+        i++;
+        $("summary").textContent = breached + " / " + cells.length + " comprometidos";
+        step();
+      }, 420);
+    }
+    step();
+  }
+
+  function finish(breached) {
+    running = false; $("run").disabled = false;
+    var r = $("result");
+    if (mode === "reuse") {
+      r.className = "result show bad";
+      r.innerHTML = '<b>' + breached + ' de ' + sites.length + ' cuentas comprometidas.</b> Una sola contraseña filtrada abrió todas tus cuentas, incluido el banco y el correo (que a su vez permite resetear todo lo demás). Este es el efecto dominó de reutilizar contraseñas.';
+    } else {
+      r.className = "result show good";
+      r.innerHTML = '<b>0 cuentas comprometidas.</b> La contraseña filtrada no coincide en ningún otro sitio. El daño quedó contenido en el servicio original. Un gestor de contraseñas hace esto sin esfuerzo.';
+    }
+  }
+
+  $("mode").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-mode]"); if (!b || running) return;
+    mode = b.dataset.mode;
+    [].forEach.call(this.querySelectorAll("button"), function (x) { x.classList.toggle("active", x === b); });
+    render();
+  });
+  $("run").addEventListener("click", run);
+
+  render();
+})();
+</script>
+
+<script id="nb-track">(function(){try{if(localStorage.getItem('nb-notrack'))return;}catch(_){}try{var q=new URLSearchParams(location.search),d=JSON.stringify({p:location.pathname,r:document.referrer,s:q.get('utm_source')||''});if(navigator.sendBeacon)navigator.sendBeacon('/api/track',d);else fetch('/api/track',{method:'POST',body:d,keepalive:true});}catch(_){}})();</script>
+</body></html>

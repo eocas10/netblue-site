@@ -1,0 +1,232 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Spear Phishing y BEC | Laboratorio Netblue</title><meta name="description" content="Cómo los datos reales vuelven un correo dirigido peligrosamente creíble. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><link rel="canonical" href="https://netbluepr.com/laboratorio/spear-phishing-bec/"><link rel="icon" type="image/png" href="/favicon.png"><meta property="og:title" content="Spear Phishing y BEC | Laboratorio Netblue"><meta property="og:description" content="Cómo los datos reales vuelven un correo dirigido peligrosamente creíble. Simulador interactivo del laboratorio de ciberseguridad de Netblue."><meta property="og:url" content="https://netbluepr.com/laboratorio/spear-phishing-bec/"><meta property="og:image" content="https://netbluepr.com/og-image.png"><meta property="og:locale" content="es_PR"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Spear Phishing y BEC</title>
+<style>
+  /* Layout: comparador — un control de "nivel de reconocimiento" transforma un correo genérico en uno dirigido y creíble */
+  :root {
+    --bg: #f4f6f8; --surface: #ffffff; --surface-2: #eef1f5; --border: #d4dae2;
+    --fg: #1a2330; --fg-muted: #5b6878; --accent: #0b6e99; --accent-soft: #d6ebf4;
+    --ok: #1a7f4b; --ok-soft: #d6f0e1; --warn: #b4690e; --warn-soft: #f7e7cc;
+    --crit: #c0392b; --crit-soft: #f7dcd8;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1620; --surface: #161f2b; --surface-2: #1d2835; --border: #2b3a4a;
+      --fg: #e6edf4; --fg-muted: #93a1b2; --accent: #3fb6e0; --accent-soft: #10303d;
+      --ok: #4ecb8a; --ok-soft: #10311f; --warn: #e0a84a; --warn-soft: #3a2c12;
+      --crit: #f07567; --crit-soft: #3a1b17; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1620; --surface: #161f2b; --surface-2: #1d2835; --border: #2b3a4a;
+    --fg: #e6edf4; --fg-muted: #93a1b2; --accent: #3fb6e0; --accent-soft: #10303d;
+    --ok: #4ecb8a; --ok-soft: #10311f; --warn: #e0a84a; --warn-soft: #3a2c12;
+    --crit: #f07567; --crit-soft: #3a1b17; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--sans); line-height: 1.5; }
+  .wrap { max-width: 860px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 48px; }
+  header.page { margin-bottom: 20px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
+  h1 { font-size: clamp(28px, 6vw, 38px); line-height: 1.05; margin: 0 0 10px; text-wrap: balance; letter-spacing: -0.02em; }
+  header.page p { margin: 0; max-width: 64ch; color: var(--fg-muted); font-size: 15px; }
+
+  .stage { display: grid; grid-template-columns: 1fr 1.3fr; gap: 16px; align-items: start; }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; min-width: 0; }
+  .panel h2 { font-size: 12px; font-family: var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); margin: 0 0 14px; font-weight: 600; }
+
+  .recon-step { display: flex; align-items: flex-start; gap: 10px; padding: 11px 0; border-top: 1px solid var(--border); opacity: 0.4; transition: opacity 0.2s; }
+  .recon-step:first-of-type { border-top: none; }
+  .recon-step.on { opacity: 1; }
+  .recon-step .chk { width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--border); flex-shrink: 0; margin-top: 1px; display: grid; place-items: center; font-size: 12px; color: #fff; }
+  .recon-step.on .chk { background: var(--crit); border-color: var(--crit); }
+  .recon-step .txt { font-size: 13px; }
+  .recon-step .txt b { display: block; font-size: 13.5px; }
+  .recon-step .txt small { color: var(--fg-muted); }
+
+  .slider-row { margin-top: 16px; }
+  .slider-row label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  .slider-row label .val { font-family: var(--mono); color: var(--accent); }
+  .slider-row input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+  .cred-meter { margin-top: 18px; }
+  .cred-meter .lab { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+  .cred-meter .lab .pct { font-family: var(--mono); }
+  .cred-track { height: 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+  .cred-bar { height: 100%; width: 10%; background: var(--crit); transition: width 0.3s; }
+
+  .mail { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .mail-head { padding: 16px 18px; border-bottom: 1px solid var(--border); }
+  .mail-subject { font-size: 16px; font-weight: 700; margin: 0 0 10px; }
+  .mail-meta { font-size: 12.5px; color: var(--fg-muted); display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; font-family: var(--mono); word-break: break-all; }
+  .mail-meta b { color: var(--fg); font-weight: 600; }
+  .mail-body { padding: 18px; font-size: 14.5px; }
+  .mail-body p { margin: 0 0 12px; }
+  .hl { background: var(--warn-soft); color: var(--fg); padding: 0 3px; border-radius: 3px; font-weight: 600; transition: background 0.2s; }
+
+  .tip { margin-top: 14px; padding: 13px 15px; border-radius: 10px; background: var(--accent-soft); font-size: 13.5px; }
+  .tip b { color: var(--accent); }
+
+  .edu { margin-top: 32px; }
+  .edu h2 { font-size: 20px; margin: 0 0 14px; letter-spacing: -0.01em; }
+  .defense-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .def { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; min-width: 0; }
+  .def h3 { font-size: 15px; margin: 0 0 6px; display: flex; align-items: center; gap: 8px; }
+  .def h3 .tag { font-family: var(--mono); font-size: 10px; padding: 2px 6px; border-radius: 5px; background: var(--accent-soft); color: var(--accent); letter-spacing: 0.04em; }
+  .def p { margin: 0; font-size: 13.5px; color: var(--fg-muted); }
+  .note { margin-top: 20px; font-size: 12.5px; color: var(--fg-muted); border-left: 3px solid var(--border); padding: 4px 0 4px 14px; }
+
+  @media (max-width: 720px) { .stage { grid-template-columns: 1fr; } .defense-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="wrap">
+  <header class="page">
+    <p class="eyebrow">Laboratorio de concientización · Netblue</p>
+    <h1>Spear Phishing y BEC</h1>
+    <p>El phishing masivo lanza la red amplia. El <strong>spear phishing</strong> apunta a una persona concreta usando datos reales que el atacante recopila primero. El <strong>BEC</strong> (Business Email Compromise) suplanta a un directivo para ordenar un pago. Mueve el nivel de reconocimiento y observa cómo el mismo correo se vuelve peligrosamente creíble.</p>
+  </header>
+
+  <div class="stage">
+    <div class="panel">
+      <h2>Reconocimiento del atacante</h2>
+      <div class="slider-row">
+        <label>Datos recopilados <span class="val" id="lv-label">Ninguno</span></label>
+        <input type="range" id="level" min="0" max="4" value="0" />
+      </div>
+
+      <div id="recon">
+        <div class="recon-step" data-step="1"><div class="chk">✓</div><div class="txt"><b>Nombre y cargo</b><small>LinkedIn, web de la empresa</small></div></div>
+        <div class="recon-step" data-step="2"><div class="chk">✓</div><div class="txt"><b>Nombre del jefe</b><small>Organigrama público, prensa</small></div></div>
+        <div class="recon-step" data-step="3"><div class="chk">✓</div><div class="txt"><b>Proyecto en curso</b><small>Redes sociales, notas de prensa</small></div></div>
+        <div class="recon-step" data-step="4"><div class="chk">✓</div><div class="txt"><b>Proveedor y formato de correo</b><small>Facturas filtradas, fuga de datos</small></div></div>
+      </div>
+
+      <div class="cred-meter">
+        <div class="lab"><span>Credibilidad del engaño</span><span class="pct" id="cred-pct">10%</span></div>
+        <div class="cred-track"><div class="cred-bar" id="cred-bar"></div></div>
+      </div>
+
+      <div class="tip" id="tip"><b>Nivel 0:</b> correo genérico, fácil de descartar.</div>
+    </div>
+
+    <div class="mail" id="mail"></div>
+  </div>
+
+  <section class="edu">
+    <h2>Cómo defenderse</h2>
+    <div class="defense-grid">
+      <div class="def">
+        <h3>Verificación por otro canal <span class="tag">clave</span></h3>
+        <p>Ante cualquier orden de pago o cambio de datos bancarios, confirma por teléfono o en persona con la persona real. Nunca solo por correo.</p>
+      </div>
+      <div class="def">
+        <h3>Doble aprobación de pagos <span class="tag">proceso</span></h3>
+        <p>Que toda transferencia sobre cierto monto exija la firma de dos personas. Rompe el fraude del CEO aunque el correo convenza.</p>
+      </div>
+      <div class="def">
+        <h3>DMARC / SPF / DKIM <span class="tag">correo</span></h3>
+        <p>Configurar estos registros evita que suplanten tu dominio y marca como sospechosos los correos que lo intentan.</p>
+      </div>
+      <div class="def">
+        <h3>Menos huella pública <span class="tag">OSINT</span></h3>
+        <p>Cuanta menos información interna expongas (organigramas, proveedores), menos munición tiene el atacante para personalizar.</p>
+      </div>
+    </div>
+    <p class="note">Nombres, empresas y datos ficticios, con fines de entrenamiento. Ningún enlace de esta página es funcional.</p>
+
+  <nav class="lab-nav" aria-label="Otros simuladores del laboratorio">
+    <style>
+      .lab-nav{margin-top:34px;padding-top:22px;border-top:1px solid #D5DEE9}
+      .lab-nav .nav-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+      .lab-nav .nav-top a.portal{font-family:'Archivo','Segoe UI',sans-serif;font-size:14px;font-weight:700;text-decoration:none;color:#fff;background:#1657C7;padding:9px 16px;border-radius:6px}
+      .lab-nav .nav-top a.portal:hover{background:#0F2742}
+      .lab-nav .nav-top .lbl{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#44566C}
+      .lab-nav .chips{display:flex;flex-wrap:wrap;gap:8px}
+      .lab-nav .chips a{font-size:12.5px;text-decoration:none;color:#0F2742;background:#E8EEF6;border:1px solid #C3CFDD;padding:6px 11px;border-radius:999px}
+      .lab-nav .chips a:hover{border-color:#1657C7;color:#1657C7}
+    </style>
+    <div class="nav-top">
+      <a class="portal" href="/laboratorio/">⬡ Portal del laboratorio</a>
+      <span class="lbl">Otros simuladores</span>
+    </div>
+    <div class="chips">
+      <a href="/laboratorio/detecta-el-phishing/">Phishing</a>
+      <a href="/laboratorio/spear-phishing-bec/">Spear Phishing / BEC</a>
+      <a href="/laboratorio/smishing-vishing/">Smishing / Vishing</a>
+      <a href="/laboratorio/ataque-diccionario/">Diccionario</a>
+      <a href="/laboratorio/fuerza-bruta-calculadora/">Fuerza Bruta</a>
+      <a href="/laboratorio/credential-stuffing/">Credential Stuffing</a>
+      <a href="/laboratorio/rainbow-tables-salt/">Rainbow Tables</a>
+      <a href="/laboratorio/sql-injection/">SQL Injection</a>
+      <a href="/laboratorio/cross-site-scripting/">XSS</a>
+      <a href="/laboratorio/man-in-the-middle/">Man-in-the-Middle</a>
+      <a href="/laboratorio/dos-ddos/">DoS / DDoS</a>
+      <a href="/laboratorio/ransomware/">Ransomware</a>
+      <a href="/laboratorio/keylogger-troyanos/">Keylogger</a>
+    </div>
+  </nav>
+  </section>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var levelEl = $("level");
+
+  var labels = ["Ninguno", "Básico", "Medio", "Alto", "Total"];
+  var creds = [10, 32, 55, 78, 95];
+  var tips = [
+    '<b>Nivel 0:</b> correo genérico, fácil de descartar.',
+    '<b>Nivel 1:</b> usa tu nombre real. Ya parece dirigido a ti.',
+    '<b>Nivel 2:</b> menciona a tu jefe por su nombre. Sube la presión jerárquica.',
+    '<b>Nivel 3:</b> cita un proyecto real en curso. Difícil de distinguir de lo legítimo.',
+    '<b>Nivel 4 (BEC):</b> imita el formato interno y un proveedor conocido. Altísimo riesgo de caer.'
+  ];
+
+  // segmentos del correo que aparecen/cambian según nivel
+  function buildMail(lv) {
+    var subject = lv >= 4 ? "RE: Factura #2026-0458 — Proveedor TecnoSur"
+                 : lv >= 3 ? "Urgente: pago del proyecto Migración Cloud"
+                 : "Solicitud de pago urgente";
+    var from = lv >= 4 ? 'Carlos Méndez <c.mendez@empresa-corp.co>'
+             : lv >= 2 ? 'Carlos Méndez (Director) <carlos.mendez88@gmail.com>'
+             : 'Dirección <pagos@gmail.com>';
+
+    var greet = lv >= 1 ? 'Hola <span class="hl">Edgar</span>,' : 'Hola,';
+    var bossLine = lv >= 2 ? 'Como te comenté, soy <span class="hl">Carlos, tu director</span>. ' : '';
+    var projLine = lv >= 3 ? 'Es para cerrar el pago del <span class="hl">proyecto de Migración Cloud</span> que tenemos en marcha. ' : '';
+    var vendorLine = lv >= 4 ? 'Adjunto la <span class="hl">factura #2026-0458 de TecnoSur</span>, nuestro proveedor habitual, con la nueva cuenta. ' : '';
+
+    var body =
+      '<p>' + greet + '</p>' +
+      '<p>' + bossLine + 'Necesito que proceses una transferencia de <b>$8,500</b> hoy mismo. ' +
+      projLine + vendorLine + 'Estoy en reuniones y no puedo atender llamadas, hazlo directo y confírmame por aquí.</p>' +
+      '<p>Gracias.</p>';
+
+    return '<div class="mail-head">' +
+      '<p class="mail-subject">' + subject + '</p>' +
+      '<div class="mail-meta"><b>De:</b><span>' + from + '</span><b>Para:</b><span>tú &lt;edgar@empresa-corp.co&gt;</span></div>' +
+      '</div><div class="mail-body">' + body + '</div>';
+  }
+
+  function update() {
+    var lv = Number(levelEl.value);
+    $("lv-label").textContent = labels[lv];
+    $("cred-pct").textContent = creds[lv] + "%";
+    $("cred-bar").style.width = creds[lv] + "%";
+    $("tip").innerHTML = tips[lv];
+    $("mail").innerHTML = buildMail(lv);
+    [].forEach.call(document.querySelectorAll(".recon-step"), function (s) {
+      s.classList.toggle("on", Number(s.dataset.step) <= lv);
+    });
+  }
+
+  levelEl.addEventListener("input", update);
+  update();
+})();
+</script>
+
+<script id="nb-track">(function(){try{if(localStorage.getItem('nb-notrack'))return;}catch(_){}try{var q=new URLSearchParams(location.search),d=JSON.stringify({p:location.pathname,r:document.referrer,s:q.get('utm_source')||''});if(navigator.sendBeacon)navigator.sendBeacon('/api/track',d);else fetch('/api/track',{method:'POST',body:d,keepalive:true});}catch(_){}})();</script>
+</body></html>
