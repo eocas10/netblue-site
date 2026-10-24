@@ -16,3 +16,11 @@
   from = "/assesment/*"
   to = "/assessment/"
   status = 301
+
+# Enlaces viejos del blog de Soro (/blog/?post=slug) a las páginas nuevas
+[[redirects]]
+  from = "/blog/"
+  to = "/blog/:post/"
+  status = 301
+  query = {post = ":post"}
+  force = true
