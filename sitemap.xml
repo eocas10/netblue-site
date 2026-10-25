@@ -18,23 +18,6 @@
   <url><loc>https://netbluepr.com/amenazas/</loc><changefreq>daily</changefreq></url>
   <url><loc>https://netbluepr.com/assessment/</loc><lastmod>2026-10-22</lastmod><priority>0.8</priority></url>
   <url><loc>https://netbluepr.com/chequeo-cumplimiento/</loc><lastmod>2026-10-22</lastmod><priority>0.8</priority></url>
-  <url><loc>https://netbluepr.com/blog/guia-redundancia-internet-oficina/</loc><lastmod>2026-10-24</lastmod><priority>0.6</priority></url>
-  <url><loc>https://netbluepr.com/blog/como-proteger-microsoft-365-empresa/</loc><lastmod>2026-10-22</lastmod><priority>0.6</priority></url>
-  <url><loc>https://netbluepr.com/blog/diseno-redes-wisp-cobertura-confiable/</loc><lastmod>2026-10-20</lastmod><priority>0.6</priority></url>
-  <url><loc>https://netbluepr.com/blog/telefonia-voip-empresarial/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
-  <url><loc>https://netbluepr.com/blog/cumplimiento-pci-dss-puerto-rico/</loc><lastmod>2026-10-17</lastmod><priority>0.6</priority></url>
-  <url><loc>https://netbluepr.com/blog/cumplimiento-hipaa-para-clinicas/</loc><lastmod>2026-10-16</lastmod><priority>0.6</priority></url>
-  <url><loc>https://netbluepr.com/blog/vpn-segura-para-teletrabajo/</loc><lastmod>2026-10-15</lastmod><priority>0.6</priority></url>
-  <url><loc>https://netbluepr.com/blog/configurar-correo-corporativo-dns/</loc><lastmod>2026-10-14</lastmod><priority>0.6</priority></url>
-  <url><loc>https://netbluepr.com/blog/migracion-a-microsoft-365/</loc><lastmod>2026-10-13</lastmod><priority>0.6</priority></url>
-  <url><loc>https://netbluepr.com/blog/plan-de-continuidad-ante-huracanes/</loc><lastmod>2026-10-12</lastmod><priority>0.6</priority></url>
-  <url><loc>https://netbluepr.com/blog/respaldo-externo-datos-empresariales-seguro/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
-  <url><loc>https://netbluepr.com/blog/analisis-de-vulnerabilidades-empresariales/</loc><lastmod>2026-10-10</lastmod><priority>0.6</priority></url>
-  <url><loc>https://netbluepr.com/blog/firewall-administrado-para-empresas/</loc><lastmod>2026-10-09</lastmod><priority>0.6</priority></url>
-  <url><loc>https://netbluepr.com/blog/como-segmentar-red-de-invitados/</loc><lastmod>2026-10-08</lastmod><priority>0.6</priority></url>
-  <url><loc>https://netbluepr.com/blog/wifi-seguro-para-oficina/</loc><lastmod>2026-10-07</lastmod><priority>0.6</priority></url>
-  <url><loc>https://netbluepr.com/blog/evaluacion-de-infraestructura-tecnologica/</loc><lastmod>2026-10-06</lastmod><priority>0.6</priority></url>
-  <url><loc>https://netbluepr.com/blog/servicios-ti-administrados-para-pymes/</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://netbluepr.com/laboratorio/</loc><lastmod>2026-10-24</lastmod><priority>0.7</priority></url>
   <url><loc>https://netbluepr.com/laboratorio/detecta-el-phishing/</loc><lastmod>2026-10-24</lastmod><priority>0.5</priority></url>
   <url><loc>https://netbluepr.com/laboratorio/spear-phishing-bec/</loc><lastmod>2026-10-24</lastmod><priority>0.5</priority></url>
@@ -63,4 +46,21 @@
   <url><loc>https://netbluepr.com/laboratorio/keylogger-troyanos/</loc><lastmod>2026-10-24</lastmod><priority>0.5</priority></url>
   <url><loc>https://netbluepr.com/laboratorio/troyano-rat/</loc><lastmod>2026-10-24</lastmod><priority>0.5</priority></url>
   <url><loc>https://netbluepr.com/laboratorio/reverse-shell/</loc><lastmod>2026-10-24</lastmod><priority>0.5</priority></url>
+  <url><loc>https://netbluepr.com/blog/guia-redundancia-internet-oficina/</loc><lastmod>2026-10-24</lastmod><priority>0.6</priority></url>
+  <url><loc>https://netbluepr.com/blog/como-proteger-microsoft-365-empresa/</loc><lastmod>2026-10-22</lastmod><priority>0.6</priority></url>
+  <url><loc>https://netbluepr.com/blog/diseno-redes-wisp-cobertura-confiable/</loc><lastmod>2026-10-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://netbluepr.com/blog/telefonia-voip-empresarial/</loc><lastmod>2026-10-18</lastmod><priority>0.6</priority></url>
+  <url><loc>https://netbluepr.com/blog/cumplimiento-pci-dss-puerto-rico/</loc><lastmod>2026-10-17</lastmod><priority>0.6</priority></url>
+  <url><loc>https://netbluepr.com/blog/cumplimiento-hipaa-para-clinicas/</loc><lastmod>2026-10-16</lastmod><priority>0.6</priority></url>
+  <url><loc>https://netbluepr.com/blog/vpn-segura-para-teletrabajo/</loc><lastmod>2026-10-15</lastmod><priority>0.6</priority></url>
+  <url><loc>https://netbluepr.com/blog/configurar-correo-corporativo-dns/</loc><lastmod>2026-10-14</lastmod><priority>0.6</priority></url>
+  <url><loc>https://netbluepr.com/blog/migracion-a-microsoft-365/</loc><lastmod>2026-10-13</lastmod><priority>0.6</priority></url>
+  <url><loc>https://netbluepr.com/blog/plan-de-continuidad-ante-huracanes/</loc><lastmod>2026-10-12</lastmod><priority>0.6</priority></url>
+  <url><loc>https://netbluepr.com/blog/respaldo-externo-datos-empresariales-seguro/</loc><lastmod>2026-10-11</lastmod><priority>0.6</priority></url>
+  <url><loc>https://netbluepr.com/blog/analisis-de-vulnerabilidades-empresariales/</loc><lastmod>2026-10-10</lastmod><priority>0.6</priority></url>
+  <url><loc>https://netbluepr.com/blog/firewall-administrado-para-empresas/</loc><lastmod>2026-10-09</lastmod><priority>0.6</priority></url>
+  <url><loc>https://netbluepr.com/blog/como-segmentar-red-de-invitados/</loc><lastmod>2026-10-08</lastmod><priority>0.6</priority></url>
+  <url><loc>https://netbluepr.com/blog/wifi-seguro-para-oficina/</loc><lastmod>2026-10-07</lastmod><priority>0.6</priority></url>
+  <url><loc>https://netbluepr.com/blog/evaluacion-de-infraestructura-tecnologica/</loc><lastmod>2026-10-06</lastmod><priority>0.6</priority></url>
+  <url><loc>https://netbluepr.com/blog/servicios-ti-administrados-para-pymes/</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
 </urlset>
