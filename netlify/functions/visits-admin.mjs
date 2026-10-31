@@ -1,6 +1,7 @@
 // Resumen de visitas (solo con la clave REVIEWS_ADMIN_KEY).
 // GET /api/visits-admin?days=30
 import { getStore } from "@netlify/blobs";
+import { bloqueada, fallo, exito } from "../lib/guard.mjs";
 
 const json = (data, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -20,8 +21,14 @@ function authorized(req) {
 const sumar = (obj, k) => { obj[k] = (obj[k] || 0) + 1; };
 const top = (obj, n = 15) => Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, n);
 
-export default async (req) => {
-  if (!authorized(req)) return json({ error: "Clave incorrecta." }, 401);
+export default async (req, context) => {
+  const ip = context?.ip;
+  if (await bloqueada(ip)) return json({ error: "Demasiados intentos. Espere 15 minutos." }, 429);
+  if (!authorized(req)) {
+    await fallo(ip);
+    return json({ error: "Clave incorrecta." }, 401);
+  }
+  await exito(ip);
   const days = Math.min(Math.max(parseInt(new URL(req.url).searchParams.get("days")) || 30, 1), 90);
   const store = getStore("visits");
   const hoy = new Date(Date.now() - 4 * 3600e3);

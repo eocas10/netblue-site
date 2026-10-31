@@ -2,6 +2,7 @@
 // GET  /api/reviews-admin              -> todas (pendientes, aprobadas, rechazadas)
 // POST /api/reviews-admin {id, action} -> action: approve | reject | delete
 import { getStore } from "@netlify/blobs";
+import { bloqueada, fallo, exito } from "../lib/guard.mjs";
 
 const STORE = "reviews";
 const STATES = ["pending", "approved", "rejected"];
@@ -28,8 +29,14 @@ async function find(store, id) {
   return null;
 }
 
-export default async (req) => {
-  if (!authorized(req)) return json({ error: "Clave incorrecta." }, 401);
+export default async (req, context) => {
+  const ip = context?.ip;
+  if (await bloqueada(ip)) return json({ error: "Demasiados intentos. Espere 15 minutos." }, 429);
+  if (!authorized(req)) {
+    await fallo(ip);
+    return json({ error: "Clave incorrecta." }, 401);
+  }
+  await exito(ip);
   const store = getStore({ name: STORE, consistency: "strong" });
 
   if (req.method === "GET") {

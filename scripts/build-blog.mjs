@@ -20,6 +20,9 @@ const fecha = (iso) => {
   return `${d.getUTCDate()} de ${MESES[d.getUTCMonth()]} de ${d.getUTCFullYear()}`;
 };
 
+// "Wi-Fi" escrito siempre igual (sin tocar enlaces ni slugs como /wifi-seguro-para-oficina/).
+const wifi = (s = '') => String(s).replace(/(?<![\w/.#-])wi-?fi(?![\w/-])/gi, 'Wi-Fi');
+
 // Limpieza básica del HTML que viene de Soro: sin scripts, iframes, estilos ni eventos.
 function limpiar(html = '') {
   return html
@@ -30,7 +33,8 @@ function limpiar(html = '') {
     .replace(/(href|src)\s*=\s*(["'])\s*javascript:[^"']*\2/gi, '$1="#"')
     .replace(/<h1(\s[^>]*)?>/gi, '<h2>').replace(/<\/h1>/gi, '</h2>')
     .replace(/<a\s+href="(https?:\/\/(?!netbluepr\.com)[^"]+)"/gi, '<a href="$1" rel="noopener" target="_blank"')
-    .replace(/<img(?![^>]*loading=)/gi, '<img loading="lazy"');
+    .replace(/<img(?![^>]*loading=)/gi, '<img loading="lazy"')
+    .replace(/(?<![\w/.#-])wi-?fi(?![\w/-])/gi, 'Wi-Fi');
 }
 
 async function obtenerDeSoro() {
@@ -104,6 +108,7 @@ ${otros.map((o) => `          <li><a href="/blog/${o.slug}/">${esc(o.title)}</a>
 async function main() {
   const fuente = process.argv[2];
   let lista = fuente ? JSON.parse(await readFile(fuente, 'utf8')) : await obtenerDeSoro();
+  for (const a of lista) if (a) { a.title = wifi(a.title); a.excerpt = wifi(a.excerpt); }
   lista = lista.filter((a) => a && slugOk(a.slug) && a.title && a.content)
     .sort((x, y) => new Date(y.isoDate) - new Date(x.isoDate));
   if (!lista.length) throw new Error('No hay artículos válidos; no cambio nada');

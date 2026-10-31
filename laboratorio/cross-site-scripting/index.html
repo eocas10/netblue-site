@@ -194,7 +194,7 @@
       a.innerHTML =
         '<h3>✗ El script se ejecutó en el navegador de la víctima</h3>' +
         '<div class="popup">⚠ alert("XSS") &nbsp;→ &nbsp;ventana emergente controlada por el atacante</div>' +
-        '<div class="steal">📤 document.cookie enviado al atacante:\n   session=abc123xyz; user=edgar  → http://atacante.site/robo</div>' +
+        '<div class="steal">📤 document.cookie enviado al atacante:\n   session=abc123xyz; user=carmen  → http://atacante.site/robo</div>' +
         '<p style="margin:10px 0 0;font-size:13px;">Cada persona que abra esta página y lea el comentario ejecuta ese código sin darse cuenta. Así se roban sesiones.</p>';
     } else if (mode === "safe" && isScript(raw)) {
       comments.push({ who: "Atacante", body: raw });

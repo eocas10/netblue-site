@@ -237,7 +237,7 @@ async function run(){
   $('meter').style.width=pct+'%';
   $('aval').textContent=prev&&prev!==h?'Efecto avalancha: cambiaron '+diff+' de 64 caracteres ('+pct+'%). Un cambio mínimo en la entrada produce un hash irreconocible.':'Cambia una sola letra de la contraseña para ver el efecto avalancha.';
   prev=h; stored={s,n,h};
-  $('rec').innerHTML='<span class="k">tabla</span> usuarios<br><span class="k">usuario  </span> edgar<br><span class="k">algoritmo</span> pbkdf2_sha256<br><span class="k">iteraciones</span> '+n+'<br><span class="k">sal      </span> '+(on?hex(s):'—')+'<br><span class="k">hash     </span> '+h+'<span class="note">Esto es todo lo que la base de datos conoce. La contraseña no aparece en ningún lugar.</span>';
+  $('rec').innerHTML='<span class="k">tabla</span> usuarios<br><span class="k">usuario  </span> carmen<br><span class="k">algoritmo</span> pbkdf2_sha256<br><span class="k">iteraciones</span> '+n+'<br><span class="k">sal      </span> '+(on?hex(s):'—')+'<br><span class="k">hash     </span> '+h+'<span class="note">Esto es todo lo que la base de datos conoce. La contraseña no aparece en ningún lugar.</span>';
 }
 function schedule(){clearTimeout(timer);timer=setTimeout(run,180);}
 $('pw').addEventListener('input',schedule);
