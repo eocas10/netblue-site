@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://netbluepr.com/</loc><lastmod>2026-10-16</lastmod><priority>1.0</priority></url>
+  <url><loc>https://netbluepr.com/</loc><lastmod>2026-10-31</lastmod><priority>1.0</priority></url>
   <url><loc>https://netbluepr.com/servicios/ciberseguridad/</loc><lastmod>2026-10-16</lastmod><priority>0.9</priority></url>
   <url><loc>https://netbluepr.com/servicios/redes-wifi-cableado/</loc><lastmod>2026-10-16</lastmod><priority>0.9</priority></url>
   <url><loc>https://netbluepr.com/servicios/telefonia-voip/</loc><lastmod>2026-10-16</lastmod><priority>0.9</priority></url>
@@ -16,8 +16,8 @@
   <url><loc>https://netbluepr.com/precios/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://netbluepr.com/resenas/</loc></url>
   <url><loc>https://netbluepr.com/amenazas/</loc><changefreq>daily</changefreq></url>
-  <url><loc>https://netbluepr.com/assessment/</loc><lastmod>2026-10-22</lastmod><priority>0.8</priority></url>
-  <url><loc>https://netbluepr.com/chequeo-cumplimiento/</loc><lastmod>2026-10-22</lastmod><priority>0.8</priority></url>
+  <url><loc>https://netbluepr.com/assessment/</loc><lastmod>2026-10-31</lastmod><priority>0.8</priority></url>
+  <url><loc>https://netbluepr.com/chequeo-cumplimiento/</loc><lastmod>2026-10-31</lastmod><priority>0.8</priority></url>
   <url><loc>https://netbluepr.com/laboratorio/</loc><lastmod>2026-10-24</lastmod><priority>0.7</priority></url>
   <url><loc>https://netbluepr.com/laboratorio/detecta-el-phishing/</loc><lastmod>2026-10-24</lastmod><priority>0.5</priority></url>
   <url><loc>https://netbluepr.com/laboratorio/spear-phishing-bec/</loc><lastmod>2026-10-24</lastmod><priority>0.5</priority></url>
