@@ -57,7 +57,7 @@ function paginaArticulo(tpl, a, otros) {
   const ld = [
     { '@context': 'https://schema.org', '@type': 'BlogPosting', headline: a.title, description: a.excerpt,
       image, datePublished: a.isoDate, dateModified: a.isoDate, inLanguage: 'es-PR', mainEntityOfPage: url,
-      author: { '@type': 'Person', '@id': `${SITE}/#fundador`, name: 'Edgardo Ocasio', url: `${SITE}/sobre-nosotros/` },
+      author: { '@type': 'Organization', '@id': `${SITE}/#negocio`, name: 'Netblue IT Consulting', url: `${SITE}/` },
       publisher: { '@type': 'Organization', '@id': `${SITE}/#negocio`, name: 'Netblue IT Consulting', logo: { '@type': 'ImageObject', url: `${SITE}/logo.png` } } },
     { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Inicio', item: `${SITE}/` },
@@ -70,7 +70,7 @@ function paginaArticulo(tpl, a, otros) {
     <article class="article">
       <p class="crumbs"><a href="/">Inicio</a> › <a href="/blog/">Blog</a></p>
       <h1>${esc(a.title)}</h1>
-      <p class="meta"><time datetime="${esc(a.isoDate)}">${esc(a.date || fecha(a.isoDate))}</time> · Edgardo Ocasio, Netblue IT Consulting</p>
+      <p class="meta"><time datetime="${esc(a.isoDate)}">${esc(a.date || fecha(a.isoDate))}</time> · Netblue IT Consulting</p>
       ${a.image ? `<img class="hero-img" src="${esc(a.image)}" alt="" width="1200" height="675">` : ''}
 ${limpiar(a.content)}
       <div class="cta">
