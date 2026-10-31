@@ -194,7 +194,7 @@
              : lv >= 2 ? 'Carlos Méndez (Director) <carlos.mendez88@gmail.com>'
              : 'Dirección <pagos@gmail.com>';
 
-    var greet = lv >= 1 ? 'Hola <span class="hl">Edgar</span>,' : 'Hola,';
+    var greet = lv >= 1 ? 'Hola <span class="hl">Carmen</span>,' : 'Hola,';
     var bossLine = lv >= 2 ? 'Como te comenté, soy <span class="hl">Carlos, tu director</span>. ' : '';
     var projLine = lv >= 3 ? 'Es para cerrar el pago del <span class="hl">proyecto de Migración Cloud</span> que tenemos en marcha. ' : '';
     var vendorLine = lv >= 4 ? 'Adjunto la <span class="hl">factura #2026-0458 de TecnoSur</span>, nuestro proveedor habitual, con la nueva cuenta. ' : '';
@@ -207,7 +207,7 @@
 
     return '<div class="mail-head">' +
       '<p class="mail-subject">' + subject + '</p>' +
-      '<div class="mail-meta"><b>De:</b><span>' + from + '</span><b>Para:</b><span>tú &lt;edgar@empresa-corp.co&gt;</span></div>' +
+      '<div class="mail-meta"><b>De:</b><span>' + from + '</span><b>Para:</b><span>tú &lt;usuario@empresa-corp.co&gt;</span></div>' +
       '</div><div class="mail-body">' + body + '</div>';
   }
 

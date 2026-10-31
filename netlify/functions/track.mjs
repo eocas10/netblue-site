@@ -58,4 +58,8 @@ export default async (req, context) => {
   return new Response(null, { status: 204 });
 };
 
-export const config = { path: "/api/track" };
+// Límite de Netlify: 60 registros por minuto por IP, contra inflar las estadísticas.
+export const config = {
+  path: "/api/track",
+  rateLimit: { windowLimit: 60, windowSize: 60, aggregateBy: ["ip", "domain"] },
+};

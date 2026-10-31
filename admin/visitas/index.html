@@ -344,7 +344,7 @@ fieldset.field{border:0;margin:0;padding:0}
     list.forEach(function(x){var tr=t.insertRow();tr.insertCell().textContent=fmt?fmt(x[0]):x[0];tr.insertCell().textContent=x[1];});}
   function load(){
     return fetch('/api/visits-admin?days='+days,{headers:{'x-admin-key':key}}).then(function(r){
-      if(r.status===401)throw new Error('Clave incorrecta.'); if(!r.ok)throw new Error('No se pudieron cargar los datos.'); return r.json();
+      if(r.status===401)throw new Error('Clave incorrecta.'); if(r.status===429)throw new Error('Demasiados intentos. Espere 15 minutos.'); if(!r.ok)throw new Error('No se pudieron cargar los datos.'); return r.json();
     }).then(function(d){
       ul.hidden=true; panel.hidden=false;
       document.getElementById('k-ent').textContent=d.entradas; document.getElementById('k-vis').textContent=d.vistas;

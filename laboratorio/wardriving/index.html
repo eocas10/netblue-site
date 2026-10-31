@@ -144,23 +144,23 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--legit);outline-
   <header>
     <p class="eyebrow">Concienciación en ciberseguridad</p>
     <h1>Wardriving</h1>
-    <p class="lede">Cómo alguien recorre una zona en carro anotando las redes WiFi que salen a la calle, elige las mal protegidas y entra sin bajarse, y cómo hacer que la tuya no sea una de ellas.</p>
+    <p class="lede">Cómo alguien recorre una zona en carro anotando las redes Wi-Fi que salen a la calle, elige las mal protegidas y entra sin bajarse, y cómo hacer que la tuya no sea una de ellas.</p>
   </header>
 
   <section class="player" aria-label="Animación del ataque">
     <div class="main">
       <div class="stage">
         <div class="stephead"><span class="n" id="stepn">Paso 1 de 6</span><h2 id="stept">El recorrido</h2></div>
-        <canvas id="cv" role="img" aria-label="Diagrama animado: un carro recorre una calle frente a una casa, una oficina y una tienda con WiFi"></canvas>
+        <canvas id="cv" role="img" aria-label="Diagrama animado: un carro recorre una calle frente a una casa, una oficina y una tienda con Wi-Fi"></canvas>
         <p class="caption" id="cap"></p>
       </div>
       <aside class="side">
         <div class="panel" data-steps="0">
           <h3>Lo que lleva en el carro</h3>
           <div class="hop rv" data-at="1.2"><b>1</b> Una laptop o un teléfono</div>
-          <div class="hop rv" data-at="2.6"><b>2</b> Una antena WiFi</div>
+          <div class="hop rv" data-at="2.6"><b>2</b> Una antena Wi-Fi</div>
           <div class="hop rv" data-at="4"><b>3</b> GPS para ubicar cada red</div>
-          <p class="note rv" data-at="5.5">La señal de tu WiFi no se detiene en la pared: llega a la acera y a la calle.</p>
+          <p class="note rv" data-at="5.5">La señal de tu Wi-Fi no se detiene en la pared: llega a la acera y a la calle.</p>
         </div>
         <div class="panel" data-steps="1" hidden>
           <h3>El registro que arma</h3>
@@ -194,7 +194,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--legit);outline-
           <h3>Cómo protegerte</h3>
           <ul class="checks">
             <li class="rv" data-at="47.5">Usa WPA3, o WPA2 si tu router no lo ofrece</li>
-            <li class="rv" data-at="48.4">Pon una clave de WiFi larga y única</li>
+            <li class="rv" data-at="48.4">Pon una clave de Wi-Fi larga y única</li>
             <li class="rv" data-at="49.3">Cambia el nombre de la red y la clave de administrador de fábrica</li>
             <li class="rv" data-at="50.2">Desactiva WPS</li>
             <li class="rv" data-at="51.1">Actualiza el firmware del router</li>
@@ -217,7 +217,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--legit);outline-
   <section class="summary">
     <h2>Los seis pasos</h2>
     <ol>
-      <li><strong>El recorrido</strong><span>Alguien pasa en carro con una laptop, una antena y GPS, captando las redes WiFi de la zona.</span></li>
+      <li><strong>El recorrido</strong><span>Alguien pasa en carro con una laptop, una antena y GPS, captando las redes Wi-Fi de la zona.</span></li>
       <li><strong>El mapa</strong><span>Anota cada red con su nombre, tipo de seguridad y ubicación.</span></li>
       <li><strong>La selección</strong><span>Separa las débiles: abiertas, con cifrado viejo, con datos de fábrica o con WPS.</span></li>
       <li><strong>El acceso</strong><span>Regresa, se estaciona cerca y entra a una red débil desde la calle.</span></li>
@@ -263,7 +263,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--legit);outline-
 (function(){
 const S=[0,9,18,27,37,47,59], END=59;
 const STEPS=[
- {t:"El recorrido",s:"Recorrido",c:[[0,"Alguien recorre la zona en carro con una laptop y una antena. Solo capta las señales WiFi que llegan a la calle."]]},
+ {t:"El recorrido",s:"Recorrido",c:[[0,"Alguien recorre la zona en carro con una laptop y una antena. Solo capta las señales Wi-Fi que llegan a la calle."]]},
  {t:"El mapa",s:"Mapa",c:[[9,"Anota cada red que detecta: su nombre, el tipo de seguridad y el punto exacto donde la encontró."]]},
  {t:"La selección",s:"Selección",c:[[18,"De todo el mapa separa las redes débiles: abiertas, con cifrado viejo o con la configuración de fábrica."]]},
  {t:"El acceso",s:"Acceso",c:[[27,"Regresa a una red débil, se estaciona cerca y se conecta desde el carro, sin entrar al local."]]},
@@ -354,7 +354,7 @@ function draw(){
     if(weak[i]){if(cl>0&&fix[i]<1){al(cl*(1-fix[i]));disc(b[0],b[1],r,null,C.threat,3.5)}if(fix[i]>0){al(fix[i]);disc(b[0],b[1],r+7,null,C.safe,3)}}
     else if(cl>0){al(cl);disc(b[0],b[1],r+7,null,C.safe,3)}
     al(1);icons[i](b,k);
-    let sub="Red WiFi",col=C.muted;
+    let sub="Red Wi-Fi",col=C.muted;
     if(seen){sub=["Abierta","WPA3","De fábrica"][i];if(cl>.5)col=bad?C.threat:C.safe}
     if(i===2&&own>.5)sub="Intruso dentro";
     if(weak[i]&&fix[i]>.5){sub="Protegida";col=C.safe}

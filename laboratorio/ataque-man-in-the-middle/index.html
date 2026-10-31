@@ -114,16 +114,16 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--legit);outline-
 
 <div class="wrap">
   <header>
-    <p class="eyebrow">Seguridad en WiFi público</p>
+    <p class="eyebrow">Seguridad en Wi-Fi público</p>
     <h1>Ataque Man-in-the-Middle</h1>
-    <p class="lede">Cómo un atacante se coloca entre tu equipo e internet cuando te conectas al WiFi gratis de un aeropuerto, y qué hacer para que no te afecte.</p>
+    <p class="lede">Cómo un atacante se coloca entre tu equipo e internet cuando te conectas al Wi-Fi gratis de un aeropuerto, y qué hacer para que no te afecte.</p>
   </header>
 
   <section class="player" aria-label="Animación del ataque">
     <div class="main">
       <div class="stage">
         <div class="stephead"><span class="n" id="stepn">Paso 1 de 6</span><h2 id="stept">Conexión normal</h2></div>
-        <canvas id="cv" role="img" aria-label="Diagrama animado: el viajero, el WiFi del aeropuerto, el atacante e internet"></canvas>
+        <canvas id="cv" role="img" aria-label="Diagrama animado: el viajero, el Wi-Fi del aeropuerto, el atacante e internet"></canvas>
         <p class="caption" id="cap"></p>
       </div>
       <aside class="side">
@@ -135,7 +135,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--legit);outline-
           <p class="note rv" data-at="5.5">Nadie más interviene en el camino.</p>
         </div>
         <div class="panel" data-steps="1,2" hidden>
-          <h3>Redes WiFi disponibles</h3>
+          <h3>Redes Wi-Fi disponibles</h3>
           <div class="net"><span class="ssid">Aeropuerto_WiFi_Gratis</span><span class="bars s2"><i></i><i></i><i></i><i></i></span></div>
           <div class="net rv" data-at="12"><span class="ssid">Aeropuerto_WiFi_Gratis</span><span class="tag rv" data-at="14.5">FALSA</span><span class="bars s4"><i></i><i></i><i></i><i></i></span><span class="conn rv" data-at="22">Conectado</span></div>
           <p class="note rv" data-at="15.5">Mismo nombre, señal más fuerte. En tu pantalla no hay forma de distinguirlas, y tu equipo suele preferir la de mejor señal.</p>
@@ -160,9 +160,9 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--legit);outline-
           <h3>Cómo protegerte</h3>
           <ul class="checks">
             <li class="rv" data-at="47.5">Confirma el nombre exacto de la red con el personal</li>
-            <li class="rv" data-at="48.3">Usa una VPN siempre que estés en WiFi público</li>
+            <li class="rv" data-at="48.3">Usa una VPN siempre que estés en Wi-Fi público</li>
             <li class="rv" data-at="49.1">Busca HTTPS y nunca ignores alertas de certificado</li>
-            <li class="rv" data-at="49.9">Desactiva la conexión automática a redes WiFi</li>
+            <li class="rv" data-at="49.9">Desactiva la conexión automática a redes Wi-Fi</li>
             <li class="rv" data-at="50.7">Para banca o trabajo, usa los datos de tu celular</li>
             <li class="rv" data-at="51.5">Activa la autenticación multifactor (MFA)</li>
           </ul>
@@ -230,7 +230,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--legit);outline-
 const S=[0,9,19,27,39,47,59], END=59;
 const STEPS=[
  {t:"Conexión normal",c:[[0,"Normalmente tus datos viajan de tu equipo al router del aeropuerto, y de ahí a internet."]]},
- {t:"El atacante crea una red gemela",c:[[9,"Un atacante cercano crea una red WiFi con el mismo nombre que la oficial: un “gemelo malvado” con señal más fuerte."]]},
+ {t:"El atacante crea una red gemela",c:[[9,"Un atacante cercano crea una red Wi-Fi con el mismo nombre que la oficial: un “gemelo malvado” con señal más fuerte."]]},
  {t:"La víctima cae en la red falsa",c:[[19,"Tu equipo se conecta a la red falsa. Para ti todo se ve igual: mismo nombre, internet funcionando."]]},
  {t:"Todo pasa por el atacante",c:[[27,"El atacante reenvía tu tráfico a internet, pero queda en el medio y puede ver todo lo que no viaje cifrado."]]},
  {t:"Qué puede hacer el atacante",c:[[39,"Como controla la conexión, el atacante decide qué ves y qué llega a su destino."]]},
@@ -305,7 +305,7 @@ function draw(){
     if(u>=.5&&u<.68){const f=(u-.5)/.18;al(ma*(1-f));rrect(A[0]+r*.75-6*pk,A[1]-r*.75-f*34*pk-4*pk,12*pk,9*pk,2,C.threat)}}
   if(vpn>0)for(let i=0;i<4;i++){const u=(((t-47)*.2+i*.25)%1+1)%1,p=pathPt(i%2?[I,A,V]:[V,A,I],u);al(vpn*Math.min(1,u*8,(1-u)*8));lock(p[0],p[1]+2*pk,.8*pk,C.safe)}
   al(1);disc(V[0],V[1],r,C.surface,C.ink,2.5);laptop(V,k);label(V,r,1,"Viajero","Tu equipo",C.muted);
-  al(1-.45*hij);disc(R[0],R[1],r,C.surface,C.legit,2.5);router(R,k);label(R,r,1-.4*hij,"WiFi del aeropuerto","Red legítima",C.legit);
+  al(1-.45*hij);disc(R[0],R[1],r,C.surface,C.legit,2.5);router(R,k);label(R,r,1-.4*hij,"Wi-Fi del aeropuerto","Red legítima",C.legit);
   al(1);disc(I[0],I[1],r,C.surface,C.ink,2.5);cloud(I,k);label(I,r,1,"Internet","Banco, correo",C.muted);
   if(aa>0){al(aa);disc(A[0],A[1],r,C.surface,C.threat,2.5);hacker(A,k);label(A,r,aa,"Atacante","Red falsa, mismo nombre",C.threat)}
   al(1);

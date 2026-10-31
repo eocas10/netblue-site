@@ -2,6 +2,7 @@
 // GET  /api/reviews  -> reseñas aprobadas (más recientes primero)
 // POST /api/reviews  -> nueva reseña (queda "pendiente" hasta que se apruebe)
 import { getStore } from "@netlify/blobs";
+import { permitir } from "../lib/guard.mjs";
 
 const STORE = "reviews";
 const json = (data, status = 200, extra = {}) =>
@@ -16,7 +17,7 @@ const clean = (v, max) =>
     .trim()
     .slice(0, max);
 
-export default async (req) => {
+export default async (req, context) => {
   const store = getStore({ name: STORE, consistency: "strong" });
 
   if (req.method === "GET") {
@@ -58,6 +59,11 @@ export default async (req) => {
     if (text.length < 10) return json({ error: "La reseña es muy corta." }, 400);
     if (!consent) return json({ error: "Debe autorizar la publicación." }, 400);
 
+    // Máximo 3 reseñas por conexión cada hora, contra spam.
+    if (!(await permitir("resena", context?.ip))) {
+      return json({ error: "Ya recibimos varias reseñas desde su conexión. Intente más tarde." }, 429);
+    }
+
     const createdAt = new Date().toISOString();
     const id = `${createdAt.replace(/[-:.TZ]/g, "")}-${crypto.randomUUID().slice(0, 8)}`;
     await store.setJSON(`pending/${id}`, {
@@ -69,4 +75,8 @@ export default async (req) => {
   return json({ error: "Método no permitido." }, 405, { allow: "GET, POST" });
 };
 
-export const config = { path: "/api/reviews" };
+// Límite de Netlify: 20 peticiones por minuto por IP (lectura y envío).
+export const config = {
+  path: "/api/reviews",
+  rateLimit: { windowLimit: 20, windowSize: 60, aggregateBy: ["ip", "domain"] },
+};
