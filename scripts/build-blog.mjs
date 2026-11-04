@@ -50,6 +50,44 @@ async function obtenerDeSoro() {
   return lista;
 }
 
+// Artículos propios (no vienen de Soro): un archivo JSON por artículo en /blog-local/
+// con slug, title, excerpt, isoDate, image (URL completa) y content (HTML).
+async function leerLocales() {
+  const dir = path.join(ROOT, 'blog-local');
+  let archivos = [];
+  try { archivos = (await readdir(dir)).filter((f) => f.endsWith('.json')); } catch { return []; }
+  const lista = [];
+  for (const f of archivos) lista.push(JSON.parse(await readFile(path.join(dir, f), 'utf8')));
+  return lista;
+}
+
+// Reconstruye los artículos ya publicados a partir de sus páginas, para poder
+// regenerar el blog sin conectarse a Soro: node scripts/build-blog.mjs --sin-soro
+async function leerPublicados() {
+  const blogDir = path.join(ROOT, 'blog');
+  const des = (s = '') => s.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+  const lista = [];
+  for (const e of await readdir(blogDir, { withFileTypes: true })) {
+    if (!e.isDirectory()) continue;
+    const html = await readFile(path.join(blogDir, e.name, 'index.html'), 'utf8');
+    const meta = html.match(/<p class="meta"><time datetime="([^"]+)">([^<]*)<\/time>[^\n]*\n/);
+    const fin = html.indexOf('\n      <div class="cta">');
+    if (!meta || fin < 0) continue;
+    let content = html.slice(meta.index + meta[0].length, fin);
+    const img = content.match(/^\s*<img class="hero-img" src="([^"]+)"[^>]*>\n/);
+    if (img) content = content.slice(img[0].length);
+    lista.push({
+      slug: e.name,
+      title: des(html.match(/<h1>([\s\S]*?)<\/h1>/)[1]),
+      excerpt: des(html.match(/<meta name="description" content="([^"]*)"/)[1]),
+      isoDate: meta[1], date: des(meta[2]),
+      image: img ? des(img[1]) : '',
+      content,
+    });
+  }
+  return lista;
+}
+
 const tarjeta = (a) => `      <li class="post-card"><a href="/blog/${a.slug}/">
         ${a.image ? `<img src="${esc(a.image)}" alt="" loading="lazy" width="640" height="360">` : ''}
         <div class="body"><time datetime="${esc(a.isoDate)}">${esc(a.date || fecha(a.isoDate))}</time><h2>${esc(a.title)}</h2><p>${esc(a.excerpt)}</p></div>
@@ -107,7 +145,13 @@ ${otros.map((o) => `          <li><a href="/blog/${o.slug}/">${esc(o.title)}</a>
 
 async function main() {
   const fuente = process.argv[2];
-  let lista = fuente ? JSON.parse(await readFile(fuente, 'utf8')) : await obtenerDeSoro();
+  let lista = fuente === '--sin-soro' ? await leerPublicados()
+    : fuente ? JSON.parse(await readFile(fuente, 'utf8')) : await obtenerDeSoro();
+  // Suma los artículos propios de blog-local/ (los de Soro tienen prioridad si el slug coincide).
+  const locales = await leerLocales();
+  if (fuente === '--sin-soro') lista = lista.filter((a) => !locales.some((l) => l.slug === a.slug));
+  const deLista = new Set(lista.map((a) => a && a.slug));
+  lista = lista.concat(locales.filter((a) => !deLista.has(a.slug)));
   for (const a of lista) if (a) { a.title = wifi(a.title); a.excerpt = wifi(a.excerpt); }
   lista = lista.filter((a) => a && slugOk(a.slug) && a.title && a.content)
     .sort((x, y) => new Date(y.isoDate) - new Date(x.isoDate));
