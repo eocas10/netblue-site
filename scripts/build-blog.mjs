@@ -105,16 +105,22 @@ function relacionados(lista, i, n = 4) {
 
 // Página de servicio o sector más cercana al tema del artículo (la primera que coincida).
 const SERVICIOS = [
-  [/hipaa|cl[ií]nica|m[ée]dic/i, '/sectores/oficinas-medicas-hipaa/', 'Ciberseguridad y HIPAA para oficinas médicas'],
-  [/pci|tarjeta|comercio/i, '/sectores/comercios-pci-dss/', 'Cumplimiento PCI DSS para comercios'],
-  [/ley 111|bufete|abogad/i, '/sectores/bufetes-abogados/', 'Ciberseguridad para bufetes de abogados'],
-  [/ftc|safeguards|contable|cpa/i, '/sectores/contables-cpa-ftc-safeguards/', 'FTC Safeguards para contables y CPA'],
-  [/wisp/i, '/servicios/wisp/', 'Servicios para proveedores de internet inalámbrico (WISP)'],
+  // La Ley 111 aplica a cualquier negocio con datos personales: va al chequeo gratis, que la cubre.
+  [/ley 111/i, '/chequeo-cumplimiento/', 'Chequeo gratis de cumplimiento (incluye la Ley 111)', 'Herramienta gratis'],
+  [/\bhipaa\b|cl[ií]nica|m[ée]dic/i, '/sectores/oficinas-medicas-hipaa/', 'Ciberseguridad y HIPAA para oficinas médicas'],
+  [/\bpci\b|tarjeta|comercio/i, '/sectores/comercios-pci-dss/', 'Cumplimiento PCI DSS para comercios'],
+  [/bufete|abogad/i, '/sectores/bufetes-abogados/', 'Ciberseguridad para bufetes de abogados'],
+  [/\bftc\b|safeguards|contable|\bcpa\b/i, '/sectores/contables-cpa-ftc-safeguards/', 'FTC Safeguards para contables y CPA'],
+  [/\bwisp\b/i, '/servicios/wisp/', 'Servicios para proveedores de internet inalámbrico (WISP)'],
   [/voip|telefon/i, '/servicios/telefonia-voip/', 'Telefonía VoIP para empresas'],
   [/microsoft 365|google workspace|correo corporativo|nube/i, '/servicios/microsoft-365-nube/', 'Microsoft 365 y nube'],
   [/wi-?fi|red de invitados|redundancia|internet|cableado/i, '/servicios/redes-wifi-cableado/', 'Redes, Wi-Fi y cableado'],
 ];
-const servicioDe = (a) => (SERVICIOS.find(([re]) => re.test(`${a.title} ${a.excerpt}`)) || [null, '/servicios/ciberseguridad/', 'Servicios de ciberseguridad']).slice(1);
+const servicioDe = (a) => {
+  const [, url, nombre, etiqueta = 'Servicio relacionado'] = SERVICIOS.find(([re]) => re.test(`${a.title} ${a.excerpt}`))
+    || [null, '/servicios/ciberseguridad/', 'Servicios de ciberseguridad'];
+  return [url, nombre, etiqueta];
+};
 
 // <title>: seoTitle si existe; si no, "Título | Netblue" mientras quepa en 60 caracteres, o solo el título.
 const tituloSeo = (a) => a.seoTitle || (`${a.title} | Netblue`.length <= 60 ? `${a.title} | Netblue` : a.title);
@@ -159,7 +165,7 @@ ${limpiar(a.content)}
         <ul>
 ${otros.map((o) => `          <li><a href="/blog/${o.slug}/">${esc(o.title)}</a></li>`).join('\n')}
         </ul>
-        <p>Servicio relacionado: <a href="${servicioDe(a)[0]}">${servicioDe(a)[1]}</a></p>
+        <p>${servicioDe(a)[2]}: <a href="${servicioDe(a)[0]}">${servicioDe(a)[1]}</a></p>
         <p><a href="/blog/">Ver todos los artículos</a></p>
       </nav>
     </article>
