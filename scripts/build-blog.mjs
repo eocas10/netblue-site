@@ -89,6 +89,36 @@ async function leerPublicados() {
   return lista;
 }
 
+// Artículos relacionados por tema: palabras en común en título y resumen.
+// Así los artículos viejos también reciben enlaces, no solo los 4 más recientes.
+const VACIAS = new Set('para como cómo que qué con sin una uno unos unas los las del por sus su este esta más mas entre ante desde sobre cuál cual hacer debe puede empresa empresas negocio negocios puerto rico pymes pyme operación operacion empresarial empresariales oficina guía guia aprenda señales controles'.split(' '));
+const raiz = (w) => w.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/(es|s)$/, '');
+const palabras = (a) => new Set(`${a.title} ${a.excerpt}`.toLowerCase().split(/[^a-záéíóúñü0-9]+/i)
+  .filter((w) => w.length > 2 && !VACIAS.has(w)).map(raiz));
+function relacionados(lista, i, n = 4) {
+  const base = palabras(lista[i]);
+  return lista.map((o, j) => ({ o, j, p: j === i ? -1 : [...palabras(o)].filter((w) => base.has(w)).length }))
+    .filter((x) => x.j !== i)
+    .sort((x, y) => y.p - x.p || x.j - y.j) // empate: el más reciente
+    .slice(0, n).map((x) => x.o);
+}
+
+// Página de servicio o sector más cercana al tema del artículo (la primera que coincida).
+const SERVICIOS = [
+  [/hipaa|cl[ií]nica|m[ée]dic/i, '/sectores/oficinas-medicas-hipaa/', 'Ciberseguridad y HIPAA para oficinas médicas'],
+  [/pci|tarjeta|comercio/i, '/sectores/comercios-pci-dss/', 'Cumplimiento PCI DSS para comercios'],
+  [/ley 111|bufete|abogad/i, '/sectores/bufetes-abogados/', 'Ciberseguridad para bufetes de abogados'],
+  [/ftc|safeguards|contable|cpa/i, '/sectores/contables-cpa-ftc-safeguards/', 'FTC Safeguards para contables y CPA'],
+  [/wisp/i, '/servicios/wisp/', 'Servicios para proveedores de internet inalámbrico (WISP)'],
+  [/voip|telefon/i, '/servicios/telefonia-voip/', 'Telefonía VoIP para empresas'],
+  [/microsoft 365|google workspace|correo corporativo|nube/i, '/servicios/microsoft-365-nube/', 'Microsoft 365 y nube'],
+  [/wi-?fi|red de invitados|redundancia|internet|cableado/i, '/servicios/redes-wifi-cableado/', 'Redes, Wi-Fi y cableado'],
+];
+const servicioDe = (a) => (SERVICIOS.find(([re]) => re.test(`${a.title} ${a.excerpt}`)) || [null, '/servicios/ciberseguridad/', 'Servicios de ciberseguridad']).slice(1);
+
+// <title>: seoTitle si existe; si no, "Título | Netblue" mientras quepa en 60 caracteres, o solo el título.
+const tituloSeo = (a) => a.seoTitle || (`${a.title} | Netblue`.length <= 60 ? `${a.title} | Netblue` : a.title);
+
 const tarjeta = (a) => `      <li class="post-card"><a href="/blog/${a.slug}/">
         ${a.image ? `<img src="${esc(a.image)}" alt="" loading="lazy" width="640" height="360">` : ''}
         <div class="body"><time datetime="${esc(a.isoDate)}">${esc(a.date || fecha(a.isoDate))}</time><h2>${esc(a.title)}</h2><p>${esc(a.excerpt)}</p></div>
@@ -129,6 +159,7 @@ ${limpiar(a.content)}
         <ul>
 ${otros.map((o) => `          <li><a href="/blog/${o.slug}/">${esc(o.title)}</a></li>`).join('\n')}
         </ul>
+        <p>Servicio relacionado: <a href="${servicioDe(a)[0]}">${servicioDe(a)[1]}</a></p>
         <p><a href="/blog/">Ver todos los artículos</a></p>
       </nav>
     </article>
@@ -136,7 +167,7 @@ ${otros.map((o) => `          <li><a href="/blog/${o.slug}/">${esc(o.title)}</a>
 </section>`;
 
   return tpl
-    .replace('{{SEO_TITLE}}', esc(a.seoTitle || `${a.title} | Netblue`))
+    .replace('{{SEO_TITLE}}', esc(tituloSeo(a)))
     .replaceAll('{{TITLE}}', esc(a.title))
     .replaceAll('{{DESC}}', esc(a.excerpt))
     .replaceAll('{{URL}}', url)
@@ -169,7 +200,7 @@ async function main() {
   }
 
   for (const [i, a] of lista.entries()) {
-    const otros = lista.filter((_, j) => j !== i).slice(0, 4);
+    const otros = relacionados(lista, i);
     await mkdir(path.join(blogDir, a.slug), { recursive: true });
     await writeFile(path.join(blogDir, a.slug, 'index.html'), paginaArticulo(tpl, a, otros));
   }
@@ -177,7 +208,14 @@ async function main() {
   const indexPath = path.join(blogDir, 'index.html');
   const index = await readFile(indexPath, 'utf8');
   const bloque = `<!-- BLOG:START -->\n    <ul class="posts">\n${lista.map(tarjeta).join('\n')}\n    </ul>\n    <!-- BLOG:END -->`;
-  await writeFile(indexPath, index.replace(/<!-- BLOG:START -->[\s\S]*?<!-- BLOG:END -->/, bloque));
+  // Datos estructurados de /blog/: la lista de artículos para Google.
+  const ldBlog = { '@context': 'https://schema.org', '@type': 'Blog', '@id': `${SITE}/blog/#blog`, url: `${SITE}/blog/`,
+    name: 'Blog de Netblue IT Consulting', inLanguage: 'es-PR',
+    publisher: { '@type': 'Organization', '@id': `${SITE}/#negocio`, name: 'Netblue IT Consulting' },
+    blogPost: lista.map((a) => ({ '@type': 'BlogPosting', headline: a.title, url: `${SITE}/blog/${a.slug}/`, datePublished: a.isoDate })) };
+  const bloqueLd = `<!-- BLOGLD:START --><script type="application/ld+json">${JSON.stringify(ldBlog).replace(/</g, '\\u003c')}</script><!-- BLOGLD:END -->`;
+  await writeFile(indexPath, index.replace(/<!-- BLOG:START -->[\s\S]*?<!-- BLOG:END -->/, bloque)
+    .replace(/<!-- BLOGLD:START -->[\s\S]*?<!-- BLOGLD:END -->/, bloqueLd));
 
   const smPath = path.join(ROOT, 'sitemap.xml');
   let sm = (await readFile(smPath, 'utf8')).replace(/\s*<url><loc>https:\/\/netbluepr\.com\/blog\/[^<]+\/<\/loc>.*?<\/url>/g, '');
