@@ -52,6 +52,7 @@ async function obtenerDeSoro() {
 
 // Artículos propios (no vienen de Soro): un archivo JSON por artículo en /blog-local/
 // con slug, title, excerpt, isoDate, image (URL completa) y content (HTML).
+// Opcional: seoTitle, el <title> completo para Google (máx. ~60 caracteres) si el título es largo.
 async function leerLocales() {
   const dir = path.join(ROOT, 'blog-local');
   let archivos = [];
@@ -113,7 +114,7 @@ function paginaArticulo(tpl, a, otros) {
       <p class="crumbs"><a href="/">Inicio</a> › <a href="/blog/">Blog</a></p>
       <h1>${esc(a.title)}</h1>
       <p class="meta"><time datetime="${esc(a.isoDate)}">${esc(a.date || fecha(a.isoDate))}</time> · Edgardo Ocasio, Netblue IT Consulting</p>
-      ${a.image ? `<img class="hero-img" src="${esc(a.image)}" alt="" width="1200" height="675">` : ''}
+      ${a.image ? `<img class="hero-img" src="${esc(a.image)}" alt="${esc(a.title)}" width="1200" height="675">` : ''}
 ${limpiar(a.content)}
       <div class="cta">
         <h2>¿Quiere saber cómo está su negocio?</h2>
@@ -135,6 +136,7 @@ ${otros.map((o) => `          <li><a href="/blog/${o.slug}/">${esc(o.title)}</a>
 </section>`;
 
   return tpl
+    .replace('{{SEO_TITLE}}', esc(a.seoTitle || `${a.title} | Netblue`))
     .replaceAll('{{TITLE}}', esc(a.title))
     .replaceAll('{{DESC}}', esc(a.excerpt))
     .replaceAll('{{URL}}', url)
