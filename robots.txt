@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
 Disallow: /admin/
+Disallow: /scripts/
+Disallow: /blog-local/
+Disallow: /netlify/
 
 Sitemap: https://netbluepr.com/sitemap.xml
