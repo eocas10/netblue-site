@@ -47,6 +47,13 @@ function setMeta(html, attr, name, value) {
 export default async (request, context) => {
   const url = new URL(request.url);
   if (url.searchParams.get("lang") !== "en") return;
+  // La portada ya tiene versión completa en inglés: /?lang=en pasa a /en/ (301),
+  // así los enlaces ya compartidos en Facebook llegan a la página en inglés.
+  if (url.pathname === "/") {
+    const dest = new URL("/en/", url);
+    for (const [k, v] of url.searchParams) if (k !== "lang") dest.searchParams.append(k, v);
+    return Response.redirect(dest.toString(), 301);
+  }
   const page = PAGES[url.pathname];
   if (!page) return;
 
