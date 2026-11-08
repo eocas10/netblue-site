@@ -4,7 +4,7 @@
 // Crea /blog/<slug>/index.html, rellena la lista de /blog/index.html y actualiza sitemap.xml.
 // Si Soro no responde, termina con error sin tocar ningún archivo.
 
-import { readFile, writeFile, mkdir, readdir, rm } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, readdir, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -123,7 +123,13 @@ const servicioDe = (a) => {
 };
 
 // <title>: seoTitle si existe; si no, "Título | Netblue" mientras quepa en 60 caracteres, o solo el título.
-const tituloSeo = (a) => a.seoTitle || (`${a.title} | Netblue`.length <= 60 ? `${a.title} | Netblue` : a.title);
+// Títulos para Google de artículos de Soro (no se pueden editar allá). Sirven también para que
+// dos artículos del mismo tema no compitan por la misma búsqueda (ej.: los dos de MFA).
+const SEO_TITULOS = {
+  'que-es-mfa-protege-accesos-empresa': 'Qué es MFA y cómo protege su empresa | Netblue',
+  'como-implementar-mfa-empresarial': 'Implementar MFA en su empresa: guía práctica | Netblue',
+};
+const tituloSeo = (a) => a.seoTitle || SEO_TITULOS[a.slug] || (`${a.title} | Netblue`.length <= 60 ? `${a.title} | Netblue` : a.title);
 
 const tarjeta = (a) => `      <li class="post-card"><a href="/blog/${a.slug}/">
         ${a.image ? `<img src="${esc(a.image)}" alt="" loading="lazy" width="640" height="360">` : ''}
@@ -182,6 +188,34 @@ ${otros.map((o) => `          <li><a href="/blog/${o.slug}/">${esc(o.title)}</a>
     .replace('{{MAIN}}', main);
 }
 
+// Copia la imagen principal de cada artículo a /img/blog/<slug>.<ext> para servirla desde
+// netbluepr.com (y no desde el almacenamiento de Soro). Si ya existe, la reutiliza; si la
+// descarga falla, deja la URL original para no romper el artículo.
+async function imagenLocal(a) {
+  if (!a.image || a.image.startsWith(`${SITE}/`)) return;
+  const dir = path.join(ROOT, 'img', 'blog');
+  const ext = (a.image.split('?')[0].match(/\.(webp|jpe?g|png|avif)$/i) || [, 'webp'])[1].toLowerCase();
+  const nombre = `${a.slug}.${ext}`;
+  const destino = path.join(dir, nombre);
+  try {
+    await stat(destino);
+  } catch {
+    try {
+      const r = await fetch(a.image);
+      const tipo = r.headers.get('content-type') || '';
+      if (!r.ok || !tipo.startsWith('image/')) throw new Error(`${r.status} ${tipo}`);
+      const datos = Buffer.from(await r.arrayBuffer());
+      if (datos.length > 5e6) throw new Error('imagen de más de 5 MB');
+      await mkdir(dir, { recursive: true });
+      await writeFile(destino, datos);
+    } catch (e) {
+      console.warn(`No pude copiar la imagen de ${a.slug} (${e.message}); uso la URL original`);
+      return;
+    }
+  }
+  a.image = `${SITE}/img/blog/${nombre}`;
+}
+
 async function main() {
   const fuente = process.argv[2];
   let lista = fuente === '--sin-soro' ? await leerPublicados()
@@ -195,6 +229,8 @@ async function main() {
   lista = lista.filter((a) => a && slugOk(a.slug) && a.title && a.content)
     .sort((x, y) => new Date(y.isoDate) - new Date(x.isoDate));
   if (!lista.length) throw new Error('No hay artículos válidos; no cambio nada');
+
+  for (const a of lista) await imagenLocal(a);
 
   const tpl = await readFile(path.join(ROOT, 'scripts/blog-template.html'), 'utf8');
   const blogDir = path.join(ROOT, 'blog');
