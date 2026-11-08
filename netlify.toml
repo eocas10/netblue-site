@@ -1,6 +1,12 @@
 [build]
   publish = "."
 
+# Acceso solo desde Puerto Rico y EE. UU. (más buscadores y vistas previas de redes sociales).
+# Declarada aquí para que corra antes que las demás edge functions.
+[[edge_functions]]
+  path = "/*"
+  function = "solo-pr-usa"
+
 [[headers]]
   for = "/*"
   [headers.values]
