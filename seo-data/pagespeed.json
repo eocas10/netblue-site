@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-08T14:40:03.604Z",
+  "generatedAt": "2026-11-08T14:46:14.766Z",
   "withApiKey": true,
   "pages": {
     "https://netbluepr.com/": {
@@ -20,7 +20,7 @@
         "accessibility": 97,
         "bestPractices": 100,
         "lcpSeconds": 0.4,
-        "cls": 0.006,
+        "cls": 0.001,
         "tbtMs": 0,
         "fcpSeconds": 0.4,
         "fieldData": null
@@ -33,7 +33,7 @@
         "accessibility": 100,
         "bestPractices": 100,
         "lcpSeconds": 1.5,
-        "cls": 0.003,
+        "cls": 0.012,
         "tbtMs": 0,
         "fcpSeconds": 1.5,
         "fieldData": null
@@ -52,23 +52,23 @@
     },
     "https://netbluepr.com/assessment/": {
       "mobile": {
-        "performance": 99,
+        "performance": 81,
         "seo": 100,
         "accessibility": 100,
         "bestPractices": 100,
         "lcpSeconds": 1.7,
-        "cls": 0.001,
+        "cls": 0.377,
         "tbtMs": 0,
         "fcpSeconds": 1.7,
         "fieldData": null
       },
       "desktop": {
-        "performance": 100,
+        "performance": 99,
         "seo": 100,
         "accessibility": 96,
         "bestPractices": 100,
         "lcpSeconds": 0.5,
-        "cls": 0.01,
+        "cls": 0.069,
         "tbtMs": 0,
         "fcpSeconds": 0.5,
         "fieldData": null
@@ -76,22 +76,22 @@
     },
     "https://netbluepr.com/blog/": {
       "mobile": {
-        "performance": 92,
+        "performance": 97,
         "seo": 100,
         "accessibility": 100,
         "bestPractices": 100,
-        "lcpSeconds": 3.4,
+        "lcpSeconds": 2.6,
         "cls": 0.003,
         "tbtMs": 0,
         "fcpSeconds": 1.5,
         "fieldData": null
       },
       "desktop": {
-        "performance": 99,
+        "performance": 100,
         "seo": 100,
         "accessibility": 95,
         "bestPractices": 100,
-        "lcpSeconds": 1,
+        "lcpSeconds": 0.7,
         "cls": 0.024,
         "tbtMs": 0,
         "fcpSeconds": 0.4,
