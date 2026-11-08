@@ -1,15 +1,15 @@
 {
-  "generatedAt": "2026-11-08T14:46:14.766Z",
+  "generatedAt": "2026-11-08T14:48:12.747Z",
   "withApiKey": true,
   "pages": {
     "https://netbluepr.com/": {
       "mobile": {
-        "performance": 100,
+        "performance": 97,
         "seo": 100,
         "accessibility": 100,
         "bestPractices": 100,
-        "lcpSeconds": 1.5,
-        "cls": 0.004,
+        "lcpSeconds": 2.6,
+        "cls": 0.003,
         "tbtMs": 0,
         "fcpSeconds": 1.5,
         "fieldData": null
@@ -52,12 +52,12 @@
     },
     "https://netbluepr.com/assessment/": {
       "mobile": {
-        "performance": 81,
+        "performance": 99,
         "seo": 100,
         "accessibility": 100,
         "bestPractices": 100,
         "lcpSeconds": 1.7,
-        "cls": 0.377,
+        "cls": 0.001,
         "tbtMs": 0,
         "fcpSeconds": 1.7,
         "fieldData": null
@@ -92,7 +92,7 @@
         "accessibility": 95,
         "bestPractices": 100,
         "lcpSeconds": 0.7,
-        "cls": 0.024,
+        "cls": 0.023,
         "tbtMs": 0,
         "fcpSeconds": 0.4,
         "fieldData": null
