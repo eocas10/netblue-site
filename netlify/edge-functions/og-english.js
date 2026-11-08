@@ -84,6 +84,6 @@ export default async (request, context) => {
 };
 
 export const config = {
-  path: Object.keys(PAGES),
+  path: [...new Set([...Object.keys(PAGES), ...EN_PAGES])],
   onError: "bypass",
 };
