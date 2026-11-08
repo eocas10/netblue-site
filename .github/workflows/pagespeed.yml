@@ -2,7 +2,7 @@ name: PageSpeed diario
 
 # Mide netbluepr.com con la API de PageSpeed Insights (móvil y escritorio) y guarda el
 # resultado en seo-data/pagespeed.json. El análisis SEO diario lo lee desde GitHub.
-# La clave va en el secreto PAGESPEED_API_KEY (Settings → Secrets and variables → Actions).
+# La clave va en el secreto PAGE_SPEED (Settings → Secrets and variables → Actions).
 
 on:
   schedule:
@@ -23,7 +23,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Medir con PageSpeed Insights
         env:
-          PAGESPEED_API_KEY: ${{ secrets.PAGESPEED_API_KEY }}
+          PAGESPEED_API_KEY: ${{ secrets.PAGE_SPEED || secrets.PAGESPEED_API_KEY }}
         run: node scripts/pagespeed.mjs
       - name: Guardar resultado
         run: |
