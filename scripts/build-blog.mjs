@@ -131,8 +131,10 @@ const SEO_TITULOS = {
 };
 const tituloSeo = (a) => a.seoTitle || SEO_TITULOS[a.slug] || (`${a.title} | Netblue`.length <= 60 ? `${a.title} | Netblue` : a.title);
 
-const tarjeta = (a) => `      <li class="post-card"><a href="/blog/${a.slug}/">
-        ${a.image ? `<img src="${esc(a.image)}" alt="" loading="lazy" width="640" height="360">` : ''}
+// Tarjeta de /blog/: usa la miniatura de 640 px si existe. La primera tarjeta es lo más grande
+// que se ve al abrir la página (el LCP de Google), así que se carga con prioridad y no diferida.
+const tarjeta = (a, i = 1) => `      <li class="post-card"><a href="/blog/${a.slug}/">
+        ${a.image ? `<img src="${esc(a.thumb || a.image)}" alt="" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async" width="640" height="360">` : ''}
         <div class="body"><time datetime="${esc(a.isoDate)}">${esc(a.date || fecha(a.isoDate))}</time><h2>${esc(a.title)}</h2><p>${esc(a.excerpt)}</p></div>
       </a></li>`;
 
@@ -216,6 +218,25 @@ async function imagenLocal(a) {
   a.image = `${SITE}/img/blog/${nombre}`;
 }
 
+// Miniatura de 640 px de ancho en /img/blog/thumb/ para las tarjetas de /blog/ (la imagen
+// completa pesa varias veces más). Usa sharp si está instalado (el workflow lo instala);
+// si no, reutiliza la miniatura que ya exista o deja la imagen completa.
+let sharp;
+async function miniatura(a) {
+  if (!a.image || !a.image.startsWith(`${SITE}/img/blog/`)) return;
+  const nombre = path.basename(a.image).replace(/\.[a-z]+$/i, '.webp');
+  const destino = path.join(ROOT, 'img', 'blog', 'thumb', nombre);
+  try { await stat(destino); a.thumb = `${SITE}/img/blog/thumb/${nombre}`; return; } catch {}
+  try {
+    sharp ??= (await import('sharp')).default;
+    await mkdir(path.dirname(destino), { recursive: true });
+    await sharp(path.join(ROOT, 'img', 'blog', path.basename(a.image))).resize({ width: 640, withoutEnlargement: true }).webp({ quality: 72 }).toFile(destino);
+    a.thumb = `${SITE}/img/blog/thumb/${nombre}`;
+  } catch (e) {
+    console.warn(`Sin miniatura para ${a.slug} (${e.message}); uso la imagen completa`);
+  }
+}
+
 async function main() {
   const fuente = process.argv[2];
   let lista = fuente === '--sin-soro' ? await leerPublicados()
@@ -231,6 +252,7 @@ async function main() {
   if (!lista.length) throw new Error('No hay artículos válidos; no cambio nada');
 
   for (const a of lista) await imagenLocal(a);
+  for (const a of lista) await miniatura(a);
 
   const tpl = await readFile(path.join(ROOT, 'scripts/blog-template.html'), 'utf8');
   const blogDir = path.join(ROOT, 'blog');
@@ -249,7 +271,7 @@ async function main() {
 
   const indexPath = path.join(blogDir, 'index.html');
   const index = await readFile(indexPath, 'utf8');
-  const bloque = `<!-- BLOG:START -->\n    <ul class="posts">\n${lista.map(tarjeta).join('\n')}\n    </ul>\n    <!-- BLOG:END -->`;
+  const bloque = `<!-- BLOG:START -->\n    <ul class="posts">\n${lista.map((a, i) => tarjeta(a, i)).join('\n')}\n    </ul>\n    <!-- BLOG:END -->`;
   // Datos estructurados de /blog/: la lista de artículos para Google.
   const ldBlog = { '@context': 'https://schema.org', '@type': 'Blog', '@id': `${SITE}/blog/#blog`, url: `${SITE}/blog/`,
     name: 'Blog de Netblue IT Consulting', inLanguage: 'es-PR',

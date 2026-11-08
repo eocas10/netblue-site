@@ -20,6 +20,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Instalar sharp (miniaturas de las imágenes)
+        run: npm install --no-save --no-package-lock --no-audit --no-fund sharp
       - name: Generar páginas del blog desde Soro
         run: node scripts/build-blog.mjs
       - name: Publicar si hay cambios
