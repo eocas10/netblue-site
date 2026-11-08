@@ -1,0 +1,38 @@
+{
+  "generatedAt": "2026-11-08T14:34:27.403Z",
+  "withApiKey": false,
+  "pages": {
+    "https://netbluepr.com/": {
+      "mobile": {
+        "error": "Quota exceeded for quota metric 'Queries' and limit 'Queries per day' of service 'pagespeedonline.googleapis.com' for consumer 'project_number:583797351490'."
+      },
+      "desktop": {
+        "error": "Quota exceeded for quota metric 'Queries' and limit 'Queries per day' of service 'pagespeedonline.googleapis.com' for consumer 'project_number:583797351490'."
+      }
+    },
+    "https://netbluepr.com/en/": {
+      "mobile": {
+        "error": "Quota exceeded for quota metric 'Queries' and limit 'Queries per day' of service 'pagespeedonline.googleapis.com' for consumer 'project_number:583797351490'."
+      },
+      "desktop": {
+        "error": "Quota exceeded for quota metric 'Queries' and limit 'Queries per day' of service 'pagespeedonline.googleapis.com' for consumer 'project_number:583797351490'."
+      }
+    },
+    "https://netbluepr.com/assessment/": {
+      "mobile": {
+        "error": "Quota exceeded for quota metric 'Queries' and limit 'Queries per day' of service 'pagespeedonline.googleapis.com' for consumer 'project_number:583797351490'."
+      },
+      "desktop": {
+        "error": "Quota exceeded for quota metric 'Queries' and limit 'Queries per day' of service 'pagespeedonline.googleapis.com' for consumer 'project_number:583797351490'."
+      }
+    },
+    "https://netbluepr.com/blog/": {
+      "mobile": {
+        "error": "Quota exceeded for quota metric 'Queries' and limit 'Queries per day' of service 'pagespeedonline.googleapis.com' for consumer 'project_number:583797351490'."
+      },
+      "desktop": {
+        "error": "Quota exceeded for quota metric 'Queries' and limit 'Queries per day' of service 'pagespeedonline.googleapis.com' for consumer 'project_number:583797351490'."
+      }
+    }
+  }
+}
