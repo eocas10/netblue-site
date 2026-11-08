@@ -33,6 +33,9 @@ const PAGES = {
   },
 };
 
+// Páginas con versión completa en /en/: ?lang=en redirige allí.
+const EN_PAGES = new Set(["/servicios/ciberseguridad/", "/servicios/redes-wifi-cableado/", "/servicios/microsoft-365-nube/", "/servicios/telefonia-voip/", "/servicios/wisp/", "/precios/", "/sobre-nosotros/", "/sectores/oficinas-medicas-hipaa/", "/sectores/contables-cpa-ftc-safeguards/", "/sectores/bufetes-abogados/", "/sectores/comercios-pci-dss/", "/sectores/concesionarios-financieras-ftc/"]);
+
 const IMAGE = "https://netbluepr.com/og-image-en.png";
 const IMAGE_ALT = "Netblue IT Consulting: IT support and cybersecurity for businesses in Puerto Rico";
 
@@ -47,10 +50,10 @@ function setMeta(html, attr, name, value) {
 export default async (request, context) => {
   const url = new URL(request.url);
   if (url.searchParams.get("lang") !== "en") return;
-  // La portada ya tiene versión completa en inglés: /?lang=en pasa a /en/ (301),
+  // La portada y las páginas de EN_PAGES tienen versión en inglés: ?lang=en pasa a /en/... (301),
   // así los enlaces ya compartidos en Facebook llegan a la página en inglés.
-  if (url.pathname === "/") {
-    const dest = new URL("/en/", url);
+  if (url.pathname === "/" || EN_PAGES.has(url.pathname)) {
+    const dest = new URL(url.pathname === "/" ? "/en/" : `/en${url.pathname}`, url);
     for (const [k, v] of url.searchParams) if (k !== "lang") dest.searchParams.append(k, v);
     return Response.redirect(dest.toString(), 301);
   }
