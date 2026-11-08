@@ -1,0 +1,35 @@
+name: PageSpeed diario
+
+# Mide netbluepr.com con la API de PageSpeed Insights (móvil y escritorio) y guarda el
+# resultado en seo-data/pagespeed.json. El análisis SEO diario lo lee desde GitHub.
+# La clave va en el secreto PAGESPEED_API_KEY (Settings → Secrets and variables → Actions).
+
+on:
+  schedule:
+    - cron: "20 11 * * *"   # 7:20 a. m. en Puerto Rico, antes del análisis SEO (7:47)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pagespeed
+  cancel-in-progress: false
+
+jobs:
+  pagespeed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Medir con PageSpeed Insights
+        env:
+          PAGESPEED_API_KEY: ${{ secrets.PAGESPEED_API_KEY }}
+        run: node scripts/pagespeed.mjs
+      - name: Guardar resultado
+        run: |
+          git config user.name "netblue-seo-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add seo-data/pagespeed.json
+          if git diff --cached --quiet; then echo "Sin cambios"; exit 0; fi
+          git commit -m "PageSpeed diario [skip netlify]"
+          for i in 1 2 3; do git pull --rebase -q origin main && git push && break; sleep 5; done
