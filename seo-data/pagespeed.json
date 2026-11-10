@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-11-09T21:26:25.134Z",
+  "generatedAt": "2026-11-10T18:40:29.448Z",
   "withApiKey": true,
   "pages": {
     "https://netbluepr.com/": {
       "mobile": {
-        "performance": 98,
+        "performance": 99,
         "seo": 100,
         "accessibility": 100,
         "bestPractices": 100,
@@ -19,23 +19,23 @@
         "seo": 100,
         "accessibility": 97,
         "bestPractices": 100,
-        "lcpSeconds": 0.4,
-        "cls": 0.006,
+        "lcpSeconds": 0.5,
+        "cls": 0.007,
         "tbtMs": 0,
-        "fcpSeconds": 0.4,
+        "fcpSeconds": 0.5,
         "fieldData": null
       }
     },
     "https://netbluepr.com/en/": {
       "mobile": {
-        "performance": 100,
+        "performance": 99,
         "seo": 100,
         "accessibility": 100,
         "bestPractices": 100,
-        "lcpSeconds": 1.5,
-        "cls": 0.012,
+        "lcpSeconds": 1.7,
+        "cls": 0.003,
         "tbtMs": 0,
-        "fcpSeconds": 1.5,
+        "fcpSeconds": 1.7,
         "fieldData": null
       },
       "desktop": {
@@ -52,12 +52,12 @@
     },
     "https://netbluepr.com/assessment/": {
       "mobile": {
-        "performance": 81,
+        "performance": 99,
         "seo": 100,
         "accessibility": 100,
         "bestPractices": 100,
         "lcpSeconds": 1.7,
-        "cls": 0.377,
+        "cls": 0.001,
         "tbtMs": 0,
         "fcpSeconds": 1.7,
         "fieldData": null
@@ -68,7 +68,7 @@
         "accessibility": 96,
         "bestPractices": 100,
         "lcpSeconds": 0.5,
-        "cls": 0,
+        "cls": 0.01,
         "tbtMs": 0,
         "fcpSeconds": 0.5,
         "fieldData": null
@@ -81,18 +81,18 @@
         "accessibility": 100,
         "bestPractices": 100,
         "lcpSeconds": 2.6,
-        "cls": 0.003,
+        "cls": 0.006,
         "tbtMs": 0,
         "fcpSeconds": 1.5,
         "fieldData": null
       },
       "desktop": {
-        "performance": 99,
+        "performance": 100,
         "seo": 100,
         "accessibility": 95,
         "bestPractices": 100,
         "lcpSeconds": 0.8,
-        "cls": 0.024,
+        "cls": 0.023,
         "tbtMs": 0,
         "fcpSeconds": 0.4,
         "fieldData": null
