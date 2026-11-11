@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-11-10T18:40:29.448Z",
+  "generatedAt": "2026-11-11T18:42:05.552Z",
   "withApiKey": true,
   "pages": {
     "https://netbluepr.com/": {
       "mobile": {
-        "performance": 99,
+        "performance": 98,
         "seo": 100,
         "accessibility": 100,
         "bestPractices": 100,
@@ -19,23 +19,23 @@
         "seo": 100,
         "accessibility": 97,
         "bestPractices": 100,
-        "lcpSeconds": 0.5,
-        "cls": 0.007,
+        "lcpSeconds": 0.4,
+        "cls": 0,
         "tbtMs": 0,
-        "fcpSeconds": 0.5,
+        "fcpSeconds": 0.4,
         "fieldData": null
       }
     },
     "https://netbluepr.com/en/": {
       "mobile": {
-        "performance": 99,
+        "performance": 100,
         "seo": 100,
         "accessibility": 100,
         "bestPractices": 100,
-        "lcpSeconds": 1.7,
+        "lcpSeconds": 1.5,
         "cls": 0.003,
         "tbtMs": 0,
-        "fcpSeconds": 1.7,
+        "fcpSeconds": 1.5,
         "fieldData": null
       },
       "desktop": {
@@ -44,7 +44,7 @@
         "accessibility": 97,
         "bestPractices": 100,
         "lcpSeconds": 0.4,
-        "cls": 0.005,
+        "cls": 0.001,
         "tbtMs": 0,
         "fcpSeconds": 0.4,
         "fieldData": null
@@ -52,12 +52,12 @@
     },
     "https://netbluepr.com/assessment/": {
       "mobile": {
-        "performance": 99,
+        "performance": 81,
         "seo": 100,
         "accessibility": 100,
         "bestPractices": 100,
         "lcpSeconds": 1.7,
-        "cls": 0.001,
+        "cls": 0.377,
         "tbtMs": 0,
         "fcpSeconds": 1.7,
         "fieldData": null
@@ -68,7 +68,7 @@
         "accessibility": 96,
         "bestPractices": 100,
         "lcpSeconds": 0.5,
-        "cls": 0.01,
+        "cls": 0.025,
         "tbtMs": 0,
         "fcpSeconds": 0.5,
         "fieldData": null
@@ -91,8 +91,8 @@
         "seo": 100,
         "accessibility": 95,
         "bestPractices": 100,
-        "lcpSeconds": 0.8,
-        "cls": 0.023,
+        "lcpSeconds": 0.7,
+        "cls": 0.024,
         "tbtMs": 0,
         "fcpSeconds": 0.4,
         "fieldData": null
