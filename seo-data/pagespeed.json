@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-17T19:50:49.930Z",
+  "generatedAt": "2026-11-18T19:24:08.736Z",
   "withApiKey": true,
   "pages": {
     "https://netbluepr.com/": {
@@ -20,7 +20,7 @@
         "accessibility": 97,
         "bestPractices": 100,
         "lcpSeconds": 0.4,
-        "cls": 0,
+        "cls": 0.001,
         "tbtMs": 0,
         "fcpSeconds": 0.4,
         "fieldData": null
@@ -28,14 +28,14 @@
     },
     "https://netbluepr.com/en/": {
       "mobile": {
-        "performance": 100,
+        "performance": 99,
         "seo": 100,
         "accessibility": 100,
         "bestPractices": 100,
-        "lcpSeconds": 1.5,
+        "lcpSeconds": 1.6,
         "cls": 0.01,
         "tbtMs": 0,
-        "fcpSeconds": 1.5,
+        "fcpSeconds": 1.6,
         "fieldData": null
       },
       "desktop": {
@@ -43,10 +43,10 @@
         "seo": 100,
         "accessibility": 97,
         "bestPractices": 100,
-        "lcpSeconds": 0.4,
-        "cls": 0.001,
+        "lcpSeconds": 0.5,
+        "cls": 0.006,
         "tbtMs": 0,
-        "fcpSeconds": 0.4,
+        "fcpSeconds": 0.5,
         "fieldData": null
       }
     },
@@ -57,7 +57,7 @@
         "accessibility": 100,
         "bestPractices": 100,
         "lcpSeconds": 1.7,
-        "cls": 0.375,
+        "cls": 0.377,
         "tbtMs": 0,
         "fcpSeconds": 1.7,
         "fieldData": null
@@ -68,7 +68,7 @@
         "accessibility": 96,
         "bestPractices": 100,
         "lcpSeconds": 0.5,
-        "cls": 0.011,
+        "cls": 0.001,
         "tbtMs": 0,
         "fcpSeconds": 0.5,
         "fieldData": null
