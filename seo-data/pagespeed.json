@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-18T19:24:08.736Z",
+  "generatedAt": "2026-11-19T19:29:04.874Z",
   "withApiKey": true,
   "pages": {
     "https://netbluepr.com/": {
@@ -9,7 +9,7 @@
         "accessibility": 100,
         "bestPractices": 100,
         "lcpSeconds": 1.7,
-        "cls": 0.004,
+        "cls": 0.002,
         "tbtMs": 0,
         "fcpSeconds": 1.7,
         "fieldData": null
@@ -20,7 +20,7 @@
         "accessibility": 97,
         "bestPractices": 100,
         "lcpSeconds": 0.4,
-        "cls": 0.001,
+        "cls": 0.006,
         "tbtMs": 0,
         "fcpSeconds": 0.4,
         "fieldData": null
@@ -28,14 +28,14 @@
     },
     "https://netbluepr.com/en/": {
       "mobile": {
-        "performance": 99,
+        "performance": 100,
         "seo": 100,
         "accessibility": 100,
         "bestPractices": 100,
-        "lcpSeconds": 1.6,
-        "cls": 0.01,
+        "lcpSeconds": 1.5,
+        "cls": 0.012,
         "tbtMs": 0,
-        "fcpSeconds": 1.6,
+        "fcpSeconds": 1.5,
         "fieldData": null
       },
       "desktop": {
@@ -43,21 +43,21 @@
         "seo": 100,
         "accessibility": 97,
         "bestPractices": 100,
-        "lcpSeconds": 0.5,
+        "lcpSeconds": 0.4,
         "cls": 0.006,
         "tbtMs": 0,
-        "fcpSeconds": 0.5,
+        "fcpSeconds": 0.4,
         "fieldData": null
       }
     },
     "https://netbluepr.com/assessment/": {
       "mobile": {
-        "performance": 81,
+        "performance": 99,
         "seo": 100,
         "accessibility": 100,
         "bestPractices": 100,
         "lcpSeconds": 1.7,
-        "cls": 0.377,
+        "cls": 0.003,
         "tbtMs": 0,
         "fcpSeconds": 1.7,
         "fieldData": null
@@ -67,10 +67,10 @@
         "seo": 100,
         "accessibility": 96,
         "bestPractices": 100,
-        "lcpSeconds": 0.5,
-        "cls": 0.001,
+        "lcpSeconds": 0.4,
+        "cls": 0,
         "tbtMs": 0,
-        "fcpSeconds": 0.5,
+        "fcpSeconds": 0.4,
         "fieldData": null
       }
     },
